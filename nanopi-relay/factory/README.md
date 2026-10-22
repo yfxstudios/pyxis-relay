@@ -10,8 +10,19 @@ provision.sh     factory image  +  one unit's Wi-Fi name, Wi-Fi password, admin 
                  -> dist/units/<code>/relay-<code>.img.gz, label.html, unit.txt
 ```
 
-Both run on the Mac and need Docker Desktop. The image work happens in a small Debian container
-(`Dockerfile`), natively on arm64.
+Both run on the Mac. The image work happens in a small Debian container (`Dockerfile`), natively on arm64.
+
+**What a fresh clone needs:**
+- **Docker Desktop**, running.
+- **`brew install zig cmake meson ninja`**, to build the HDMI player from source (`../hdmi/build.sh`).
+  Or run with `NO_HDMI=1` for an image without HDMI output.
+- **Internet on the first build.** It downloads, and checks against pinned SHA-256 checksums, the
+  FriendlyWrt base image (about 207 MB), MediaMTX, and the HDMI player's two libraries (Rockchip MPP,
+  libdrm).
+
+Everything else is in this repository. A build from a clean clone was checked: the image holds the same
+21 relay files with the same permissions as one built from the working folder. Only the freshly compiled
+HDMI player differed, by its embedded build path, and it runs on the R5C.
 
 ## Build and provision
 
@@ -26,6 +37,13 @@ Both run on the Mac and need Docker Desktop. The image work happens in a small D
   there and rebuild.
 
 ## Flash and first boot
+
+**The R5C boots from the microSD card only when its built-in eMMC has no system on it.** A wiped or new
+R5C with an empty eMMC is fine. One already running FriendlyWrt from eMMC ignores the card until its eMMC
+is cleared. The card image is self-contained: it has the Rockchip loader, U-Boot, kernel and system.
+
+You'll need an R5C with the RTL8822CE M.2 Wi-Fi module and its antennas, a 5 V USB-C power supply, and a
+microSD card.
 
 1. Write `relay-<code>.img.gz` to a microSD card (8 GB or larger) with balenaEtcher or Raspberry Pi Imager.
    Both accept the `.gz` directly.
