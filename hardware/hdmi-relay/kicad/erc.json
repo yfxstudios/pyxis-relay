@@ -1,0 +1,72 @@
+{
+    "$schema": "https://schemas.kicad.org/erc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-10-22T15:22:59",
+    "ignored_checks": [
+        {
+            "description": "Global label only appears once in the schematic",
+            "key": "single_global_label"
+        },
+        {
+            "description": "Four connection points are joined together",
+            "key": "four_way_junction"
+        },
+        {
+            "description": "SPICE model issue",
+            "key": "simulation_model_issue"
+        },
+        {
+            "description": "Assigned footprint doesn't match footprint filters",
+            "key": "footprint_filter"
+        }
+    ],
+    "included_severities": [
+        "error",
+        "warning",
+        "exclusion"
+    ],
+    "kicad_version": "10.0.7",
+    "sheets": [
+        {
+            "path": "/",
+            "uuid_path": "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501",
+            "violations": []
+        },
+        {
+            "path": "/Power/",
+            "uuid_path": "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501/51293089-f6d3-5fc0-a82b-9557220b2d2c",
+            "violations": []
+        },
+        {
+            "path": "/HDMI in (RK628D)/",
+            "uuid_path": "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501/34c826d5-759e-5a77-80e0-b6f4446bdedc",
+            "violations": []
+        },
+        {
+            "path": "/HDMI out/",
+            "uuid_path": "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501/7d133d88-6d81-5714-88f9-ee282d875def",
+            "violations": []
+        },
+        {
+            "path": "/Ethernet/",
+            "uuid_path": "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501/e91e9186-93e3-5fdf-85ed-fc856e7dc280",
+            "violations": []
+        },
+        {
+            "path": "/M.2 Wi-Fi + Bluetooth/",
+            "uuid_path": "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501/8c65a6f6-534e-5db2-9f93-5dfbf139e074",
+            "violations": []
+        },
+        {
+            "path": "/Debug, buttons, LEDs, SDI header/",
+            "uuid_path": "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501/0020f8db-00d7-577e-bc8e-1096d02da972",
+            "violations": []
+        },
+        {
+            "path": "/Module: Radxa CM3/",
+            "uuid_path": "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501/9af711e9-9dda-5fea-8087-e24e86b902f7",
+            "violations": []
+        }
+    ],
+    "source": "relay.kicad_sch"
+}

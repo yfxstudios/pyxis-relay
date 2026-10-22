@@ -34,3 +34,9 @@ build/
 
 # Blender backups
 *.blend1
+
+# KiCad local state and generator caches
+*.kicad_prl
+*-backups/
+fp-info-cache
+__pycache__/
