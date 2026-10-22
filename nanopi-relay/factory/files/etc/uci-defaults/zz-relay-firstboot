@@ -1,4 +1,4 @@
-# Factory image: schedule the relay's one-time setup. It runs as the service relay-firstboot,
-# after every other service has started (uci-defaults run too early for it).
+# Factory image: make sure the relay's one-time setup is enabled. build-image.sh already enables it in
+# the image (this alone would only take effect on the boot after); kept as a fallback.
 [ -f /etc/relay/firstboot.done ] || /etc/init.d/relay-firstboot enable
 exit 0
