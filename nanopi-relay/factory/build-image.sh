@@ -7,6 +7,10 @@
 # The result has no Wi-Fi or admin passwords in it: provision.sh adds each unit's own.
 #
 # usage: ./build-image.sh            -> dist/relay-factory-<date>.img.gz
+#        NO_HDMI=1 ./build-image.sh  -> without the HDMI player (skips building it)
+#
+# Everything comes from this repository or is downloaded and checked against pinned checksums.
+# Building the HDMI player needs zig, cmake, meson and ninja (brew install zig cmake meson ninja).
 set -eu
 
 HERE=$(cd "$(dirname "$0")" && pwd)
@@ -19,7 +23,11 @@ BASE_SHA256="aac1054ee2be228f44bf608c828777992a95fd3a371476fa0f26635f0ce61d66"
 BASE_URL="https://github.com/friendlyarm/Actions-FriendlyWrt/releases/download/$BASE_TAG/$BASE_FILE"
 BASE="$HERE/.cache/R5S-R5C-Series-FriendlyWrt-25.12-${BASE_TAG#FriendlyWrt-}.img.gz"
 
-MTX_TARBALL="mediamtx_v1.21.2_linux_arm64.tar.gz"   # setup.sh checks its checksum
+# MediaMTX, the same pinned release deploy.sh and setup.sh use
+MTX_VERSION="v1.21.2"
+MTX_TARBALL="mediamtx_${MTX_VERSION}_linux_arm64.tar.gz"
+MTX_SHA256="180a235374a548d9133cdd5e20f5dbd8b01317be1c86e0d7e66df585dc42ed6f"
+MTX_URL="https://github.com/bluenviron/mediamtx/releases/download/${MTX_VERSION}/${MTX_TARBALL}"
 
 VERSION=${RELAY_VERSION:-$(date +%Y%m%d)}
 OUT="$HERE/dist/relay-factory-$VERSION.img.gz"
@@ -36,9 +44,30 @@ fi
 echo "$BASE_SHA256  $BASE" | shasum -a 256 -c - >/dev/null || { echo "Base image checksum mismatch: delete $BASE and run again." >&2; exit 1; }
 echo "Base image OK ($BASE_TAG)"
 
-# 2. what goes into the image
-[ -f "$RELAY/.cache/$MTX_TARBALL" ] || { echo "Missing $RELAY/.cache/$MTX_TARBALL: run ../deploy.sh once, or download it." >&2; exit 1; }
-[ -f "$RELAY/hdmi/pyxis-hdmi" ] || echo "Note: no HDMI player (hdmi/build.sh); the image will have no HDMI output."
+# 2. MediaMTX, verified
+mkdir -p "$RELAY/.cache"
+if [ ! -f "$RELAY/.cache/$MTX_TARBALL" ]; then
+	echo "Downloading MediaMTX $MTX_VERSION (linux arm64)..."
+	curl -fSL --progress-bar -o "$RELAY/.cache/$MTX_TARBALL.part" "$MTX_URL"
+	mv "$RELAY/.cache/$MTX_TARBALL.part" "$RELAY/.cache/$MTX_TARBALL"
+fi
+echo "$MTX_SHA256  $RELAY/.cache/$MTX_TARBALL" | shasum -a 256 -c - >/dev/null \
+	|| { rm -f "$RELAY/.cache/$MTX_TARBALL"; echo "MediaMTX checksum mismatch: deleted the download. Run again." >&2; exit 1; }
+echo "MediaMTX OK ($MTX_VERSION)"
+
+# 3. the HDMI player, built from source (hdmi/build.sh) unless it's already built or NO_HDMI=1
+if [ "${NO_HDMI:-0}" != 1 ] && [ ! -f "$RELAY/hdmi/pyxis-hdmi" ]; then
+	for t in zig cmake meson ninja; do
+		command -v $t >/dev/null || { echo "Building the HDMI player needs $t (brew install zig cmake meson ninja), or run with NO_HDMI=1." >&2; exit 1; }
+	done
+	echo "Building the HDMI player (hdmi/build.sh)..."
+	"$RELAY/hdmi/build.sh" >/dev/null || { echo "HDMI player build failed (run ../hdmi/build.sh to see why), or run with NO_HDMI=1." >&2; exit 1; }
+fi
+if [ "${NO_HDMI:-0}" = 1 ] || [ ! -f "$RELAY/hdmi/pyxis-hdmi" ]; then
+	echo "Note: no HDMI player in this image."
+fi
+
+# 4. what goes into the image
 stage=$(mktemp -d)
 trap 'rm -rf "$stage"' EXIT
 inst="$stage/usr/share/relay/installer"
@@ -49,7 +78,7 @@ for f in mediamtx.yml mediamtx.init pyxisrelay.avahi.service status.sh pyxis-hdm
 	cp "$RELAY/router/$f" "$inst/router/"
 done
 cp -R "$RELAY/router/web" "$inst/router/web"
-if [ -f "$RELAY/hdmi/pyxis-hdmi" ]; then
+if [ "${NO_HDMI:-0}" != 1 ] && [ -f "$RELAY/hdmi/pyxis-hdmi" ]; then
 	cp "$RELAY/hdmi/pyxis-hdmi" "$inst/router/pyxis-hdmi"
 	cp "$RELAY/hdmi/THIRD_PARTY_LICENSES.txt" "$inst/router/pyxis-hdmi-LICENSES.txt"
 fi
@@ -58,7 +87,7 @@ cp "$HERE/brand.env" "$stage/etc/relay/brand.env"
 echo "RELAY_VERSION=$VERSION" > "$stage/etc/relay/version"
 echo "BASE=$BASE_TAG/$BASE_FILE" >> "$stage/etc/relay/version"
 
-# 3. put it into the image's root filesystem (in a Linux container: loop-mount the ext4 partition)
+# 5. put it into the image's root filesystem (in a Linux container: loop-mount the ext4 partition)
 docker build -q -t relay-factory-tools "$HERE" >/dev/null
 docker run --rm --privileged \
 	-v "$BASE:/in/base.img.gz:ro" -v "$stage:/stage:ro" -v "$HERE/dist:/out" \
