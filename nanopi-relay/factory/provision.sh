@@ -7,9 +7,12 @@
 #                                                         passwords)
 #   - a record for you:    dist/units/<code>/unit.txt    (the passwords: keep it safe)
 #
-# usage: ./provision.sh [--count N] [--country US] [--ssh] [image.img.gz]
+# usage: ./provision.sh [--count N] [--country US] [--ssh] [--ssh-key FILE] [--ssid NAME --wifi-key KEY] [image.img.gz]
 #   --country  Wi-Fi regulatory country, two letters (default US). Must match where it's used.
 #   --ssh      leave SSH on (for development units; off by default)
+#   --ssh-key FILE   also authorize this SSH public key for root (implies --ssh)
+#   --ssid NAME --wifi-key KEY   use this Wi-Fi name and password instead of generated ones
+#              (to replace an existing relay without re-joining every device; one unit only)
 #   image      defaults to the newest dist/relay-factory-*.img.gz
 set -eu
 
@@ -17,19 +20,32 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 COUNT=1
 COUNTRY=US
 SSH=0
+SSH_KEY=""
+SSID_OVERRIDE=""
+KEY_OVERRIDE=""
 IMAGE=""
 while [ $# -gt 0 ]; do
 	case $1 in
 		--count) COUNT=$2; shift 2 ;;
 		--country) COUNTRY=$2; shift 2 ;;
 		--ssh) SSH=1; shift ;;
+		--ssh-key) SSH=1; SSH_KEY=$(cat "$2"); shift 2 ;;
+		--ssid) SSID_OVERRIDE=$2; shift 2 ;;
+		--wifi-key) KEY_OVERRIDE=$2; shift 2 ;;
 		-*) echo "unknown option $1" >&2; exit 1 ;;
 		*) IMAGE=$1; shift ;;
 	esac
 done
 case "$COUNTRY" in [A-Z][A-Z]) ;; *) echo "--country must be two capital letters, like US" >&2; exit 1 ;; esac
+if [ -n "$SSID_OVERRIDE$KEY_OVERRIDE" ]; then
+	[ -n "$SSID_OVERRIDE" ] && [ -n "$KEY_OVERRIDE" ] || { echo "--ssid and --wifi-key go together" >&2; exit 1; }
+	[ "$COUNT" = 1 ] || { echo "--ssid/--wifi-key make one unit only" >&2; exit 1; }
+	n=$(printf '%s' "$KEY_OVERRIDE" | wc -c)
+	[ "$n" -ge 8 ] && [ "$n" -le 63 ] || { echo "--wifi-key must be 8-63 characters" >&2; exit 1; }
+fi
 [ -n "$IMAGE" ] || IMAGE=$(ls -t "$HERE"/dist/relay-factory-*.img.gz 2>/dev/null | head -1)
 [ -f "$IMAGE" ] || { echo "No factory image: run ./build-image.sh first." >&2; exit 1; }
+IMAGE=$(cd "$(dirname "$IMAGE")" && pwd)/$(basename "$IMAGE")   # Docker needs an absolute path
 command -v docker >/dev/null && docker info >/dev/null 2>&1 || { echo "Docker isn't running." >&2; exit 1; }
 
 mkdir -p "$HERE/dist/units"
@@ -37,7 +53,8 @@ docker build -q -t relay-factory-tools "$HERE" >/dev/null
 docker run --rm --privileged \
 	-v "$IMAGE:/in/factory.img.gz:ro" -v "$HERE/brand.env:/in/brand.env:ro" -v "$HERE/dist/units:/out" \
 	-v "$HERE/label.py:/in/label.py:ro" \
-	-e COUNT="$COUNT" -e COUNTRY="$COUNTRY" -e SSH="$SSH" relay-factory-tools sh -eu -c '
+	-e COUNT="$COUNT" -e COUNTRY="$COUNTRY" -e SSH="$SSH" -e SSH_KEY="$SSH_KEY" \
+	-e SSID_OVERRIDE="$SSID_OVERRIDE" -e KEY_OVERRIDE="$KEY_OVERRIDE" relay-factory-tools sh -eu -c '
 		. /in/brand.env
 		gunzip -c /in/factory.img.gz > /tmp/factory.img
 		set -- $(sfdisk -J /tmp/factory.img | python3 -c "import json,sys; p=[x for x in json.load(sys.stdin)[\"partitiontable\"][\"partitions\"] if x.get(\"name\")==\"rootfs\"][0]; print(p[\"start\"], p[\"size\"])")
@@ -52,6 +69,7 @@ docker run --rm --privileged \
 			wifi_key=$(pw); admin=$(pw)
 			hash=$(openssl passwd -6 "$admin")
 			ssid="$SSID_PREFIX-$code"
+			if [ -n "$SSID_OVERRIDE" ]; then ssid=$SSID_OVERRIDE; wifi_key=$KEY_OVERRIDE; fi
 			mkdir -p "/out/$code"
 			chmod 700 "/out/$code"
 
@@ -71,6 +89,12 @@ SSH="$SSH"
 ENV
 			chown 0:0 /mnt/root/etc/relay/provision.env
 			chmod 600 /mnt/root/etc/relay/provision.env
+			if [ -n "$SSH_KEY" ]; then
+				mkdir -p /mnt/root/etc/dropbear
+				printf "%s\n" "$SSH_KEY" > /mnt/root/etc/dropbear/authorized_keys
+				chown 0:0 /mnt/root/etc/dropbear/authorized_keys
+				chmod 600 /mnt/root/etc/dropbear/authorized_keys
+			fi
 			umount /mnt/root
 			umask 022
 			dd if=/tmp/rootfs.ext4 of=/tmp/unit.img bs=512 seek=$start conv=notrunc status=none

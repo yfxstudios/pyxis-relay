@@ -78,10 +78,15 @@ SHA-256 in `build-image.sh`. To move to a newer release, change `BASE_TAG` and `
 
 ## Not done yet
 
-- **Tested on a real R5C:** not yet. It's been built and checked inside the image (settings file,
-  permissions, password hash, scripts parse in the box's shell), but a full first boot on hardware is the
-  next step.
+- **Tested on a real R5C (Oct 22, 2026):** a unit image written straight to the eMMC completed first boot.
+  MediaMTX, the settings page, HDMI output, mDNS, the unit's Wi-Fi and admin password were all set up, the
+  extras and settings file were removed, and the camera auto-started streaming. That test found a bug: the
+  service was enabled from uci-defaults, which is too late for the boot it runs in, so setup only ran on the
+  second power-on. `build-image.sh` now enables it in the image (`/etc/rc.d/S99relay-firstboot`). The fixed
+  image hasn't had its own first boot on hardware yet. Still to check by hand: settings-page sign-in, HDMI
+  on a display, and the apps.
 - **Install to eMMC:** the unit runs from the microSD card. Copying to the built-in eMMC still uses
-  FriendlyElec's method.
+  FriendlyElec's method. (The hardware test wrote the eMMC directly from a running relay over SSH, which is
+  a development shortcut, not a factory step.)
 - **Updates, factory reset, diagnostics bundle and setup wizard:** the next items in phase 1 of
   `PRODUCTION_PLAN.md`.

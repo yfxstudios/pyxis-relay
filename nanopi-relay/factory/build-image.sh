@@ -103,6 +103,10 @@ docker run --rm --privileged \
 		chown -R 0:0 /mnt/root/usr/share/relay /mnt/root/etc/relay /mnt/root/etc/init.d/relay-firstboot /mnt/root/etc/uci-defaults/zz-relay-firstboot
 		chmod 755 /mnt/root/etc/init.d/relay-firstboot /mnt/root/usr/share/relay/installer/setup.sh
 		chmod 700 /mnt/root/etc/relay
+		# Enable the first-boot service in the image itself. Enabling it from uci-defaults is too
+		# late: procd has already listed the services to start, so it would only run on the
+		# boot after (found on a real R5C).
+		ln -sf ../init.d/relay-firstboot /mnt/root/etc/rc.d/S99relay-firstboot
 		umount /mnt/root
 		e2fsck -fy /tmp/rootfs.ext4 >/dev/null || [ $? -le 1 ]
 		dd if=/tmp/rootfs.ext4 of=/tmp/image.img bs=512 seek=$start conv=notrunc status=none
