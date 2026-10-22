@@ -1,0 +1,106 @@
+#!/bin/sh /etc/rc.common
+# One-time setup of a relay made from the factory image (factory/build-image.sh):
+#   1. reads this unit's settings, /etc/relay/provision.env (written by factory/provision.sh):
+#      its Wi-Fi name and password, Wi-Fi country, admin password hash, SSH on/off;
+#   2. runs the relay installer (/usr/share/relay/installer/setup.sh, the same one deploy.sh runs);
+#   3. sets the admin (root) password, turns camera auto-start on, switches off FriendlyWrt
+#      services a relay doesn't need, and SSH unless provisioning asked for it;
+#   4. deletes the settings file, marks itself done and reboots into the finished relay.
+# If anything fails it leaves the box as it is and tries again on the next boot.
+# Log: /etc/relay/firstboot.log
+
+START=99
+USE_PROCD=0
+
+INSTALLER=/usr/share/relay/installer
+PROVISION=/etc/relay/provision.env
+DONE=/etc/relay/firstboot.done
+LOG=/etc/relay/firstboot.log
+
+# Services FriendlyWrt ships that a camera relay doesn't use. ttyd is a web terminal: off for safety.
+EXTRAS="ttyd samba4 minidlna aria2 miniupnpd adblock smartdns nlbwmon hd-idle ddns watchcat"
+
+boot() {
+	if [ -f "$DONE" ]; then
+		/etc/init.d/relay-firstboot disable
+		return 0
+	fi
+	mkdir -p /etc/relay
+	# in the background, so the boot itself isn't held up
+	( firstboot ) >>"$LOG" 2>&1 </dev/null &
+}
+
+firstboot() {
+	set -u
+	echo "== relay first boot $(date)"
+	logger -t relay-firstboot "setting up this relay"
+	# let the network, Wi-Fi and rpcd finish starting
+	n=0
+	while ! ubus -t 2 call network.interface.lan status >/dev/null 2>&1 && [ $n -lt 60 ]; do sleep 2; n=$((n + 1)); done
+	sleep 10
+
+	if [ ! -f "$PROVISION" ]; then
+		echo "No $PROVISION: this image hasn't been provisioned (factory/provision.sh). Nothing to do."
+		logger -t relay-firstboot "not provisioned; leaving the box as it is"
+		return 1
+	fi
+	# shellcheck source=/dev/null
+	. "$PROVISION"
+
+	cat > "$INSTALLER/config.env" <<CFG
+ROUTER_IP="192.168.50.1"
+ROUTER_HOSTNAME="${RELAY_HOSTNAME:-pyxis-relay}"
+DHCP_START="100"
+DHCP_LIMIT="100"
+CAMERA_IP="192.168.50.10"
+CAMERA_MAC=""
+WIFI_SSID="$WIFI_SSID"
+WIFI_KEY="$WIFI_KEY"
+WIFI_COUNTRY="${WIFI_COUNTRY:-US}"
+WIFI_BAND="5g"
+WIFI_CHANNEL="default"
+WIFI_ENCRYPTION="auto"
+CFG
+	chmod 600 "$INSTALLER/config.env"
+
+	if ! sh "$INSTALLER/setup.sh"; then
+		echo "Installer failed; will try again on the next boot."
+		logger -t relay-firstboot "installer failed (see $LOG)"
+		rm -f "$INSTALLER/config.env"
+		return 1
+	fi
+
+	# admin password (also the settings page's sign-in): only its hash is stored
+	if [ -n "${ADMIN_HASH:-}" ]; then
+		sed -i "s|^root:[^:]*:|root:${ADMIN_HASH}:|" /etc/shadow
+		echo "Admin password set"
+	fi
+
+	uci set pyxis.autostart.enabled='1'
+	uci commit pyxis
+	/etc/init.d/pyxis-autostart enable
+
+	for s in $EXTRAS; do
+		if [ -x "/etc/init.d/$s" ]; then
+			/etc/init.d/"$s" stop >/dev/null 2>&1 || true
+			/etc/init.d/"$s" disable >/dev/null 2>&1 || true
+			echo "Turned off $s"
+		fi
+	done
+	if [ "${SSH:-0}" = 1 ]; then
+		echo "SSH left on (provisioned with --ssh)"
+	else
+		/etc/init.d/dropbear disable
+		echo "SSH turned off"
+	fi
+
+	echo "UNIT_ID=${UNIT_ID:-}" > /etc/relay/unit
+	rm -f "$PROVISION" "$INSTALLER/config.env"
+	date > "$DONE"
+	/etc/init.d/relay-firstboot disable
+	logger -t relay-firstboot "done; rebooting"
+	echo "== done $(date); rebooting"
+	sync
+	sleep 5
+	reboot
+}

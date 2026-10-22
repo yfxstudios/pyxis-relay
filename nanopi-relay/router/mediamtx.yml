@@ -1,0 +1,30 @@
+# MediaMTX config for the NanoPi relay.
+# Same settings as the PYXIS Viewer Mac relay (PyxisViewer/Sources/PyxisViewer/Relay.swift),
+# except logging goes to stdout (procd → system log, read with `logread -e mediamtx`).
+# Pinned to MediaMTX v1.21.2; `moq` is a key that version knows.
+logLevel: info
+logDestinations: [stdout]
+# API for the settings page (/www/pyxis/). Localhost only: MediaMTX's default auth
+# allows API calls from 127.0.0.1/::1 only, and it's not reachable from the network.
+api: yes
+apiAddress: 127.0.0.1:9997
+# A camera on a congested link can go quiet for several seconds and then catch up;
+# don't drop its connection for that (default is 10s).
+readTimeout: 30s
+rtmp: yes
+rtmpAddress: :1935
+rtsp: yes
+rtspAddress: :8554
+hls: yes
+hlsAddress: :8888
+# Standard (non-LL) fMP4 HLS: measured smoother and lower-latency in AVPlayer than LL-HLS
+# with the PYXIS stream, and LL-HLS warned that the camera's timing jitter breaks iOS clients.
+hlsVariant: fmp4
+hlsAllowOrigins: ['*']
+webrtc: yes
+webrtcAddress: :8889
+webrtcAllowOrigins: ['*']
+srt: no
+moq: no
+paths:
+  all_others:

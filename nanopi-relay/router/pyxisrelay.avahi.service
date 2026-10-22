@@ -1,0 +1,11 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE service-group SYSTEM "avahi-service.dtd">
+<!-- Advertises the relay so PYXIS Viewer ("Another Mac / host" mode) finds it. -->
+<service-group>
+  <name replace-wildcards="yes">PYXIS Relay on %h</name>
+  <service>
+    <type>_pyxisrelay._tcp</type>
+    <port>8889</port>
+    <txt-record>path=/live/pyxis/</txt-record>
+  </service>
+</service-group>

@@ -1,0 +1,15 @@
+{
+	"pyxis-relay": {
+		"description": "PYXIS relay settings page",
+		"read": {
+			"ubus": {
+				"pyxis": [ "status", "get_config", "profile", "log" ]
+			}
+		},
+		"write": {
+			"ubus": {
+				"pyxis": [ "set_wifi", "set_camera", "set_quality", "set_hdmi", "set_autostart", "set_password", "restart_relay", "reboot" ]
+			}
+		}
+	}
+}

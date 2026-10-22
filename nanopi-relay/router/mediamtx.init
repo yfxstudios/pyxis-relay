@@ -1,0 +1,26 @@
+#!/bin/sh /etc/rc.common
+# procd service for the PYXIS stream relay (MediaMTX).
+# Installed as /etc/init.d/mediamtx by setup.sh.
+# shellcheck disable=SC2034  # START/STOP/USE_PROCD are read by /etc/rc.common
+
+START=95
+STOP=10
+USE_PROCD=1
+
+PROG=/usr/bin/mediamtx
+CONF=/etc/mediamtx/mediamtx.yml
+
+start_service() {
+	procd_open_instance
+	procd_set_param command "$PROG" "$CONF"
+	# Restart on crash forever, 5 s apart.
+	procd_set_param respawn 3600 5 0
+	procd_set_param stdout 1
+	procd_set_param stderr 1
+	# Restart when the config file changes on `/etc/init.d/mediamtx reload`.
+	procd_set_param file "$CONF"
+	# mDNS advert for PYXIS Viewer ("Another Mac / host" mode), served by umdns while
+	# the relay runs. (A JSON file in /etc/umdns/ was not answered by umdns in testing.)
+	procd_add_mdns "pyxisrelay" "tcp" "8889" "path=/live/pyxis/"
+	procd_close_instance
+}

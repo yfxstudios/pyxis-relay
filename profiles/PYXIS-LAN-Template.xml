@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Blackmagic PYXIS 12K — LAN streaming profile
+  Format: Blackmagic Streaming XML File Format (Jan 2026 developer doc).
+
+  The camera can only PUSH a stream (it is an RTMP/SRT "caller"). This profile
+  points it at a relay running on a Mac on the same network (the PYXIS Viewer
+  app / MediaMTX). The relay then makes the stream viewable by any device on
+  the LAN (browser, phone, VLC, other Macs).
+
+  Replace __RELAY_IP__ with the relay Mac's LAN IP (PYXIS Viewer does this for
+  you with "Save Profile XML…" or "Send Profile"). Give that Mac a fixed IP
+  (DHCP reservation), and connect it by Ethernet: the camera pushes its stream
+  over TCP, so any Wi-Fi hiccup on the relay Mac freezes every viewer.
+
+  SRT isn't included: Blackmagic devices add their own fields to the SRT stream
+  id, and their compatibility with MediaMTX's SRT listener is unverified.
+-->
+<streaming>
+
+  <!-- RTMP. Camera pushes to rtmp://RELAY:1935/live with key "pyxis". -->
+  <service>
+    <name>PYXIS LAN Relay (RTMP)</name>
+    <key>pyxis</key>
+    <servers>
+      <server group="Primary">
+        <name>LAN Relay</name>
+        <url>rtmp://__RELAY_IP__:1935/live</url>
+      </server>
+    </servers>
+    <profiles default="LAN High">
+      <profile>
+        <name>LAN High</name>
+        <config resolution="1080p" fps="30" codec="H264"><bitrate>12000000</bitrate><audio-bitrate>128000</audio-bitrate></config>
+        <config resolution="1080p" fps="60" codec="H264"><bitrate>18000000</bitrate><audio-bitrate>128000</audio-bitrate></config>
+        <config resolution="2160p" fps="30" codec="H264"><bitrate>30000000</bitrate><audio-bitrate>128000</audio-bitrate></config>
+        <config resolution="2160p" fps="60" codec="H264"><bitrate>40000000</bitrate><audio-bitrate>128000</audio-bitrate></config>
+      </profile>
+      <profile>
+        <name>LAN Medium</name>
+        <config resolution="1080p" fps="30" codec="H264"><bitrate>6000000</bitrate><audio-bitrate>128000</audio-bitrate></config>
+        <config resolution="1080p" fps="60" codec="H264"><bitrate>9000000</bitrate><audio-bitrate>128000</audio-bitrate></config>
+        <config resolution="2160p" fps="30" codec="H264"><bitrate>15000000</bitrate><audio-bitrate>128000</audio-bitrate></config>
+        <config resolution="2160p" fps="60" codec="H264"><bitrate>20000000</bitrate><audio-bitrate>128000</audio-bitrate></config>
+      </profile>
+      <profile>
+        <name>LAN Low (Wi-Fi)</name>
+        <config resolution="1080p" fps="30" codec="H264"><bitrate>3500000</bitrate><audio-bitrate>128000</audio-bitrate></config>
+        <config resolution="1080p" fps="60" codec="H264"><bitrate>5000000</bitrate><audio-bitrate>128000</audio-bitrate></config>
+        <config resolution="2160p" fps="30" codec="H264"><bitrate>8000000</bitrate><audio-bitrate>128000</audio-bitrate></config>
+        <config resolution="2160p" fps="60" codec="H264"><bitrate>10000000</bitrate><audio-bitrate>128000</audio-bitrate></config>
+      </profile>
+    </profiles>
+  </service>
+
+</streaming>

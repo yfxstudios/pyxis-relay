@@ -1,0 +1,36 @@
+# macOS
+.DS_Store
+
+# Secrets: never commit
+nanopi-relay/config.env
+nanopi-relay/factory/dist/
+**/unit.txt
+
+# Downloads and build outputs (rebuilt or re-downloaded by the scripts)
+nanopi-relay/.cache/
+nanopi-relay/factory/.cache/
+nanopi-relay/hdmi/pyxis-hdmi
+nanopi-relay/hdmi/build-*/
+
+# Android
+PyxisViewer-Android/.gradle/
+PyxisViewer-Android/.kotlin/
+PyxisViewer-Android/build/
+PyxisViewer-Android/app/build/
+PyxisViewer-Android/local.properties
+PyxisViewer-Android/.idea/
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# Xcode
+xcuserdata/
+*.xcuserstate
+DerivedData/
+build/
+*.xcarchive
+*.ipa
+
+# Blender backups
+*.blend1
