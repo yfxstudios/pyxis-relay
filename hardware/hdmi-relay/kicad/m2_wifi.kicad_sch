@@ -1626,6 +1626,129 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Mechanical:MountingHole_Pad"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 1.016)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom no)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "H"
+				(at 0 6.35 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "MountingHole_Pad"
+				(at 0 4.445 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Mounting Hole with connection"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "mounting hole"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "MountingHole*Pad*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "MountingHole_Pad_0_1"
+				(circle
+					(center 0 1.27)
+					(radius 1.27)
+					(stroke
+						(width 1.27)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "MountingHole_Pad_1_1"
+				(pin input line
+					(at 0 -2.54 90)
+					(length 2.54)
+					(name "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "power:GND"
 			(power global)
 			(pin_numbers
@@ -1772,7 +1895,7 @@
 				)
 			)
 		)
-		(property "Footprint" "relay:M.2_E-key_Socket_PLACEHOLDER"
+		(property "Footprint" "Connector_PCBEdge:TE_M.2_E_2x38-1MP_P0.5mm"
 			(at 199.39 139.7 0)
 			(effects
 				(font
@@ -1799,7 +1922,7 @@
 				(hide yes)
 			)
 		)
-		(property "Note" "Socket footprint to make for the chosen part"
+		(property "Note" "TE 2199230-4 (or 2199125/2199119 family): check the card stop line against its datasheet"
 			(at 199.39 139.7 0)
 			(effects
 				(font
@@ -2676,6 +2799,147 @@
 	(no_connect
 		(at 173.99 152.4)
 		(uuid "d56f1c93-253b-516a-84fc-baa6ebcb9f38")
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole_Pad")
+		(at 330.2 139.7 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "35befae6-6908-54ae-8835-d065d675e769")
+		(property "Reference" "H501"
+			(at 330.2 133.35 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "M.2 2230 standoff"
+			(at 330.2 134.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "MountingHole:MountingHole_2.2mm_M2_Pad_Via"
+			(at 330.2 139.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 330.2 139.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 330.2 139.7 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "ba34c30f-cd0c-56e7-9fe8-89f602e3ceac")
+		)
+		(instances
+			(project "relay"
+				(path "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501/8c65a6f6-534e-5db2-9f93-5dfbf139e074"
+					(reference "H501")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 330.2 142.24)
+			(xy 330.2 144.78)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c689d231-9e17-56f3-8304-facf71dc3a57")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 330.2 144.78 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "7f1de071-b1a4-566c-93f1-dd91cd4780f0")
+		(property "Reference" "#PWR502"
+			(at 330.2 144.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 330.2 148.59 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 330.2 144.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 330.2 144.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 330.2 144.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "19eee29b-dd1e-57fd-ad75-700a9b7aebe4")
+		)
+		(instances
+			(project "relay"
+				(path "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501/8c65a6f6-534e-5db2-9f93-5dfbf139e074"
+					(reference "#PWR502")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -3691,7 +3955,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "247de810-d582-5319-9065-68b5d79458be")
-		(property "Reference" "#PWR502"
+		(property "Reference" "#PWR503"
 			(at 289.56 236.22 0)
 			(effects
 				(font
@@ -3742,7 +4006,7 @@
 		(instances
 			(project "relay"
 				(path "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501/8c65a6f6-534e-5db2-9f93-5dfbf139e074"
-					(reference "#PWR502")
+					(reference "#PWR503")
 					(unit 1)
 				)
 			)
@@ -3867,7 +4131,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "6057d5d1-2b81-5629-8c17-2499d61b41b5")
-		(property "Reference" "#PWR503"
+		(property "Reference" "#PWR504"
 			(at 299.72 236.22 0)
 			(effects
 				(font
@@ -3918,7 +4182,7 @@
 		(instances
 			(project "relay"
 				(path "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501/8c65a6f6-534e-5db2-9f93-5dfbf139e074"
-					(reference "#PWR503")
+					(reference "#PWR504")
 					(unit 1)
 				)
 			)
@@ -4043,7 +4307,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "e91f2674-6153-5655-a754-45f99aeee3ac")
-		(property "Reference" "#PWR504"
+		(property "Reference" "#PWR505"
 			(at 309.88 236.22 0)
 			(effects
 				(font
@@ -4094,7 +4358,7 @@
 		(instances
 			(project "relay"
 				(path "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501/8c65a6f6-534e-5db2-9f93-5dfbf139e074"
-					(reference "#PWR504")
+					(reference "#PWR505")
 					(unit 1)
 				)
 			)
@@ -4219,7 +4483,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "fdde092d-26bd-5855-8873-dc69b2d5da6f")
-		(property "Reference" "#PWR505"
+		(property "Reference" "#PWR506"
 			(at 320.04 236.22 0)
 			(effects
 				(font
@@ -4270,7 +4534,7 @@
 		(instances
 			(project "relay"
 				(path "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501/8c65a6f6-534e-5db2-9f93-5dfbf139e074"
-					(reference "#PWR505")
+					(reference "#PWR506")
 					(unit 1)
 				)
 			)

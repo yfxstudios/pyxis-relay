@@ -18,9 +18,11 @@ def hdmi_out(project):
           value="HDMI OUT", footprint="Connector_Video:HDMI_A_Molex_208658-1001_Horizontal",
           Note="Same connector part as HDMI IN")
     from hdmi_in import _rclamp
-    _rclamp(s, (230, 230), ("HDMITX_D2_P", "HDMITX_D2_N", "HDMITX_D0_P", "HDMITX_D0_N"))
-    _rclamp(s, (260, 230), ("HDMITX_CLK_P", "HDMITX_CLK_N", "HDMITX_D1_P", "HDMITX_D1_N"))
-    _rclamp(s, (290, 230), ("HDMITX_HPD", "HDMITX_SCL", "HDMITX_SDA", "HDMITX_5V"))
+    # lines in connector order (pins 1-12, then 15, 16, 18, 19), so each ESD part sits across neighbouring pins and
+    # the board routes them straight through, as on HDMI IN
+    _rclamp(s, (230, 230), ("HDMITX_D2_P", "HDMITX_D2_N", "HDMITX_D1_P", "HDMITX_D1_N"))
+    _rclamp(s, (260, 230), ("HDMITX_D0_P", "HDMITX_D0_N", "HDMITX_CLK_P", "HDMITX_CLK_N"))
+    _rclamp(s, (290, 230), ("HDMITX_SCL", "HDMITX_SDA", "HDMITX_5V", "HDMITX_HPD"))
     # 5 V to the monitor
     s.add("Power_Management:AP22804AW5", (100, 60), {"IN": "5V_SYS", "EN": "5V_SYS", "OUT": "HDMITX_5V",
                                                      "~{FLG}": None, "GND": "GND"},
@@ -56,7 +58,11 @@ def m2(project):
                  "RESERVED/REFCLKn1"):
         conn[name] = None
     s.add("Connector:Bus_M.2_Socket_E", (200, 140), conn, value="M.2 E-key 2230",
-          footprint="relay:M.2_E-key_Socket_PLACEHOLDER", Note="Socket footprint to make for the chosen part")
+          footprint="Connector_PCBEdge:TE_M.2_E_2x38-1MP_P0.5mm",
+          Note="TE 2199230-4 (or 2199125/2199119 family): check the card stop line against its datasheet")
+    # the 2230 card's hold-down: an M2 standoff (or nut and screw) at the card's far end, on GND
+    s.add("Mechanical:MountingHole_Pad", (330, 140), {"1": "GND"}, ref="H", value="M.2 2230 standoff",
+          footprint="MountingHole:MountingHole_2.2mm_M2_Pad_Via")
     cap(s, (110, 90), "PCIE_TX_P", "M2_PER_P", "100nF")
     cap(s, (120, 90), "PCIE_TX_N", "M2_PER_N", "100nF")
     for i, net in enumerate(("PCIE_PERST_N", "PCIE_CLKREQ_N", "PCIE_WAKE_N", "WIFI_DISABLE_N", "BT_DISABLE_N")):

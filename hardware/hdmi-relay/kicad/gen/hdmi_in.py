@@ -87,7 +87,7 @@ def build(project):
         "HDMIRX_EXTR": "RX_EXTR", "OSC_IN": "XIN_628", "OSC_OUT": "XOUT_628", "RESETN": "RK628D_RESET_N",
         "TEST": "GND", "I2C_ADDR(GPIO3_B3)": "RK628D_I2C_ADDR", "I2C_SCL": "I2C_628_SCL", "I2C_SDA": "I2C_628_SDA",
         "INT(GPIO3_B4)": "RK628D_INT", "I2S_SCK": "I2S_628_SCLK", "I2S_LRCK": "I2S_628_LRCK", "I2S_D0": "I2S_628_SDO",
-        "I2S_D1": None, "I2S_D2": None, "I2S_D3": None, "TEST_CLKO/I2S_MCLK": "I2S_628_MCLK", "GPIO1_A1": None,
+        "I2S_D1": None, "I2S_D2": None, "I2S_D3": None, "TEST_CLKO/I2S_MCLK": None, "GPIO1_A1": None,
         "MIPI_REXT": "MIPI_REXT", "HDMITX_EXTR": "TX_EXTR",
         "DVDD_1V1": "1V1_628", "PLL_AVDD_1V1": "AVDD_1V1_628", "HDMIRX_DVDD_1V1": "AVDD_1V1_628",
         "MIPI_AVDD_1V1": "AVDD_1V1_628", "HDMITX_DVDD_1V1": "AVDD_1V1_628",
@@ -154,8 +154,10 @@ def build(project):
           footprint="Connector_Video:HDMI_A_Molex_208658-1001_Horizontal",
           Note="Footprint to match the bought part (LCSC C2902698)")
     cap(s, (440, 100), "HDMIRX_5V", "GND", "100nF")
-    for i, pins in enumerate((("HDMIRX_D2_P", "HDMIRX_D2_N", "HDMIRX_D0_P", "HDMIRX_D0_N"),
-                              ("HDMIRX_CLK_P", "HDMIRX_CLK_N", "HDMIRX_D1_P", "HDMIRX_D1_N"),
+    # Lines in connector order (pins 1-12), so each ESD part sits across two neighbouring pairs and the board
+    # routes them straight through
+    for i, pins in enumerate((("HDMIRX_D2_P", "HDMIRX_D2_N", "HDMIRX_D1_P", "HDMIRX_D1_N"),
+                              ("HDMIRX_D0_P", "HDMIRX_D0_N", "HDMIRX_CLK_P", "HDMIRX_CLK_N"),
                               ("PORT_HPD", "PORT_CEC", "PORT_SCL", "PORT_SDA"))):
         _rclamp(s, (360 + 30 * i, 250), pins)
     resistor(s, (330, 140), "RX_HPD", "PORT_HPD", "22R")
@@ -179,7 +181,9 @@ def build(project):
     s.add("Transistor_BJT:MMBT3904", (410, 60), {"B": "DET_B", "C": "RK628D_PLUGIN_DET", "E": "GND"})
     resistor(s, (430, 45), "3V3_IO", "RK628D_PLUGIN_DET", "10k")
     # HDMI audio (RK628D I2S) to test pads only: on the CM3, I2S1_M1 shares pins with the DVP input for SDI.
-    for i, net in enumerate(("I2S_628_SCLK", "I2S_628_LRCK", "I2S_628_SDO", "I2S_628_MCLK")):
+    # (MCLK, ball H7, has no pad: its fanout via is closed in by the GND vias in the middle of the ball grid, and
+    # SCLK, LRCK and SDO are enough to capture the audio.)
+    for i, net in enumerate(("I2S_628_SCLK", "I2S_628_LRCK", "I2S_628_SDO")):
         s.add("Connector:TestPoint", (40 + 12 * i, 330), {"1": net}, ref="TP", value=net,
               footprint="TestPoint:TestPoint_Pad_D1.0mm")
     for i, net in enumerate(("RK628D_3V3", "AVDD_3V3_628", "AVDD_1V1_628", "EFUSE_628", "HDMIRX_5V")):

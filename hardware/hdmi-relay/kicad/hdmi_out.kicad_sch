@@ -2663,7 +2663,7 @@
 		)
 		(uuid "9d2471c1-bfc6-5c5e-a80b-8a3600cde1b7")
 	)
-	(global_label "HDMITX_D0_P"
+	(global_label "HDMITX_D1_P"
 		(shape passive)
 		(at 218.44 231.14 180)
 		(fields_autoplaced yes)
@@ -2673,7 +2673,7 @@
 			)
 			(justify right)
 		)
-		(uuid "73f507a0-79b9-577b-bf36-5b1ac6cc2e98")
+		(uuid "d68e4946-4649-553c-a1cf-4b0010fc64c1")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 218.44 231.14 0)
 			(effects
@@ -2695,7 +2695,7 @@
 		)
 		(uuid "9da07adc-7c47-50d4-9fb8-9c1306b38fed")
 	)
-	(global_label "HDMITX_D0_N"
+	(global_label "HDMITX_D1_N"
 		(shape passive)
 		(at 218.44 233.68 180)
 		(fields_autoplaced yes)
@@ -2705,7 +2705,7 @@
 			)
 			(justify right)
 		)
-		(uuid "1157105e-a474-53a8-965b-e085d9d38213")
+		(uuid "c3ddb8d9-82f7-5137-a63d-c9a86e9e52fd")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 218.44 233.68 0)
 			(effects
@@ -2827,7 +2827,7 @@
 		)
 		(uuid "22392fb9-a6fb-5aaa-8bf5-5b6fe8bfd8c7")
 	)
-	(global_label "HDMITX_CLK_P"
+	(global_label "HDMITX_D0_P"
 		(shape passive)
 		(at 248.92 226.06 180)
 		(fields_autoplaced yes)
@@ -2837,7 +2837,7 @@
 			)
 			(justify right)
 		)
-		(uuid "751a442a-7db6-5688-9d58-0f9a0b73ffe0")
+		(uuid "a608f843-2766-56b9-a531-ba4f01879ba2")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 248.92 226.06 0)
 			(effects
@@ -2859,7 +2859,7 @@
 		)
 		(uuid "1d2b2b23-23f7-599d-b9fb-cb1148319b3a")
 	)
-	(global_label "HDMITX_CLK_N"
+	(global_label "HDMITX_D0_N"
 		(shape passive)
 		(at 248.92 228.6 180)
 		(fields_autoplaced yes)
@@ -2869,7 +2869,7 @@
 			)
 			(justify right)
 		)
-		(uuid "ca61c553-55e7-5f69-92f7-bb7be43a6c26")
+		(uuid "e5a13bf7-b04f-51a0-bb2f-d9751424eed8")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 248.92 228.6 0)
 			(effects
@@ -2968,7 +2968,7 @@
 		)
 		(uuid "41165071-ba13-5104-8af9-02ac683905af")
 	)
-	(global_label "HDMITX_D1_P"
+	(global_label "HDMITX_CLK_P"
 		(shape passive)
 		(at 248.92 231.14 180)
 		(fields_autoplaced yes)
@@ -2978,7 +2978,7 @@
 			)
 			(justify right)
 		)
-		(uuid "1b5024d0-acf7-5749-a7af-206a0f482013")
+		(uuid "74eaedd5-2bc5-5453-ad0b-97b857d8c7b0")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 248.92 231.14 0)
 			(effects
@@ -3000,7 +3000,7 @@
 		)
 		(uuid "b9a839aa-7e0f-5532-a36b-e5be73c10db9")
 	)
-	(global_label "HDMITX_D1_N"
+	(global_label "HDMITX_CLK_N"
 		(shape passive)
 		(at 248.92 233.68 180)
 		(fields_autoplaced yes)
@@ -3010,7 +3010,7 @@
 			)
 			(justify right)
 		)
-		(uuid "cd23ee73-1d3d-579c-8e37-221682bc9348")
+		(uuid "92cea9b6-9062-5290-ab61-e8bf22ed1cc4")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 248.92 233.68 0)
 			(effects
@@ -3132,7 +3132,7 @@
 		)
 		(uuid "e3976511-559e-5bca-9bc5-e6712e7618c0")
 	)
-	(global_label "HDMITX_HPD"
+	(global_label "HDMITX_SCL"
 		(shape passive)
 		(at 278.13 226.06 180)
 		(fields_autoplaced yes)
@@ -3142,7 +3142,7 @@
 			)
 			(justify right)
 		)
-		(uuid "e0ba545b-8a95-5a7a-b10f-16f3bebedb03")
+		(uuid "a3209b10-f37e-5057-ae9f-92d0edd74d37")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 278.13 226.06 0)
 			(effects
@@ -3164,7 +3164,7 @@
 		)
 		(uuid "90c2ce20-6062-5c67-9fbc-d46c224f1bc9")
 	)
-	(global_label "HDMITX_SCL"
+	(global_label "HDMITX_SDA"
 		(shape passive)
 		(at 278.13 228.6 180)
 		(fields_autoplaced yes)
@@ -3174,7 +3174,7 @@
 			)
 			(justify right)
 		)
-		(uuid "428526e7-b5fa-5acb-a75c-0e971b6c9011")
+		(uuid "b493f7df-d80f-5432-a59e-8ac922e8c072")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 278.13 228.6 0)
 			(effects
@@ -3273,26 +3273,15 @@
 		)
 		(uuid "637eb76b-a70c-575c-820c-854f4d4c0bb7")
 	)
-	(global_label "HDMITX_SDA"
-		(shape passive)
+	(label "HDMITX_5V"
 		(at 278.13 231.14 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify right)
+			(justify right bottom)
 		)
-		(uuid "763f1649-4ba0-5b81-bebd-b78a7781aa95")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 278.13 231.14 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
+		(uuid "488c7f33-684a-5e28-a4c9-becd42edfba0")
 	)
 	(wire
 		(pts
@@ -3305,15 +3294,26 @@
 		)
 		(uuid "f7983dd5-93e8-5a70-87c0-413dfdb5fc76")
 	)
-	(label "HDMITX_5V"
+	(global_label "HDMITX_HPD"
+		(shape passive)
 		(at 278.13 233.68 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify right bottom)
+			(justify right)
 		)
-		(uuid "e1553377-1fdd-5d9d-974d-519152f6dd2a")
+		(uuid "78731544-a939-506e-aa62-c2fcb2aadf93")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 278.13 233.68 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Power_Management:AP22804AW5")

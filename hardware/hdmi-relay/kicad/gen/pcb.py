@@ -1,5 +1,5 @@
 """Creates the rev A board (../relay.kicad_pcb) from the schematic netlist: outline, stackup, net classes and an
-initial placement by floorplan. Routing is done afterwards in KiCad.
+initial placement by floorplan. gen/route.py then adds the planes and the scripted high-speed routes.
 
 Run with KiCad's bundled Python (it has the pcbnew module):
   /Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python3 gen/pcb.py
@@ -34,8 +34,10 @@ NETCLASSES = {
     "USB_90R":   (0.12, 0.10, 0.45, 0.25, 0.12, 0.10, r"^USB_.*_D[PM](_C)?$"),
     "PCIE_85R":  (0.14, 0.10, 0.45, 0.25, 0.14, 0.10, r"^PCIE_(TX|RX|REFCLK)_[PN]$|^M2_PER_[PN]$"),
     "POWER":     (0.50, 0.127, 0.60, 0.30, 0.20, 0.20,
-                  r"^(VIN|VIN_RAW|VDC|VNPF|VBUS_C|VBUS_SW|5V_SYS|5V_SOM|3V3_IO|1V1_628|RK628D_3V3|AVDD_.*|"
+                  r"^(VIN|VIN_RAW|VDC|VNPF|VBUS_C|VBUS_SW|5V_SYS|5V_SOM|3V3_IO|"
                   r"HDMITX_5V|HDMIRX_5V|SOM_3V3|SOM_1V8|1V0_PHY|LX_.*|SW_.*)$"),
+    # 1V1_628, RK628D_3V3 and the AVDD rails stay in Default (0.1 mm clearance): under the 0.65 mm ball grid their 0.1 mm
+    # traces run between 0.3 mm vias
 }
 DEFAULT = (0.127, 0.10, 0.45, 0.25)
 
@@ -76,7 +78,21 @@ FIXED = {
     "J701": CM3, "J702": CM3, "J703": CM3, "MOUNT_CM3": CM3,
     "J201": (24.0, 7.0, 90),      # HDMI IN, front panel (opening toward y = 0)
     "J401": (79.0, 7.0, 90),      # HDMI OUT, front panel
-    "U201": (44.0, 21.0, 0),      # RK628D, between HDMI IN and the CM3's CSI pins
+    "U201": (44.0, 21.0, 180),    # RK628D, between HDMI IN and the CM3's CSI pins; CSI balls (columns 1-2) face J68
+    # HDMI IN ESD, in line with the connector: each part takes two neighbouring pairs straight through (gen/route.py)
+    "D201": (20.75, 13.0, 90), "D202": (23.75, 13.0, 90),
+    # 1V1_628 converter beside the RK628D, its only load (TPS563201: pins GND, SW, VIN along the bottom edge)
+    "U106": (31.0, 30.0, 90), "C120": (33.2, 31.4, 90), "C119": (34.9, 31.4, 90),   # input 100 nF and 10 uF
+    "L104": (31.0, 36.6, 90), "C122": (29.2, 42.2, 0), "C123": (32.8, 42.2, 0),    # inductor, output caps
+    "C121": (28.6, 30.0, 90),                                                        # bootstrap
+    "R115": (34.0, 28.0, 0), "R116": (34.0, 27.0, 0),                                # feedback divider
+    "R118": (29.4, 27.0, 0), "C125": (31.4, 27.0, 0),                                # enable RC
+    "R205": (48.3, 27.0, -90),
+    # HDMI OUT: ESD in line behind J401 like HDMI IN, 5 V switch and DDC pull-ups east of the TMDS pairs
+    # (gen/hdmi_out.py PLACE, which routes them)
+    "D401": (75.75, 13.0, 90), "D402": (78.75, 13.0, 90), "D403": (82.5, 13.0, 90),
+    "U401": (87.5, 16.5, 0), "C401": (87.5, 19.0, 0), "C402": (84.6, 17.2, 90),
+    "R401": (85.2, 13.6, 90), "R402": (86.4, 13.6, 90),    # MIPI_REXT (pad 1, north), from ball B1 on the CSI side
     "J501": (16.0, 27.0, 0),      # M.2 socket; the 2230 card lies over x 5..27, y 30..61
     "J301": (104.0, 79.0, -90),   # RJ45, back panel (the MDI pins are on J69, toward the back)
     "J103": (16.0, 95.0, 180),    # USB-C, back panel
@@ -90,7 +106,9 @@ FIXED = {
 # A sheet can have several rectangles; they fill in order.
 REGIONS = {
     1: [(2.0, 63.0, 37.0, 86.0), (49.0, 73.0, 79.0, 81.0), (64.0, 86.0, 86.0, 98.0)],  # power
-    2: [(33.0, 1.0, 62.0, 13.5), (49.0, 14.0, 62.0, 29.0), (33.0, 26.0, 49.0, 29.0)],  # around the RK628D
+    # around the RK628D, clear of the HDMI IN pairs (west of it) and the CSI pairs (east of it, down to J68)
+    2: [(33.0, 1.0, 62.0, 13.5), (49.0, 13.5, 62.0, 19.6), (57.0, 19.6, 62.0, 28.4), (27.5, 20.8, 39.3, 25.8),
+        (39.3, 26.0, 47.4, 29.0)],
     3: [(90.0, 70.0, 118.0, 75.0)],                           # Ethernet centre-tap caps
     4: [(64.0, 17.5, 98.0, 28.0)],                            # HDMI out
     5: [(2.0, 14.0, 14.0, 23.0)],                             # M.2 support
@@ -234,4 +252,5 @@ def main():
     print(f"wrote {OUT}: {len(placed)} footprints, {len(netinfo)} nets; regions overflowed: {overflow or 'none'}")
 
 
-main()
+if __name__ == "__main__":
+    main()

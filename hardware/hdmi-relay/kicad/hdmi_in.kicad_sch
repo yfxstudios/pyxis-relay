@@ -6857,26 +6857,9 @@
 			)
 		)
 	)
-	(wire
-		(pts
-			(xy 158.75 154.94)
-			(xy 156.21 154.94)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "81fb00cd-5576-525a-a37c-8eaee4d39f99")
-	)
-	(label "I2S_628_MCLK"
-		(at 156.21 154.94 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "b4840524-160d-52db-a987-6e5be2cab846")
+	(no_connect
+		(at 158.75 154.94)
+		(uuid "7ba0196e-5f5f-5320-983e-7c89133048bc")
 	)
 	(no_connect
 		(at 158.75 157.48)
@@ -17046,7 +17029,7 @@
 		)
 		(uuid "f9447662-a31d-5590-b42b-ccf13bfb9783")
 	)
-	(label "HDMIRX_D0_P"
+	(label "HDMIRX_D1_P"
 		(at 347.98 251.46 180)
 		(effects
 			(font
@@ -17054,7 +17037,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "de4f9953-f7f4-5638-9c43-addd767fcdb6")
+		(uuid "abc1f8e4-bce7-5a49-84b4-54493c7aa440")
 	)
 	(wire
 		(pts
@@ -17067,7 +17050,7 @@
 		)
 		(uuid "a6fc6540-61b0-5f2c-b47e-f9db9101da50")
 	)
-	(label "HDMIRX_D0_N"
+	(label "HDMIRX_D1_N"
 		(at 347.98 254.0 180)
 		(effects
 			(font
@@ -17075,7 +17058,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "9ca42025-7953-56f8-9af0-49f8c5fc9285")
+		(uuid "3422763d-91ac-5a96-8eac-4f58b80ced78")
 	)
 	(symbol
 		(lib_id "relay:RCLAMP0524P")
@@ -17188,7 +17171,7 @@
 		)
 		(uuid "86511245-ea9e-552f-8935-2471f2911c3c")
 	)
-	(label "HDMIRX_CLK_P"
+	(label "HDMIRX_D0_P"
 		(at 378.46 246.38 180)
 		(effects
 			(font
@@ -17196,7 +17179,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "78a53846-f2f1-5eae-86f9-134cad991481")
+		(uuid "ac7630dc-ebf0-5d3c-86e0-2eaa225e2900")
 	)
 	(wire
 		(pts
@@ -17209,7 +17192,7 @@
 		)
 		(uuid "c0e58048-3440-5f78-8d1b-7073f8a62d73")
 	)
-	(label "HDMIRX_CLK_N"
+	(label "HDMIRX_D0_N"
 		(at 378.46 248.92 180)
 		(effects
 			(font
@@ -17217,7 +17200,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "81e2ccf8-a9e7-5bc9-974b-a7ad05a6c745")
+		(uuid "3633c4d5-36c2-5fcc-956e-2400f199e54d")
 	)
 	(wire
 		(pts
@@ -17307,7 +17290,7 @@
 		)
 		(uuid "eb5f48ef-f9df-57bc-83ff-c56b400a886b")
 	)
-	(label "HDMIRX_D1_P"
+	(label "HDMIRX_CLK_P"
 		(at 378.46 251.46 180)
 		(effects
 			(font
@@ -17315,7 +17298,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "4ad9e0e8-0f20-52ca-8f32-58c180c5e85c")
+		(uuid "b95b059b-6ea7-5cc8-8c16-32d65d389193")
 	)
 	(wire
 		(pts
@@ -17328,7 +17311,7 @@
 		)
 		(uuid "ffb04b82-84a6-59ed-a75e-8474a42e3cf1")
 	)
-	(label "HDMIRX_D1_N"
+	(label "HDMIRX_CLK_N"
 		(at 378.46 254.0 180)
 		(effects
 			(font
@@ -17336,7 +17319,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "bfe364b0-744e-5c83-bd6e-735a77734a91")
+		(uuid "07002245-eaa6-592d-b442-cdca029a4096")
 	)
 	(symbol
 		(lib_id "relay:RCLAMP0524P")
@@ -19579,91 +19562,6 @@
 			(justify right bottom)
 		)
 		(uuid "7c32a6db-9037-51cc-bcb8-cb0bdf06802c")
-	)
-	(symbol
-		(lib_id "Connector:TestPoint")
-		(at 76.2 330.2 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "9e799f43-3157-5200-a0c4-df79cdd0079b")
-		(property "Reference" "TP204"
-			(at 76.2 323.85 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "I2S_628_MCLK"
-			(at 76.2 325.12 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "TestPoint:TestPoint_Pad_D1.0mm"
-			(at 76.2 330.2 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 76.2 330.2 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 76.2 330.2 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "daa8e2e7-19d9-58c4-857e-60df7af836ef")
-		)
-		(instances
-			(project "relay"
-				(path "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501/34c826d5-759e-5a77-80e0-b6f4446bdedc"
-					(reference "TP204")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(wire
-		(pts
-			(xy 76.2 330.2)
-			(xy 76.2 332.74)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "36ffd743-f843-5dad-9374-d83a3c14f6cf")
-	)
-	(label "I2S_628_MCLK"
-		(at 76.2 332.74 270)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right bottom)
-		)
-		(uuid "6a8109ff-b6f3-5706-ae5a-088aaa46ca6a")
 	)
 	(symbol
 		(lib_id "power:PWR_FLAG")

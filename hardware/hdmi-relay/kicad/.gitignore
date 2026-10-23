@@ -1,0 +1,6 @@
+freerouting/
+routed.kicad_pro
+.history/
+autoroute.log
+*.lck
+~*

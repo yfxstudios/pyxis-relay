@@ -111,6 +111,299 @@ Renders: [3D view](renders/rev_a_placement_3d.png), [top view](renders/rev_a_pla
    - Confirm the HDMI, RJ45 (gigabit, JK0654219 pinout) and DC-jack footprints against the bought parts.
    - Fit the board size to the case.
 
+## Routing: first traces (Oct 22)
+
+`gen/route.py` adds the planes and the high-speed routes. It clears all tracks, vias and zones first, so run
+`gen/pcb.py` and then `gen/route.py` after any placement change. Picture: [routes](renders/rev_a_first_routes.png),
+traces only, without the copper pours.
+
+**Placement changes for routing:**
+- **RK628D turned 180°:** its CSI balls face J68 and its HDMI RX balls face HDMI IN.
+- **HDMI IN ESD parts:** now in line under the connector. The schematic now gives each part two neighbouring pairs
+  (D201: D2 and D1; D202: D0 and CLK), so all four pairs pass straight through.
+- **Small parts:** moved out of the two routing channels.
+
+**Planes:**
+- **L2 and L3:** solid GND. L3 gets power islands when power is routed.
+- **L1 and L4:** GND pours.
+
+**Routed: 9 pairs, all 100 Ω, 0.10/0.10 mm.**
+- **CSI-2, 5 lanes:** RK628D to J68.
+  - D0, D1 and CLK run on L1 around the connector's west end and come up into the south pad row.
+  - D2 and D3 hop under them on L4 (four vias each, a GND return via beside each). They come up between J68's pad
+    rows into the north row.
+- **HDMI IN, 4 pairs:** J201 to the RK628D, all on L1.
+- **Within each pair:** P and N match to 0.01 mm, using small bumps on the shorter trace.
+- **Between lanes:** lengths differ (CSI 26.2–33.5 mm, HDMI 23.8–30.2 mm). These aren't matched yet; compare
+  against Rockchip's layout guide once we have it.
+
+**DRC:**
+- **No clearance, short or crossing errors.**
+- **What remains:** 373 unrouted connections, silkscreen overlaps, and the USB-C pads at the board edge.
+
+## Routing: RK628D decoupling and power (Oct 22)
+
+Also done by `gen/route.py`, now with [gen/router.py](gen/router.py): a small grid maze router (A* on a 0.05 or
+0.025 mm grid, 45° segments only, bend and via costs), since no autorouter is installed. A full run takes about
+5 minutes. Pictures: [front](renders/rev_a_rk628d_front.png), [back](renders/rev_a_rk628d_back.png).
+
+**Under the chip:**
+- **Every power and GND ball** gets a dogbone to its own via: 49 vias, 0.3 mm with a 0.15 mm drill, centred
+  between four balls.
+- **Neighbouring balls on the same rail** are also tied on the top layer.
+- **Nine inner signal balls** have a via site reserved for when the low-speed signals are routed.
+- **Placement check:** the fanout makes sure no rail's via gets boxed in by other nets. Under the chip a trace can
+  only move diagonally between vias: JLCPCB needs 0.2 mm from a via hole to any track, which leaves no room
+  between two vias in a row.
+
+**Rails:**
+- **Order:** each rail is routed first, while the back and L3 are empty. Its vias join with 0.1 mm traces on L3
+  (In2) and the back, out to an exit via just outside the ball field.
+- **Net classes:** RK628D_3V3, the two AVDD rails and 1V1_628 moved from the POWER class to Default (0.1 mm
+  clearance) so these traces fit between the vias.
+
+**Decoupling:**
+- **All 29 capacitors and both ferrites** for these rails are now on the back, under and around the chip.
+- **Placement:** each 100 nF capacitor is placed at the spot nearest its ball. A spot is kept only after a trial
+  route reaches both pads; if the route fails, the next spot is tried.
+- **Ground:** capacitor ground pads go to a GND fanout via, or to a GND via of their own.
+
+**1.1 V converter (U106 TPS563201):**
+- **Moved next to the RK628D,** its only load, from the power section.
+- **Routing:** its switch node, input and output are routed locally, with a GND via at every ground pad.
+- **Feeds:** 1V1_628 runs to the ferrite and the core balls. RK628D_3V3 runs from the P-FET (Q201) to the
+  pull-ups, the ferrite and the converter's enable.
+
+**DRC:**
+- **No clearance, short, hole or dangling errors.**
+- **Every RK628D rail and every 1.1 V converter net is fully connected.**
+- **300 connections are left** for the rest of the board. Four of them are ground-pour islands, which the
+  stitching grid will join.
+
+**Still open here:**
+- **Converter input:** 5V_SYS into the converter, and 3V3_IO into Q201, come from the main converters, so they're
+  routed with the power section.
+- **Small vias cost extra:** JLCPCB charges more for vias under 0.45 mm. The 0.65 mm ball grid needs them.
+- **Trace current:** the 0.1 mm rail traces under the chip are fine for the RK628D's currents as far as we know.
+  Check against the RK628D's actual figures once we have Rockchip's guide.
+- **Trial-routing message:** the run prints that FB201's trial route failed. The final pass connects it anyway;
+  DRC shows it connected.
+
+## Routing: RK628D low-speed signals (Oct 22)
+
+Picture: [signals](renders/rev_a_rk628d_signals.png) (top red, back blue, no pours).
+
+**Workflow:**
+- `gen/route.py`: placement and routing, about 10 minutes. It saves `routed.kicad_pcb` (no pours).
+- `gen/finish.py`: about 1 second. It removes duplicate vias, adds the GND pours, fills them and writes
+  `relay.kicad_pcb`.
+- **For a small change,** script it against `routed.kicad_pcb` and run `gen/finish.py` alone. It copies
+  `relay.kicad_pro` next to the checkpoint first: KiCad rewrites the project file (net classes and rules) from
+  the board it loaded.
+
+**Support parts re-placed by function:**
+- `gen/pcb.py` had packed them by size, which put the crystal's load capacitors 20 mm from the crystal.
+- `gen/route.py` now places each of 39 parts next to what it connects to: a ball first, then the part before it.
+- **Examples:**
+  - The crystal and its load capacitors sit right above the XIN/XOUT balls.
+  - The DDC/CEC/HPD resistors sit between the chip and the HDMI port; the port ESD is at the connector.
+  - The RK628D power switch (Q201/Q202) is to the west.
+- **Keep-outs:** nothing goes under the CM3, and a 1.5 mm ring around the RK628D stays free for its escape traces.
+
+**Routing:**
+- **31 signal nets,** plus HDMIRX_5V and the local 3V3_IO.
+- **Chip end:** each net's chip end is routed on the 0.025 mm grid, where the gaps between balls fall on cells.
+  The rest uses the 0.05 mm grid, and the runs down to the CM3's J69 use a board-wide grid.
+- **Inner balls:** the nine inner signal balls get their reserved via (placed with the power fanout). Signals
+  route before the capacitors take the back.
+- **Retries:** if any net fails, all local routes are taken out and retried with the failed nets first; the best
+  of 4 passes is kept.
+- **Clean-up:** dead ends are removed using KiCad's own connectivity check.
+
+**Result:**
+- **DRC:** no clearance, short, hole or dangling errors. 254 connections are left on the whole board (was 300).
+- **13 RK628D connections are still open:**
+  - **Chip to its parts:** XOUT, RX_SDA, RX_CEC, EFUSE, I2S_MCLK, and I2C SCL/SDA to their pull-ups.
+  - **To J69:** I2C_SCL, CEC_GPIO and RK628D_PWR_EN.
+  - **Rails:** FB202's 1V1_628 side, and one AVDD_3V3 and one AVDD_1V1 capacitor.
+- **Why the router stalls:** they stay open whatever the order. The area north of the chip is congested, and this
+  router has no true rip-up, so the remaining 13 should be finished by hand in KiCad's interactive router (a few
+  minutes each), or with Freerouting (needs Java).
+
+**Freerouting tried (Oct 22), not kept:**
+- **Setup:** Freerouting 2.5.0 is at `~/tools/freerouting/` (checksum checked against the GitHub release), with
+  Homebrew's OpenJDK 27.
+- **[gen/freeroute.py](gen/freeroute.py):**
+  - **Export:** locks every existing track and exports the board.
+  - **Other nets:** hides them by splitting each into single-pin nets. Moving them to "no net" made Freerouting
+    ignore them as obstacles, and routing all ~250 open connections took over 20 minutes.
+  - **Import:** brings back only new outer-layer copper on the target nets. KiCad's own session import replaces
+    every track.
+- **Result:** Freerouting connected only the two capacitors. It left the other 11 open and added DRC errors
+  (unconnected vias, hole clearance), so the board was put back to the checkpoint.
+
+## Routing: HDMI OUT (Oct 22)
+
+[gen/hdmi_out.py](gen/hdmi_out.py) runs on `routed.kicad_pcb` in about 2 minutes. `gen/route.py` also calls it for
+a full rebuild (not yet re-run that way). Picture: [HDMI OUT](renders/rev_a_hdmi_out.png).
+
+**Schematic:**
+- **ESD order:** the parts now take their lines in connector-pin order, as on HDMI IN.
+  - D401: D2 and D1.
+  - D402: D0 and CLK.
+  - D403: SCL, SDA, 5 V and HPD.
+
+**TMDS pairs:**
+- **Path:** the four pairs leave J68's north pad row (1.2 mm apart, P west), step east on one 45° leg to the
+  connector's 1.5 mm spacing, and pass straight through the ESD parts behind J401. All on L1.
+- **Lengths:** 22.65, 22.77, 22.89 and 23.02 mm (D2, D1, D0, CLK). Within each pair, P and N match exactly.
+
+**Low-speed:**
+- **DDC and 5 V:** routed east of the pairs. The 5 V line runs straight through D403 at 0.25 mm.
+- **Hot-plug:** crosses the pairs on the back to J68 pin 153.
+- **Parts:** the 5 V switch (U401), its capacitors and the DDC pull-ups sit east of the pair corridor.
+
+**DRC:**
+- **No electrical errors.**
+- **HDMI OUT connected, except** the 5V_SYS feed into U401, which comes with the power section.
+
+## Routing: Ethernet (Oct 23)
+
+[gen/rest.py](gen/rest.py)'s `ethernet` section runs on the checkpoint in about 40 seconds.
+
+**Route:**
+- **Where they go:** the four pairs (L1, over the L2 plane) leave J69's west end. MDI0/MDI1 go north; MDI2/MDI3 go
+  through the gap between its pad rows and round its end.
+- **Lanes:** they run east in four lanes between J1's bottom pins and the CM3's mounting hole, then come down into
+  the magjack through the gap in its LED row.
+- **Polarity:** each pair turns into its own pins from its own strip, so P and N land on the right pins with no
+  crossing.
+- **Lengths:** 53–70 mm; P and N within 0.7 mm of each other in every pair.
+- **Centre taps:** the four centre-tap capacitors are on the back, beside their jack pins, each with a GND via.
+
+**RK628D lines to J69:** the lines down to J69 (interrupt, plug detect, reset, I2C, CEC, power enable) were
+re-routed around the lanes; they cross them on the back.
+
+**DRC:** no electrical errors. 199 connections are left.
+
+**M.2 socket (in progress):**
+- **Schematic:** now uses KiCad's real footprint (`Connector_PCBEdge:TE_M.2_E_2x38-1MP_P0.5mm`, TE 2199230-x) and
+  adds H501, an M2 standoff for the card.
+- **Board:** still has the placeholder footprint. The real socket is wider and overlaps the RK628D power-switch
+  parts placed beside it, so those need moving before it goes in.
+
+## Placement: M.2 area and power section (Oct 23)
+
+[gen/rest.py](gen/rest.py) sections `m2_parts` (footprint swap; it ends its run) and `placement`. Pictures:
+[power](renders/rev_a_power_placement.png), [M.2](renders/rev_a_m2_placement.png).
+
+**M.2:**
+- **Socket:** the real TE socket is in, plus H501, the card standoff about 30 mm south.
+- **Moved aside:** the RK628D power-switch parts the wider socket covered.
+- **AC coupling:** the PCIe AC caps sit just north of the card's PER pins.
+- **Back side, under the socket:** the 3.3 V decoupling and the five control-line pull-ups.
+
+**Back panel:**
+- **USB-C:** turned to face out (it faced into the board).
+- **DC jack:** its mouth now sits at the board edge (it was 6 mm in).
+
+**Power:**
+- **Input stage:** at the inputs:
+  - OR diodes, fuse, TVS and the 47 µF bulk cap.
+  - The USB-C PD sink, with its P-FET and the data ESD at the connector.
+- **SY8303 converters (5V_SYS, then 5V_SOM):**
+  - Side by side, each with its input caps under the IC, the inductor right of the switch pin, and output caps
+    beyond.
+  - 5V_SOM sits toward the module's 5 V pins, and the module's own decoupling is right at those pins.
+- **3V3_IO converter:** in the strip between the M.2 card and the module, near its main load.
+- **Small parts:** the bootstrap caps, feedback dividers, frequency-set resistors and enable dividers sit next to
+  the IC pins they serve.
+
+**Traces removed:** traces that touched moved parts or ran across new ones were taken out (4 nets). Those nets are
+for hand routing now.
+
+**DRC:** no clearance, courtyard or edge errors. 204 connections are left for hand routing.
+
+**`relay.kicad_pcb` is the master copy from here:**
+- **Don't regenerate:** `gen/pcb.py` and `gen/route.py` don't know this placement, and re-running them would
+  undo it.
+- **To check:**
+  - The TE socket's card stop line against the H501 position.
+  - That the USB-C and DC jack mouths line up with the case.
+
+**Next:**
+1. **Route the rest by hand in KiCad:** the 13 RK628D connections, M.2/PCIe/USB, power, SDI, debug/LEDs.
+   - **Edit the board in KiCad from now on.** Once `relay.kicad_pcb` is edited by hand, it's the master copy:
+     re-running `gen/pcb.py` or `gen/route.py` would overwrite the hand routing.
+3. **PCIe to the M.2 socket:** on L4. Leave the pads to the north, then go west above the CSI hop vias.
+4. **USB and Ethernet.**
+5. **Power:** pours and L3 islands, then the GND stitching grid.
+
+## Routing: autoroute and fab outputs (Oct 23)
+
+Pictures: [top copper](renders/rev_a_routed_F.png), [back copper](renders/rev_a_routed_B.png),
+[3D top](renders/rev_a_3d_top.png), [3D bottom](renders/rev_a_3d_bottom.png).
+
+**Status:**
+- **Routed:** every net except the 5 low-speed ones listed below.
+- **DRC:** no errors. Left over are 3 warnings (two unused fanout vias, one stub) and silkscreen overlaps.
+- **Fab files:** in `fab/`. Not ready to order yet; see the open items.
+
+**Workflow:** `gen/autoroute.py` routes stage by stage on `routed.kicad_pcb` (no pours) and logs to
+`autoroute.log`. After each stage `gen/finish.py` fills the pours into `relay.kicad_pcb` and KiCad's DRC says what
+is still open. Each net is saved as it finishes. Main stages:
+- `pairs`, `pcie`, `tune`: the differential pairs, then length matching.
+- `power`, `signals`: the rest, on the 0.1 mm grid first, then the 0.05 mm grid.
+- `ripup`: rip-up and reroute. A walled-in net may cross other low-speed nets, which then come out and go back
+  in the queue.
+- `sequence`: the RK628D corner in a fixed order, each net fixed once routed.
+- `gnd`, `gndfix`: GND vias, a 4 mm stitching grid, and a via or short trace into every pour island.
+
+**Router rules (`gen/router.py`):**
+- **Clearance:** the net class's 0.10 mm, or 0.127 mm next to POWER-class copper.
+- **Drills:** 0.2 mm from other nets' copper, 0.25 mm drill to drill.
+- **L2/L3 for low-speed hops:** short hops may use L3, and L2 inside the RK628D's footprint. Neither runs under a
+  high-speed trace on the layer it references.
+
+**Pairs:**
+- **Coupling:** CSI, HDMI and Ethernet are coupled and matched. PCIe RX is a coupled pair (55.2/55.6 mm). The other
+  PCIe and USB pairs are two separate traces, which is fine for rev A.
+- **PCIe REFCLK:** was 6.8 mm apart; now matched with bumps.
+- **PCIe TX, USB BT, USB OTG:** within 0.1 mm.
+
+**Design changes made while routing:**
+- **MCLK test pad (TP204) removed:** from the board and from `gen/hdmi_in.py`; ball H7 is now no-connect. Its
+  fanout via was boxed in by the GND vias in the middle of the ball grid. HDMI audio isn't used (the CM3's I2S pins
+  are shared with the DVP input), and SCLK, LRCK and SDO still have pads.
+- **GND ball G8:** joins G7 on the top layer instead of having its own via. That opened a way out for EFUSE
+  (ball J8).
+- **R206 and C201 (EFUSE):** moved to the back, beside ball J8.
+- **Analog rails rerouted after the signals:** AVDD_3V3_628 and AVDD_1V1_628 had been routed first and blocked
+  the crystal and HDMI control lines.
+
+**Still to do by hand in KiCad (interactive router), before ordering:**
+1. **5 low-speed nets, 7 connections:**
+   - RK628D_INT: ball J3 to J701 pin 46.
+   - RK628D_RESET_N: ball to C202, and C202 to J701 pin 48.
+   - I2C_628_SCL: ball L3 to R207, and to J701 pin 35.
+   - RX_SCL: ball L8 to R219.
+   - RK628D_PWR_EN: R211 to J701 pin 24.
+
+   Space is tight around the ball grid's north and east edges. In2 and the back are free under most of the chip's
+   south half.
+2. **12 GND pour islands:** around CM3 connector GND pins (J701, J702, J703) and on the M.2 socket and R114. Each
+   needs a via or a short trace to the nearest GND via. The other GND pins on the same connectors already connect.
+3. **Re-check:** run DRC in KiCad and confirm 0 unconnected.
+
+**Before ordering at JLCPCB:**
+- **BOM:** 61 lines have no LCSC part number yet. Pick parts, and add the `LCSC` field in the schematic generators.
+- **CPL:** check rotations in JLCPCB's assembly preview. KiCad's zero orientation differs from theirs for some
+  packages. Positions are KiCad's (Y up).
+- **Small vias cost extra:** the 0.3/0.15 mm vias under the RK628D are below JLCPCB's standard size.
+- **Mechanical, still to check:** the M.2 card stop against H501, and the USB-C and DC jack mouths against the
+  case.
+- **Via-in-pad:** if the corner stays hard to finish, filled vias in a few of the RK628D's pads would remove the
+  shared via sites. That costs extra on every order.
 
 - `relay.kicad_sch`: root sheet; one `.kicad_sch` per sheet.
 - `relay.kicad_sym` and `relay.pretty/`: project symbols and footprints, also generated.
