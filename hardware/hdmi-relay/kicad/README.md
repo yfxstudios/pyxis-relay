@@ -414,19 +414,30 @@ Pictures: [top copper](renders/rev_a_routed_F.png), [back copper](renders/rev_a_
 [component layout](renders/rev_a_component_layout.png).
 
 **Status:**
-- **Routed:** every signal and power net.
-- **DRC:** 0 errors. Left over are warnings only:
-  - silkscreen overlaps (about 400);
-  - 47 "dangling" track and via warnings. Most are segments that join their route part-way along rather than at an
-    endpoint, so KiCad flags them although they connect. Deleting them opened 20 connections, so they stay.
-- **3 unconnected GND entries.** These are spare GND pins whose pad sits between other nets' traces with no room
-  for a via:
-  - CM3 connectors: J701 pin 43; J702 pin 8; J703 pins 56, 72, 76 and 99.
-  - M.2 socket: J501 pin 39.
+- **Routed:** every connection, GND included.
+- **KiCad DRC:** clean. `kicad-cli pcb drc --schematic-parity --severity-all` reports 0 violations, 0 unconnected
+  items and 0 schematic-parity issues.
+- **Fab files:** `fab/` has Gerbers, drill, zip, BOM and CPL. Every BOM line has an LCSC number. The BOM and CPL
+  list the same 180 parts; do-not-populate parts (R202, R216, J602) are in neither.
 
-  Each connector has dozens of other GND pins that do connect, so this is accepted for rev A. Re-check it if
-  the CM3's high-speed lanes misbehave.
-- **Fab files:** `fab/` has Gerbers, drill, zip, BOM and CPL. Every BOM line has an LCSC number.
+**Pipeline after routing:** run these on `routed.kicad_pcb`, then `gen/finish.py` (pours) and `gen/fab.py`.
+- `gen/silk.py`: places every reference designator (0.8 mm text) clear of pads, outlines and the board edge, or
+  hides it if no spot is clear (48 of them; F.Fab still shows every reference).
+- `gen/sync.py`: copies the schematic's fields, DNP and BOM flags and unused-pin nets onto the footprints.
+
+`relay.kicad_dru` has one rule: J301's outline may cross the board edge, since the jack hangs over it.
+
+**Last clean-up (Oct 24):**
+- **Connector GND pins.** The last three unconnected GND pins now connect:
+  - J701 pin 43: a via beside the pin. DVP_D0's via moved 0.3 mm west to make room.
+  - J703 pin 99: a via off the pad's east end.
+  - J501 pin 39 (M.2): a via in the pad, as pin 41 already has. On the back, 3V3_IO moved 0.3 mm west and
+    PCIE_REFCLK_N moved to x = 15.8 to make room. REFCLK_P got a matching jog; both are 59.63 mm.
+- **Dead copper.** Removed: duplicate tracks and vias, plus dead branches left over from merging the RK628D
+  corner (gen/hybrid.py). Before every change, KiCad checked that no connection opened. Four vias that joined
+  tracks on the top layer only became short track links.
+- **Silkscreen.** Two parts moved slightly to clear a neighbouring silkscreen marking: R109 by 0.15 mm, R106
+  by 0.07 mm. Next to R106, BS_5V moved 0.02 mm.
 
 **Layers:** F signal; In1 solid GND, the reference for the top-layer pairs; In2 GND pour plus low-speed routing,
 kept solid under the back-layer high-speed pairs; B signal.
@@ -456,6 +467,8 @@ copper clearance (0.1 mm), hole to copper (0.2 mm) and hole to hole (0.25 mm) ag
 - **SW_628:** has a 0.13 mm neck.
 - **Uncoupled pairs:** the PCIe TX/REFCLK and USB pairs are uncoupled, length-matched traces.
 - **Small vias:** 0.3/0.15 mm vias under the RK628D (JLCPCB extra cost).
+- **Open vias in M.2 pads:** J501 pins 39 and 41 each have an untented 0.3 mm via in the pad. Solder can wick
+  into them; ask JLCPCB for filled vias ("via in pad") if the M.2 joints come out thin.
 
 **Before ordering:** check the CPL rotations in JLCPCB's preview, and the mechanical points listed in the section
 above.

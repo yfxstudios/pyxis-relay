@@ -1,0 +1,8 @@
+(version 1)
+
+# The RJ45 jack (J301) hangs over the board edge on purpose; its outline on the silkscreen does too (the fab clips
+# silkscreen at the edge).
+(rule "J301 overhang"
+   (condition "A.memberOfFootprint('J301') || B.memberOfFootprint('J301')")
+   (constraint silk_clearance)
+   (severity ignore))
