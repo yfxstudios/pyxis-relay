@@ -18,8 +18,8 @@ GND = "GND"
 ASSIGN = {
     "J69": {
         3: "MDI3_P", 5: "MDI3_N", 4: "MDI1_P", 6: "MDI1_N", 11: "MDI2_P", 9: "MDI2_N", 12: "MDI0_P", 10: "MDI0_N",
-        24: "RK628D_PWR_EN", 46: "RK628D_INT", 48: "RK628D_RESET_N", 50: "RK628D_PLUGIN_DET", 28: "CEC_GPIO",
-        35: "I2C_628_SCL", 36: "I2C_628_SDA",                       # I2C2_M1
+        48: "RK628D_RESET_N", 50: "RK628D_PLUGIN_DET",
+        28: "I2C_628_SCL", 36: "I2C_628_SDA",                       # GPIO0_C6, GPIO4_B4: i2c-gpio (pin 35 had no room)
         37: "SDI_UART_TX",                                           # GPIO4_C5 = UART9_TX_M1 (V1.32: was SARADC)
         93: "RECOVERY_ADC",                                          # SARADC_VIN0: low at boot = Rockusb recovery
         30: "LED_STATUS", 56: "LED_WIFI", 58: "PD_PG_N",
@@ -44,6 +44,7 @@ ASSIGN = {
         170: "HDMITX_D2_P", 172: "HDMITX_D2_N", 176: "HDMITX_D1_P", 178: "HDMITX_D1_N",
         182: "HDMITX_D0_P", 184: "HDMITX_D0_N", 188: "HDMITX_CLK_P", 190: "HDMITX_CLK_N",
         153: "HDMITX_HPD", 199: "HDMITX_SDA", 200: "HDMITX_SCL",     # level-shifted on the module
+        151: "CEC_GPIO",                                             # GPIO4_D1 (VCCIO7, 3.3 V): next to the RK628D
     },
     "J1": {
         34: "BT_DISABLE_N", 74: "WIFI_DISABLE_N", 38: "PCIE_WAKE_N",
@@ -53,6 +54,7 @@ ASSIGN = {
         75: "DVP_D8", 77: "DVP_D9", 79: "DVP_D10", 81: "DVP_D11", 83: "DVP_D12", 85: "DVP_D13",
         36: "SDI_UART_RX",                                           # UART9_RX_M1 (TX is J69 pin 37)
         4: "SDI_GPIO5", 6: "SDI_GPIO6", 8: "SDI_GPIO7", 10: "SDI_GPIO8",
+        18: "RK628D_INT", 95: "RK628D_PWR_EN",                       # GPIO0_D5, GPIO0_C4: J69's middle is full
     },
 }
 OFFSET = {"J69": 0, "J68": 100, "J1": 0}

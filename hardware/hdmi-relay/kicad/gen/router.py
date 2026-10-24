@@ -125,6 +125,7 @@ class Router:
             return self.cache[key]
         if self.shapes is None:
             self._collect()
+        cl = max([cl] + [self.net_cl[o] for o in own if o in self.net_cl])   # a POWER-class net keeps its own
         margin = cl + half + self.res * 0.71
         g = np.zeros((len(layers), self.ny, self.nx), bool)
         for li, layer in enumerate(layers):

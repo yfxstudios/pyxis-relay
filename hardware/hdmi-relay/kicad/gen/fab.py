@@ -26,6 +26,71 @@ FAB = os.path.join(ROOT, "fab")
 LAYERS = "F.Cu,In1.Cu,In2.Cu,B.Cu,F.Paste,B.Paste,F.Silkscreen,B.Silkscreen,F.Mask,B.Mask,Edge.Cuts"
 
 
+# LCSC numbers for parts whose schematic symbol has none, by (value, footprint). Resistors and capacitors are
+# JLCPCB basic parts where one exists (1 % resistors; capacitors rated at least the schematic voltage), picked with
+# the jlcsearch API; the rest from JLCPCB's parts search (Oct 23).
+LCSC_BY = {
+    ("100R", "R_0402_1005Metric"): "C25076",           # 0402WGF1000TCE
+    ("100k", "R_0402_1005Metric"): "C25741",           # 0402WGF1003TCE
+    ("100nF", "C_0402_1005Metric"): "C307331",         # CL05B104KB54PNC
+    ("10k", "R_0402_1005Metric"): "C25744",            # 0402WGF1002TCE
+    ("10nF", "C_0402_1005Metric"): "C15195",           # CL05B103KB5NNNC
+    ("10uF", "C_0805_2012Metric"): "C15850",           # CL21A106KAYNNNE
+    ("10uF/10V", "C_0805_2012Metric"): "C15850",       # CL21A106KAYNNNE
+    ("110k", "R_0402_1005Metric"): "C25745",           # 0402WGF1103TCE
+    ("15k", "R_0402_1005Metric"): "C25756",            # 0402WGF1502TCE
+    ("18pF", "C_0402_1005Metric"): "C1549",            # 0402CG180J500NT
+    ("1k", "R_0402_1005Metric"): "C11702",             # 0402WGF1001TCE
+    ("1nF", "C_0402_1005Metric"): "C1523",             # 0402B102K500NT
+    ("1uF", "C_0402_1005Metric"): "C52923",            # CL05A105KA5NQNC
+    ("1uF/50V", "C_0805_2012Metric"): "C28323",        # CL21B105KBFNNNE
+    ("2.2k", "R_0402_1005Metric"): "C25879",           # 0402WGF2201TCE
+    ("210k", "R_0402_1005Metric"): "C58827",           # 0402WGF2103TCE
+    ("22R", "R_0402_1005Metric"): "C25092",            # 0402WGF220JTCE
+    ("22uF", "C_0805_2012Metric"): "C45783",           # CL21A226MAQNNNE
+    ("22uF/10V", "C_0805_2012Metric"): "C45783",       # CL21A226MAQNNNE
+    ("23.2k", "R_0402_1005Metric"): "C25873",          # 0402WGF2322TCE
+    ("27k", "R_0402_1005Metric"): "C25771",            # 0402WGF2702TCE
+    ("2k", "R_0402_1005Metric"): "C4109",              # 0402WGF2001TCE
+    ("2k 1%", "R_0402_1005Metric"): "C4109",           # 0402WGF2001TCE
+    ("33k", "R_0402_1005Metric"): "C25779",            # 0402WGF3302TCE
+    ("39k", "R_0402_1005Metric"): "C25783",            # 0402WGF3902TCE
+    ("4.02k 1%", "R_0402_1005Metric"): "C43251",       # 0402WGF4021TCE
+    ("4.7k", "R_0402_1005Metric"): "C25900",           # 0402WGF4701TCE
+    ("4.7uF/50V", "C_1206_3216Metric"): "C29823",      # 1206B475K500NT
+    ("47k", "R_0402_1005Metric"): "C25792",            # 0402WGF4702TCE
+    ("6.8k", "R_0402_1005Metric"): "C25917",           # 0402WGF6801TCE
+    ("47uF/35V", "CP_Elec_6.3x7.7"): "C47023116",          # RVT35V47M6X8, 6.3 x 7.7 mm
+    ("SS54", "D_SMA"): "C22452",                           # basic part
+    ("SMBJ20CA", "D_SMB"): "C113992",
+    ("MBR0530", "D_SOD-123"): "C82046",                    # MBR0530T1G
+    ("white", "LED_0603_1608Metric"): "C2290",             # KT-0603W, basic
+    ("blue", "LED_0603_1608Metric"): "C2288",              # KT-0603B
+    ("red PWR", "LED_0603_1608Metric"): "C2286",           # KT-0603R, basic
+    ("3A hold", "Fuse_1812_4532Metric"): "C48985875",      # 1812L300/30GR: 3 A hold, 30 V
+    ("330R@100MHz", "L_0603_1608Metric"): "C275487",       # TDK MPZ1608S331ATA00
+    ("MMBT3904", "SOT-23"): "C20526",                      # basic part
+    ("USBLC6-2SC6", "SOT-23-6"): "C2687116",
+    ("CH224A", "SSOP-10-1EP_3.9x4.9mm_P1mm_EP2.1x3.3mm"): "C42459160",
+    ("AP22804AW5", "SOT-23-5"): "C3001659",                # AP22804AW5-7
+    ("24MHz", "Crystal_SMD_3225-4Pin_3.2x2.5mm"): "C70590",  # X322524MOB4SI, 12 pF load (18 pF caps)
+    ("6.8uH 5A", "L_Bourns_SRN6045TA"): "C2041457",        # Bourns SRN6045TA-6R8M (low stock: check)
+    ("2.2uH", "L_Bourns_SRN6045TA"): "C83455",             # Sunlord SWPA6045S2R2MT, same 6 x 6 mm pads
+    ("1.5uH", "L_Bourns_SRN6045TA"): "C98203",             # Sunlord SWPA6045S1R5MT, same 6 x 6 mm pads
+    ("NP-F plate", "JST_PH_B2B-PH-K_1x02_P2.00mm_Vertical"): "C131337",
+    ("HDMI IN", "HDMI_A_Molex_208658-1001_Horizontal"): "C916313",   # Molex 2086581001
+    ("HDMI OUT", "HDMI_A_Molex_208658-1001_Horizontal"): "C916313",
+    ("M.2 E-key 2230", "TE_M.2_E_2x38-1MP_P0.5mm"): "C2977809",      # TE 2199230-4
+    ("DEBUG UART", "PinHeader_1x03_P2.54mm_Vertical"): "C2937625",   # PZ254V-11-03P
+    ("RESET", "SW_SPST_TL3342"): "C2886898",               # TL3342F160QG
+    ("RECOVERY", "SW_SPST_TL3342"): "C2886898",
+    ("DC 6-17V", "BarrelJack_Horizontal"): "C3096082",     # CUI-style PJ-002A: check against the footprint
+    ("RJ45 1000BASE-T magjack", "RJ45_Pulse_JK0654219NL_Horizontal"): "C3179417",  # Pulse JK0654219NL (no stock)
+}
+# not placed by the assembler: bare pads
+NOT_PLACED = ("MountingHole", "TestPoint")
+
+
 def run(*args):
     r = subprocess.run([KC, *args], capture_output=True, text=True)
     if r.returncode:
@@ -55,8 +120,11 @@ def main():
         missing = 0
         for row in csv.DictReader(f):
             fp = row["Footprint"].split(":")[-1]
-            w.writerow([row["Comment"], row["Designator"], fp, row["LCSC Part #"]])
-            missing += not row["LCSC Part #"]
+            if fp.startswith(NOT_PLACED):
+                continue
+            lcsc = row["LCSC Part #"] or LCSC_BY.get((row["Comment"], fp), "")
+            w.writerow([row["Comment"], row["Designator"], fp, lcsc])
+            missing += not lcsc
     os.remove(raw)
 
     # pick-and-place from the board
@@ -68,7 +136,7 @@ def main():
         w.writerow(["Designator", "Mid X", "Mid Y", "Layer", "Rotation"])
         n = 0
         for row in csv.DictReader(f):
-            if row["Ref"].startswith(("H", "MOUNT")):
+            if row["Ref"].startswith(("H", "MOUNT", "TP")):
                 continue
             w.writerow([row["Ref"], f"{float(row['PosX']):.3f}mm", f"{float(row['PosY']):.3f}mm",
                         "Top" if row["Side"] == "top" else "Bottom", f"{float(row['Rot']):.1f}"])

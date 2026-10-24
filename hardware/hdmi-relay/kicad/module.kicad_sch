@@ -7181,37 +7181,9 @@
 			)
 		)
 	)
-	(wire
-		(pts
-			(xy 140.97 165.1)
-			(xy 143.51 165.1)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "2654a11a-ee54-5382-95bc-65f68a97e768")
-	)
-	(global_label "RK628D_PWR_EN"
-		(shape passive)
-		(at 143.51 165.1 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "cb5ee72a-1012-5fa1-9ba8-95a472ac8667")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 143.51 165.1 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
+	(no_connect
+		(at 140.97 165.1)
+		(uuid "8fad3d21-39e9-59e2-acfb-b5b2000e1f4f")
 	)
 	(wire
 		(pts
@@ -7320,7 +7292,7 @@
 		)
 		(uuid "3b87011e-7371-5d3a-8ad7-ebf45e25ad5d")
 	)
-	(global_label "CEC_GPIO"
+	(global_label "I2C_628_SCL"
 		(shape passive)
 		(at 143.51 170.18 0)
 		(fields_autoplaced yes)
@@ -7330,7 +7302,7 @@
 			)
 			(justify left)
 		)
-		(uuid "1b256095-c06e-51c9-bce3-f029e83b8e4f")
+		(uuid "9ea9d056-5d2a-52a7-ac80-7257330ac8e0")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 143.51 170.18 0)
 			(effects
@@ -7627,37 +7599,9 @@
 			)
 		)
 	)
-	(wire
-		(pts
-			(xy 80.01 180.34)
-			(xy 77.47 180.34)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "68316e81-8aa2-5cff-b03a-905a86d84714")
-	)
-	(global_label "I2C_628_SCL"
-		(shape passive)
-		(at 77.47 180.34 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "91c26a9a-9ee5-5ad2-9869-86e35db5c4fd")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 77.47 180.34 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
+	(no_connect
+		(at 80.01 180.34)
+		(uuid "a048556c-1b89-5ca2-b7e0-9edbddce7652")
 	)
 	(wire
 		(pts
@@ -8101,37 +8045,9 @@
 			)
 		)
 	)
-	(wire
-		(pts
-			(xy 140.97 193.04)
-			(xy 143.51 193.04)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "0a3e582f-0db3-58e5-98b0-e4def89ad06c")
-	)
-	(global_label "RK628D_INT"
-		(shape passive)
-		(at 143.51 193.04 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "3830e426-6280-532e-ad7c-85df79c40cdc")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 143.51 193.04 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
+	(no_connect
+		(at 140.97 193.04)
+		(uuid "ff0d2117-e78a-5305-849d-92eab0b82fe5")
 	)
 	(wire
 		(pts
@@ -11900,9 +11816,37 @@
 			)
 		)
 	)
-	(no_connect
-		(at 248.92 200.66)
-		(uuid "660f98b3-dcc1-571e-8f84-7b6795a59ae7")
+	(wire
+		(pts
+			(xy 248.92 200.66)
+			(xy 246.38 200.66)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "bd74f423-acb8-583a-ad67-81a05e442525")
+	)
+	(global_label "CEC_GPIO"
+		(shape passive)
+		(at 246.38 200.66 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "ed77e48e-4ca1-55bf-b649-6cb865da1621")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 246.38 200.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 	)
 	(no_connect
 		(at 309.88 200.66)
@@ -14428,9 +14372,37 @@
 		(at 419.1 157.48)
 		(uuid "cbbe5a37-f672-5bc1-8e72-7751f56f9476")
 	)
-	(no_connect
-		(at 480.06 157.48)
-		(uuid "99343019-15cb-5f02-9f9b-3d9184ec6d4d")
+	(wire
+		(pts
+			(xy 480.06 157.48)
+			(xy 482.6 157.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fb972a0f-3c2a-541b-8ecd-4f0d83fcd1f6")
+	)
+	(global_label "RK628D_INT"
+		(shape passive)
+		(at 482.6 157.48 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "4ef021b9-7df0-5055-8dee-8bcc10dbdce0")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 482.6 157.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 	)
 	(wire
 		(pts
@@ -16721,9 +16693,37 @@
 		(at 480.06 254.0)
 		(uuid "a4be596d-f596-5d8b-ac4c-e806b841aaf0")
 	)
-	(no_connect
-		(at 419.1 256.54)
-		(uuid "ee4877af-cff7-5ccf-b66e-777a5e400ec9")
+	(wire
+		(pts
+			(xy 419.1 256.54)
+			(xy 416.56 256.54)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9e24099b-f092-5731-a454-13b2ae28edf4")
+	)
+	(global_label "RK628D_PWR_EN"
+		(shape passive)
+		(at 416.56 256.54 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "1338852b-7143-5d7d-b19d-d2e12fc7ef32")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 416.56 256.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 	)
 	(no_connect
 		(at 480.06 256.54)

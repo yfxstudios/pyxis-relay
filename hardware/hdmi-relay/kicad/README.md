@@ -405,6 +405,61 @@ is still open. Each net is saved as it finishes. Main stages:
 - **Via-in-pad:** if the corner stays hard to finish, filled vias in a few of the RK628D's pads would remove the
   shared via sites. That costs extra on every order.
 
+## Rev A finished (Oct 24)
+
+This replaces the "Still to do by hand" list in the section above: that work is done.
+
+Pictures: [top copper](renders/rev_a_routed_F.png), [back copper](renders/rev_a_routed_B.png),
+[3D top](renders/rev_a_3d_top.png), [3D bottom](renders/rev_a_3d_bottom.png),
+[component layout](renders/rev_a_component_layout.png).
+
+**Status:**
+- **Routed:** every signal and power net.
+- **DRC:** 0 errors. Left over are warnings only:
+  - silkscreen overlaps (about 400);
+  - 47 "dangling" track and via warnings. Most are segments that join their route part-way along rather than at an
+    endpoint, so KiCad flags them although they connect. Deleting them opened 20 connections, so they stay.
+- **3 unconnected GND entries.** These are spare GND pins whose pad sits between other nets' traces with no room
+  for a via:
+  - CM3 connectors: J701 pin 43; J702 pin 8; J703 pins 56, 72, 76 and 99.
+  - M.2 socket: J501 pin 39.
+
+  Each connector has dozens of other GND pins that do connect, so this is accepted for rev A. Re-check it if
+  the CM3's high-speed lanes misbehave.
+- **Fab files:** `fab/` has Gerbers, drill, zip, BOM and CPL. Every BOM line has an LCSC number.
+
+**Layers:** F signal; In1 solid GND, the reference for the top-layer pairs; In2 GND pour plus low-speed routing,
+kept solid under the back-layer high-speed pairs; B signal.
+
+**Pin moves (gen/module.py, REV_A_SPEC.md section 7).** There was no room to reach the old pins next to the
+RK628D:
+- CEC_GPIO: J68 pin 151 (GPIO4_D1).
+- RK628D_INT: J1 pin 18.
+- RK628D_PWR_EN: J1 pin 95.
+- RK628D I2C: J69 pins 28 (SCL, GPIO0_C6) and 36 (SDA, GPIO4_B4), driven by the `i2c-gpio` driver, so the
+  device tree needs an i2c-gpio node.
+- RK628D_RESET_N and RK628D_PLUGIN_DET: J69 pins 48 and 50.
+
+**Placement fixes:**
+- **RK628D corner re-spaced:** at least 0.8 mm between courtyards (`gen/respace.py`), then routed again. Only that
+  corner was re-spaced; the rest of the board keeps its earlier spacing.
+- **Merging the corner back:** `gen/hybrid.py` put the re-spaced corner into the committed board.
+- **Switching regulators:** U105/U106 switch pin to inductor is 3.2/3.4 mm, output caps 3.6–4.9 mm.
+- **Other parts moved:** crystal load caps about 1.7 mm from Y201; C702/C703 4–5 mm from their pins; D101/D103
+  turned the right way; C207, C229 and R204 moved to free room for routes and GND vias.
+
+**Hand-drawn copper:** `gen/handroute.py NET 'L/w:x,y x,y' 'V:x,y' [--commit]` draws a trace or via. It checks
+copper clearance (0.1 mm), hole to copper (0.2 mm) and hole to hole (0.25 mm) against everything first.
+
+**Known compromises (rev A):**
+- **SW_IO switch node:** crosses layers through 3 vias.
+- **SW_628:** has a 0.13 mm neck.
+- **Uncoupled pairs:** the PCIe TX/REFCLK and USB pairs are uncoupled, length-matched traces.
+- **Small vias:** 0.3/0.15 mm vias under the RK628D (JLCPCB extra cost).
+
+**Before ordering:** check the CPL rotations in JLCPCB's preview, and the mechanical points listed in the section
+above.
+
 - `relay.kicad_sch`: root sheet; one `.kicad_sch` per sheet.
 - `relay.kicad_sym` and `relay.pretty/`: project symbols and footprints, also generated.
 - `erc.json`, `build.net`: output of the last `gen/check.sh`.

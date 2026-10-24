@@ -44,7 +44,7 @@ def short(n):
 # trace width and via by net (mm); everything else takes its net class width
 WIDE = [
     (r"^5V_SOM$", 1.2), (r"^(VIN|VIN_RAW|VDC|VNPF|VBUS_C|VBUS_SW)$", 0.8), (r"^(LX_|SW_)", 0.8),
-    (r"^5V_SYS$", 0.6), (r"^3V3_IO$", 0.5), (r"^(HDMITX_5V|HDMIRX_5V|1V1_628|RK628D_3V3)$", 0.4),
+    (r"^5V_SYS$", 0.6), (r"^3V3_IO$", 0.5), (r"^(HDMITX_5V|HDMIRX_5V|1V1_628)$", 0.4), (r"^RK628D_3V3$", 0.2),   # RK628D I/O: tens of mA
     (r"^(SOM_3V3|SOM_1V8)$", 0.3),
 ]
 
@@ -468,7 +468,7 @@ def soft_nets(board, exhausted=(), u201_too=False):
     for nc in {t.GetNetCode() for t in board.GetTracks()}:
         name = short(board.FindNet(nc).GetNetname()) if board.FindNet(nc) else ""
         if (not name or name == "GND" or (nc in u201 and not u201_too) or name in exhausted or name in POWER_ORDER
-                or re.match(r"(FB|BS|BST|FS|CT)\d*(_|$)|AVDD|RK628D_3V3|1V1_628", name)   # regulators, rails
+                or re.match(r"(FB|BS|BST|FS|CT)\d*(_|$)|AVDD|RK628D_3V3|1V1_628|XIN_628|XOUT_628", name)   # regulators, rails
                 or any(re.search(c[-1], name) for c in NETCLASSES.values())):
             continue
         out.add(nc)
@@ -569,14 +569,24 @@ def _rip(board, R, codes):
     R.changed()
 
 
+def _ball_has_copper(board, ball):
+    """True if a track of the ball's net starts or ends on the ball (the net may have copper elsewhere)."""
+    bx, by = pcbnew.ToMM(ball.GetPosition().x), pcbnew.ToMM(ball.GetPosition().y)
+    for t in board.GetTracks():
+        if t.GetNetCode() != ball.GetNetCode() or t.GetClass() == "PCB_VIA":
+            continue
+        g = _geom(t)
+        if math.hypot(g[0] - bx, g[1] - by) < 0.16 or math.hypot(g[2] - bx, g[3] - by) < 0.16:
+            return True
+    return False
+
+
 def dogbone(board, R, n, soft):
     """An RK628D ball of net n with no copper: a 0.3 mm via on one of the four diagonal sites beside it and a
     stub to it. If every site is taken by low-speed traces, those come out. Returns the nets ripped."""
     nc = board.FindNet(n).GetNetCode()
-    if any(t.GetNetCode() == nc for t in board.GetTracks()):
-        return []
     balls = [p for p in board.FindFootprintByReference("U201").Pads() if p.GetNetCode() == nc]
-    if not balls:
+    if not balls or _ball_has_copper(board, balls[0]):
         return []
     ball = balls[0]
     # the outer ring of balls escapes on the top layer: no via needed (the second ring usually does too, but its
@@ -653,8 +663,12 @@ def _terms(board, nc, whole):
     if not out:
         return terms
     cx, cy = sum(q[0] for q in out) / len(out), sum(q[1] for q in out) / len(out)
-    mx, my = (RK_BOX[0] + RK_BOX[2]) / 2, (RK_BOX[1] + RK_BOX[3]) / 2
-    x0, y0, x1, y1 = RK_BOX[0] + 1.0, RK_BOX[1] + 1.0, RK_BOX[2] - 1.0, RK_BOX[3] - 1.0
+    # the ring just outside the RK628D's footprint, on the side facing those pads: the box router only has to get
+    # out of the ball grid; the open board beyond is the board-wide router's
+    cb = board.FindFootprintByReference("U201").GetCourtyard(pcbnew.F_CrtYd).BBox()
+    x0, y0 = pcbnew.ToMM(cb.GetLeft()) - O[0] - 1.0, pcbnew.ToMM(cb.GetTop()) - O[1] - 1.0
+    x1, y1 = pcbnew.ToMM(cb.GetRight()) - O[0] + 1.0, pcbnew.ToMM(cb.GetBottom()) - O[1] + 1.0
+    mx, my = (x0 + x1) / 2, (y0 + y1) / 2
     dx, dy = cx - mx, cy - my
     if abs(dx) * (y1 - y0) > abs(dy) * (x1 - x0):          # leaves through the east or west edge
         x = x1 if dx > 0 else x0
@@ -664,6 +678,83 @@ def _terms(board, nc, whole):
         edge = [(x0 + k * 0.25, y) for k in range(int((x1 - x0) / 0.25) + 1)]
     return [t for t in terms if not (t.GetClass() == "PAD" and (pcbnew.ToMM(t.GetPosition().x) - O[0],
                                                                 pcbnew.ToMM(t.GetPosition().y) - O[1]) in out)] + [edge]
+
+
+def dogbone_local(board, R, n):
+    """dogbone(), but a site covered by other nets' traces is cleared locally: only the pieces on the site come out
+    (never a dogbone, a pad, GND, a high-speed pair or a main power rail), the via goes in, and each cut net is
+    joined up again close by. Returns the cut nets that did not join up again."""
+    nc = board.FindNet(n).GetNetCode()
+    ball = [p for p in board.FindFootprintByReference("U201").Pads() if p.GetNetCode() == nc][0]
+    if _ball_has_copper(board, ball):
+        return []
+    if not RF:
+        _configs(board, n, 0.1)
+    r = RF[0]
+    _pin(board)
+    pin = r.pinned
+    gnd = board.FindNet("GND").GetNetCode()
+    big = {board.FindNet(x).GetNetCode() for x in [str(k) for k in board.GetNetsByName().keys()]
+           if short(x) in POWER_ORDER and short(x) not in ("RK628D_3V3", "1V1_628")}
+    bx, by = pcbnew.ToMM(ball.GetPosition().x), pcbnew.ToMM(ball.GetPosition().y)
+    pads = [(pcbnew.ToMM(p.GetPosition().x), pcbnew.ToMM(p.GetPosition().y),
+             pcbnew.ToMM(p.GetBoundingBox().GetWidth()) / 2, pcbnew.ToMM(p.GetBoundingBox().GetHeight()) / 2)
+            for f in board.GetFootprints() if f.GetReference() != "U201" for p in f.Pads()
+            if abs(pcbnew.ToMM(p.GetPosition().x) - bx) < 2 and abs(pcbnew.ToMM(p.GetPosition().y) - by) < 2]
+    best = None
+    for dx in (-0.325, 0.325):
+        for dy in (-0.325, 0.325):
+            sx, sy = bx + dx, by + dy
+            if any(abs(px - sx) < hw + 0.15 + 0.12 and abs(py - sy) < hh + 0.15 + 0.12 for px, py, hw, hh in pads):
+                continue
+            via = (sx, sy, sx, sy, 0.15, None)
+            stub = (bx, by, sx, sy, 0.05, pcbnew.F_Cu)
+            hit, stuck = [], False
+            for t in board.GetTracks():
+                if t.GetNetCode() == nc:
+                    continue
+                g = _geom(t)
+                near = _seg_dist(via, g) < 0.15 + g[4] + (0.2 if g[5] is not None else 0.25) + 0.01 or \
+                    ((g[5] is None or g[5] == pcbnew.F_Cu) and _seg_dist(stub, g) < 0.05 + g[4] + 0.1 + 0.01)
+                if not near:
+                    continue
+                name = short(board.FindNet(t.GetNetCode()).GetNetname())
+                if (t.m_Uuid.AsString() in pin or t.GetNetCode() in (gnd,) or t.GetNetCode() in big or
+                        any(re.search(c[-1], name) for k, c in NETCLASSES.items() if k != "POWER")):
+                    stuck = True
+                    break
+                hit.append(t)
+            if not stuck and (best is None or len(hit) < len(best[2])):
+                best = (sx, sy, hit)
+    if best is None:
+        log(f"dogbone {short(n)}: every site holds something fixed")
+        return []
+    sx, sy, hit = best
+    cut = {t.GetNetCode() for t in hit}
+    for t in hit:
+        board.Remove(t)
+    GRAVE.extend(hit)
+    v = pcbnew.PCB_VIA(board)
+    v.SetPosition(pcbnew.VECTOR2I_MM(sx, sy)); v.SetViaType(pcbnew.VIATYPE_THROUGH)
+    v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu); v.SetWidth(pcbnew.FromMM(0.3)); v.SetDrill(pcbnew.FromMM(0.15))
+    v.SetNet(ball.GetNet())
+    board.Add(v)
+    t = pcbnew.PCB_TRACK(board)
+    t.SetStart(ball.GetPosition()); t.SetEnd(pcbnew.VECTOR2I_MM(sx, sy)); t.SetWidth(pcbnew.FromMM(0.1))
+    t.SetLayer(pcbnew.F_Cu); t.SetNet(ball.GetNet())
+    board.Add(t)
+    R.changed()
+    _pin(board)
+    failed = []
+    for c in cut:
+        cn = board.FindNet(c).GetNetname()
+        left = r.connect(cn, net_terms(board, c), 0.1, layers=[pcbnew.F_Cu, pcbnew.B_Cu, pcbnew.In2_Cu],
+                         via=(0.3, 0.15), window=4.0, max_expand=2000000, greed=1.5)
+        if left:
+            failed.append(cn)
+    log(f"dogbone {short(n)}: site cleared locally ({len(hit)} pieces of "
+        f"{sorted(short(board.FindNet(c).GetNetname()) for c in cut)}); not rejoined: {[short(x) for x in failed]}")
+    return failed
 
 
 def _ripup(board, R, queue, label, u201_too=False, fixed=None):
@@ -732,13 +823,33 @@ def _ripup(board, R, queue, label, u201_too=False, fixed=None):
                     log(f"  loose cfg {ci} res {RS.res}: left {len(left2)}, {len(new_items)} new, clash "
                         f"{sorted(short(board.FindNet(c).GetNetname()) for c in clash)}, hard "
                         f"{sorted(short(board.FindNet(c).GetNetname()) for c in clash - soft - hi)}")
-                if clash - soft - hi:
+                local = {board.FindNet(x).GetNetCode() for x in [str(k) for k in board.GetNetsByName().keys()]
+                         if short(x) in os.environ.get("LOCAL", "").split(",") and x}
+                if clash - soft - hi - local:
                     for t in new_items:
                         board.Remove(t)
                     GRAVE.extend(new_items)
                     R.changed()
                     continue
-                victims |= clash
+                # rails allowed to give way locally: only their pieces under the new route come out, and they are
+                # joined up again around it
+                cut = [t for t in board.GetTracks() if t.GetNetCode() in (clash & local) and
+                       t.m_Uuid.AsString() not in RS.pinned and any(
+                           (a[5] is None or _geom(t)[5] is None or a[5] == _geom(t)[5]) and
+                           _seg_dist(a, _geom(t)) < a[4] + _geom(t)[4] + 0.1 + 0.01 for a in new)]
+                if cut:
+                    rejoin = {t.GetNetCode() for t in cut}
+                    for t in cut:
+                        board.Remove(t)
+                    GRAVE.extend(cut)
+                    R.changed()
+                    for c in rejoin:
+                        cn = board.FindNet(c).GetNetname()
+                        ok = not RS.connect(cn, net_terms(board, c), 0.1,
+                                            layers=[pcbnew.F_Cu, pcbnew.B_Cu, pcbnew.In2_Cu], via=(0.3, 0.15),
+                                            window=4.0, max_expand=2000000, greed=1.5)
+                        log(f"{label}   {short(cn)}: {len(cut)} pieces cut, rejoined: {'yes' if ok else 'NO'}")
+                victims |= clash - local
                 if not left2 and whole:
                     left = []
                     break
@@ -1455,6 +1566,229 @@ def stage_gndfix(board, B, R):
     pcbnew.SaveBoard(ROUTED, board)
 
 
+def share_vias(board, R, near_balls, radius=1.4):
+    """Frees fanout-via sites around these balls: where two orthogonal neighbour balls are on the same GND or power
+    net and both have a dogbone, the one nearer a stuck ball gives its via up and joins its neighbour's ball with a
+    straight top-layer stub (0.65 mm, between the two balls only). Returns how many vias were freed."""
+    u = board.FindFootprintByReference("U201")
+    balls = {p.GetNumber(): (pcbnew.ToMM(p.GetPosition().x), pcbnew.ToMM(p.GetPosition().y), p.GetNetCode(), p)
+             for p in u.Pads()}
+    shared = {board.FindNet(n).GetNetCode() for n in ["GND", "RK628D_3V3", "1V1_628", "/HDMI in (RK628D)/AVDD_3V3_628",
+                                                      "/HDMI in (RK628D)/AVDD_1V1_628"] if board.FindNet(n)}
+    centres = [(balls[b][0], balls[b][1]) for b in near_balls]
+    items = [(t, _geom(t)) for t in board.GetTracks()]
+
+    def dogbone_of(bx, by, nc):
+        stub = via = None
+        for t, g in items:
+            if t.GetNetCode() != nc or t in GRAVE:
+                continue
+            if g[5] is not None:
+                for ex, ey, ox, oy in ((g[0], g[1], g[2], g[3]), (g[2], g[3], g[0], g[1])):
+                    if math.hypot(ex - bx, ey - by) < 0.01 and math.hypot(ox - bx, oy - by) < 0.5:
+                        for v, gv in items:
+                            if gv[5] is None and v.GetNetCode() == nc and math.hypot(gv[0] - ox, gv[1] - oy) < 0.01:
+                                stub, via = t, v
+        return stub, via
+    freed = 0
+    done = set()
+    for k, (bx, by, nc, pad) in sorted(balls.items(), key=lambda kv: min(math.hypot(kv[1][0] - cx, kv[1][1] - cy)
+                                                                       for cx, cy in centres)):
+        if nc not in shared or k in done or min(math.hypot(bx - cx, by - cy) for cx, cy in centres) > radius:
+            continue
+        stub, via = dogbone_of(bx, by, nc)
+        if not via:
+            continue
+        # a same-net neighbour that keeps its via
+        for k2, (x2, y2, n2, p2) in balls.items():
+            if k2 == k or n2 != nc or abs(math.hypot(x2 - bx, y2 - by) - 0.65) > 0.02 or k2 in done:
+                continue
+            s2, v2 = dogbone_of(x2, y2, nc)
+            if not v2:
+                continue
+            # the straight stub must not touch other copper on the top layer
+            seg = (bx, by, x2, y2, 0.075, pcbnew.F_Cu)
+            if any(g[5] in (None, pcbnew.F_Cu) and t.GetNetCode() != nc and t not in GRAVE and
+                   _seg_dist(seg, g) < 0.075 + g[4] + 0.1 for t, g in items):
+                continue
+            board.Remove(stub); board.Remove(via)
+            GRAVE.extend([stub, via])
+            t = pcbnew.PCB_TRACK(board)
+            t.SetStart(pad.GetPosition()); t.SetEnd(p2.GetPosition()); t.SetWidth(pcbnew.FromMM(0.15))
+            t.SetLayer(pcbnew.F_Cu); t.SetNet(pad.GetNet())
+            board.Add(t)
+            done.update({k, k2})
+            freed += 1
+            break
+    R.changed()
+    return freed
+
+
+def stage_cluster(board, B, R):
+    """The east-side control lines as one group, hardest first: INT and I2C_628_SCL have no free fanout site and no
+    top-layer exit (the CSI pairs take those), and their sites were taken by I2C_628_SDA and RESET_N, routed earlier.
+    The group comes out (dogbones stay), goes back in this order, and every other RK628D net stays as it is; the
+    analog rails may give way locally (LOCAL)."""
+    group = ["RK628D_INT", "I2C_628_SCL", "/HDMI in (RK628D)/RX_SCL", "RK628D_RESET_N", "I2C_628_SDA"]
+    codes = {board.FindNet(n).GetNetCode() for n in group}
+    doomed = [t for t in board.GetTracks() if t.GetNetCode() in codes]   # dogbones too: their sites are shared
+    for t in doomed:
+        board.Remove(t)
+    GRAVE.extend(doomed)
+    R.changed()
+    near = [p.GetNumber() for p in board.FindFootprintByReference("U201").Pads() if p.GetNetCode() in codes]
+    log(f"cluster: {share_vias(board, R, near)} GND/power vias shared with a neighbour ball, freeing their sites")
+    broken = []
+    for n in group:                      # fanout vias again, in this order, before any route takes a site
+        nm = board.FindNet(n).GetNetname()
+        dogbone(board, R, nm, frozenset())
+        if not any(t.GetNetCode() == board.FindNet(n).GetNetCode() for t in board.GetTracks()):
+            broken += dogbone_local(board, R, nm)
+        log(f"cluster: {short(n)} dogbone " + ("placed" if any(
+            t.GetNetCode() == board.FindNet(n).GetNetCode() for t in board.GetTracks()) else "none"))
+    pcbnew.SaveBoard(ROUTED, board)
+    u = {p.GetNetCode() for p in board.FindFootprintByReference("U201").Pads()}
+    fixed = {c for c in u if c not in codes and board.FindNet(c) and short(board.FindNet(c).GetNetname()) != "GND"}
+    log(f"cluster: {[short(n) for n in group]} out; {len(fixed)} other RK628D nets fixed")
+    fixed -= {board.FindNet(x).GetNetCode() for x in broken}
+    _ripup(board, R, [board.FindNet(n).GetNetname() for n in group] + broken, "cluster", u201_too=True, fixed=fixed)
+
+
+def stage_c219(board, B, R):
+    """C219 (AVDD_1V1 decoupling, on the back under the ball grid) sat on RESET_N's two free fanout-via sites. It
+    moves to the nearest legal spot clear of them, its AVDD_1V1 side is joined up again and its GND pad gets a via;
+    then RESET_N gets its via, and every net still open is routed with the rest of the RK628D's nets fixed."""
+    u = board.FindFootprintByReference("U201")
+    ball = [p for p in u.Pads() if short(p.GetNetname()) == "RK628D_RESET_N"][0]
+    bx, by = pcbnew.ToMM(ball.GetPosition().x) - O[0], pcbnew.ToMM(ball.GetPosition().y) - O[1]
+    c = board.FindFootprintByReference("C219")
+    pads = [(pcbnew.ToMM(q.GetPosition().x), pcbnew.ToMM(q.GetPosition().y)) for q in c.Pads()]
+    moved = abs(pcbnew.ToMM(c.GetPosition().x) - O[0] - 45.275) > 0.1
+    stubs = [t for t in board.GetTracks() if t.GetNetCode() in {q.GetNetCode() for q in c.Pads()} and
+             t.GetNetCode() != 0 and any(math.hypot(_geom(t)[k] - px, _geom(t)[k + 1] - py) < 0.35
+                                         for px, py in pads for k in (0, 2))]
+    stubs = [t for t in stubs if t.m_Uuid.AsString() not in _dogbones(board)] if not moved else []
+    for t in stubs:
+        board.Remove(t)
+    GRAVE.extend(stubs)
+    R.changed()
+    keep = [(bx - 0.325 - 0.45, by + dy - 0.45, bx - 0.325 + 0.45, by + dy + 0.45) for dy in (-0.325, 0.325)]
+    target = (pads[0][0] - O[0], pads[0][1] - O[1])
+    if not moved:
+        best = place_near(B, R, "C219", {"AVDD_1V1_628": target}, back=True, span=2.5, step=0.05, keepout=keep)
+        log(f"c219: {len(stubs)} stubs off, moved to ({best[1]:.2f}, {best[2]:.2f}), {best[3]} deg")
+    if not RF:
+        _configs(board, "RK628D_RESET_N", 0.1)
+    _pin(board)
+    av = board.FindNet("/HDMI in (RK628D)/AVDD_1V1_628")
+    left = RF[0].connect(av.GetNetname(), net_terms(board, av.GetNetCode()), 0.15,
+                         layers=[pcbnew.F_Cu, pcbnew.B_Cu, pcbnew.In2_Cu], via=(0.3, 0.15), window=4.0,
+                         max_expand=2000000, greed=1.5)
+    miss = B.gnd_vias(R, ["C219"], size=(0.3, 0.15))
+    log(f"c219: AVDD_1V1_628 joined: {'yes' if not left else 'NO'}; GND via: {'yes' if not miss else 'NO'}")
+    broken = dogbone_local(board, R, ball.GetNetname())
+    pcbnew.SaveBoard(ROUTED, board)
+    nets, _ = open_nets(board)
+    queue = [n for n in nets if short(n) != "GND"]
+    rk = ["RK628D_RESET_N", "I2C_628_SDA", "XOUT_628", "RX_HPD"]
+    queue.sort(key=lambda n: (short(n) not in rk, rk.index(short(n)) if short(n) in rk else 0))
+    codes = {p.GetNetCode() for p in u.Pads()}
+    fixed = {cc for cc in codes if board.FindNet(cc) and board.FindNet(cc).GetNetname() not in queue and
+             short(board.FindNet(cc).GetNetname()) != "GND"}
+    log(f"c219: open now {[short(n) for n in queue]}")
+    _ripup(board, R, queue, "c219", u201_too=True, fixed=fixed)
+
+
+def _via_near(board, r, nc, x, y, reach=1.6):
+    """A free spot for a 0.3 mm via of net nc within reach of (x, y) board mm, nearest first, or None."""
+    vb = r.blocked(nc, max(0.15, 0.075 + 0.2 - r.cl), [pcbnew.F_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu, pcbnew.B_Cu]).any(axis=0)
+    own = [(_geom(t)[0], _geom(t)[1]) for t in board.GetTracks() if t.GetClass() == "PCB_VIA" and t.GetNetCode() == nc]
+    best = None
+    k = int(reach / r.res)
+    i0, j0 = int(round((x - O[0] - r.x0) / r.res)), int(round((y - O[1] - r.y0) / r.res))
+    for dj in range(-k, k + 1):
+        for di in range(-k, k + 1):
+            j, i = j0 + dj, i0 + di
+            if not (0 <= j < r.ny and 0 <= i < r.nx) or vb[j, i]:
+                continue
+            d = math.hypot(di, dj) * r.res
+            if d > reach or (best and d >= best[0]):
+                continue
+            px, py = r.x0 + i * r.res + O[0], r.y0 + j * r.res + O[1]
+            if any(math.hypot(px - ox, py - oy) < 0.55 for ox, oy in own):
+                continue
+            best = (d, px, py)
+    return best[1:] if best else None
+
+
+def stage_in2bridge(board, B, R):
+    """Each connection still open (KiCad's list, GND aside) gets a 0.3 mm via beside each end, a short stub to it,
+    and between the two vias a route on L3 (the back layer too, if L3 alone can't), where the board is nearly empty:
+    the outer layers are full where these long control lines have to go (J701's pin rows, the pair bundles)."""
+    if not FINE:
+        FINE.append(make_router(board, 0.05))
+    r = FINE[0]
+    _, bad = open_nets(board)
+    pairs = []
+    for u in LAST_DRC[0]["unconnected_items"]:
+        it = u["items"]
+        m = re.search(r"\[([^\]]+)\]", it[0]["description"])
+        if not m or m.group(1) == "GND" or len(it) < 2:
+            continue
+        pairs.append((m.group(1), (it[0]["pos"]["x"], it[0]["pos"]["y"]), (it[1]["pos"]["x"], it[1]["pos"]["y"])))
+    log(f"in2bridge: {len(pairs)} open connections")
+    for name, a, c in pairs:
+        ni = board.FindNet(name)
+        nc = ni.GetNetCode()
+        ends = []
+        for (x, y) in (a, c):
+            own_via = [t for t in board.GetTracks() if t.GetClass() == "PCB_VIA" and t.GetNetCode() == nc and
+                       math.hypot(_geom(t)[0] - x, _geom(t)[1] - y) < 0.05]
+            if own_via:
+                ends.append(own_via[0])
+                continue
+            spot = _via_near(board, r, nc, x, y, reach=3.0)
+            if not spot:
+                break
+            v = pcbnew.PCB_VIA(board)
+            v.SetPosition(pcbnew.VECTOR2I_MM(*spot)); v.SetViaType(pcbnew.VIATYPE_THROUGH)
+            v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu); v.SetWidth(pcbnew.FromMM(0.3)); v.SetDrill(pcbnew.FromMM(0.15))
+            v.SetNet(ni)
+            board.Add(v)
+            R.changed()
+            # the stub from the end (the pad or track DRC names there) to its via, on any outer layer
+            item = None
+            for f in board.GetFootprints():
+                for q in f.Pads():
+                    if q.GetNetCode() == nc and math.hypot(pcbnew.ToMM(q.GetPosition().x) - x,
+                                                           pcbnew.ToMM(q.GetPosition().y) - y) < 0.05:
+                        item = q
+            if item is None:
+                tr = [t for t in board.GetTracks() if t.GetNetCode() == nc and t.GetClass() != "PCB_VIA"]
+                tr.sort(key=lambda t: _seg_dist((x, y, x, y, 0, None), _geom(t)))
+                item = tr[0] if tr else (x - O[0], y - O[1])
+            left = r.connect(name, [item, v], 0.12, layers=[pcbnew.F_Cu, pcbnew.B_Cu], via=(0.3, 0.15),
+                             window=3.0, max_expand=1500000, greed=1.5)
+            if left:
+                board.Remove(v); GRAVE.append(v); R.changed()
+                break
+            ends.append(v)
+        if len(ends) < 2:
+            log(f"in2bridge {short(name)}: no via beside one end")
+            continue
+        ok = False
+        for layers in ([pcbnew.In2_Cu], [pcbnew.In2_Cu, pcbnew.B_Cu]):
+            left = r.connect(name, ends, 0.12, layers=layers, via=(0.3, 0.15), window=40.0, max_expand=12000000,
+                             greed=1.3)
+            if not left:
+                ok = True
+                break
+        prune_dead_ends(board, nc, _dogbones(board, {nc}))
+        R.changed()
+        pcbnew.SaveBoard(ROUTED, board)
+        log(f"in2bridge {short(name)}: " + ("bridged" if ok else "no way through on L3"))
+
+
 def stage_tune(board, B, R):
     """Length matching: the shorter trace of a pair gets chamfered bumps (gen/pairs.py's tune) on its longest
     straight segments, on whichever side has room, until it is within 0.2 mm of its partner."""
@@ -1556,7 +1890,1088 @@ def stage_rkrip(board, B, R):
     """The same for the RK628D's nets, on the 0.025 mm grid with L3, where its other low-speed nets may move."""
     _ripup(board, R, _open_queue(board, True), "rkrip", u201_too=True)
 
-STAGES = {"gndfix": stage_gndfix, "clean": stage_clean, "harvest": stage_harvest, "corner": stage_corner, "xtal": stage_xtal, "localfix": stage_localfix, "sequence": stage_sequence, "tpmove": stage_tpmove, "replan": stage_replan, "rkplace": stage_rkplace, "tune": stage_tune, "pcie": stage_pcie, "rxpair": stage_rxpair, "shadow": stage_shadow, "pairs_again": stage_pairs_again, "pairfix": stage_pairfix, "repair": stage_repair, "ripup": stage_ripup, "rkrip": stage_rkrip, "holes": stage_holes, "rip_j69": stage_rip_j69, "j69": stage_j69, "pairs": stage_pairs, "power": stage_power, "signals": stage_signals, "rk628": stage_rk628,
+def stage_rebuild(board, B, R):
+    """After gen/respace.py (small parts re-spaced, low-speed copper ripped): GND vias at the moved parts, then the
+    power rails, then the RK628D's nets (fewest pieces first, rip-up allowed among themselves), then the other
+    signals (a plain pass, then rip-up on what is left)."""
+    nets, bad = open_nets(board)
+    log(f"rebuild: {sum(nets.values())} unconnected on {len(nets)} nets, {len(bad)} DRC errors")
+    refs = set()
+    for u in LAST_DRC[0]["unconnected_items"]:
+        for it in u["items"]:
+            m = re.match(r"Pad (\S+) \[GND\] of (\S+)", it["description"])
+            if m:
+                refs.add(m.group(2))
+    miss = B.gnd_vias(R, sorted(refs), only_unconnected=True)
+    pcbnew.SaveBoard(ROUTED, board)
+    log(f"rebuild gnd: {len(refs)} parts with GND pads apart; no room for a via at {miss}")
+    names = {short(n): n for n in nets}
+    for nm in POWER_ORDER:
+        if nm in names:
+            left = route_net(R, board, names[nm], window=10.0)
+            pcbnew.SaveBoard(ROUTED, board)
+            log(f"rebuild power {nm}: " + ("done" if not left else f"{len(left)} pieces still apart"))
+    stage_rebuild_rk(board, B, R)
+
+
+def stage_reserve(board, B, R):
+    """Every RK628D ball still without copper gets its dogbone (fanout via and stub) now, before any more routing
+    takes the via sites; a site taken by low-speed routes is cleared (they are routed again later)."""
+    nets, _ = open_nets(board)
+    soft = soft_nets(board, u201_too=True)
+    codes = {p.GetNetCode() for p in board.FindFootprintByReference("U201").Pads()}
+    ripped = set()
+    for n in nets:
+        nc = board.FindNet(n).GetNetCode()
+        if short(n) == "GND" or nc not in codes:
+            continue
+        ripped |= set(dogbone(board, R, n, soft - {nc}))
+    for n in ripped:
+        prune_dead_ends(board, board.FindNet(n).GetNetCode(), _dogbones(board))
+    R.changed()
+    log(f"reserve: dogbones placed; ripped for room: {sorted(short(n) for n in ripped)}")
+
+
+def stage_rebuild_rk(board, B, R):
+    """stage_rebuild from the RK628D nets on."""
+    nets, _ = open_nets(board)
+    codes = {p.GetNetCode() for p in board.FindFootprintByReference("U201").Pads()}
+    soft = soft_nets(board, u201_too=True)
+    # the chip's rails first (nothing may rip them later), then its signals; fewest pieces first in each
+    rk = sorted((n for n in nets if short(n) != "GND" and board.FindNet(n).GetNetCode() in codes),
+                key=lambda n: (short(n) in os.environ.get("LAST", "").split(","),
+                               board.FindNet(n).GetNetCode() in soft, nets[n]))
+    _ripup(board, R, rk, "rebuild-rk", u201_too=True)
+    nets, _ = open_nets(board)
+    rest = sorted((n for n in nets if short(n) != "GND" and board.FindNet(n).GetNetCode() not in codes),
+                  key=nets.get)
+    fails = []
+    for k, n in enumerate(rest):
+        left = route_net(R, board, n, window=8.0)
+        pcbnew.SaveBoard(ROUTED, board)
+        log(f"rebuild signal {k + 1}/{len(rest)} {short(n)}: " + ("done" if not left else "open"))
+        if left:
+            fails.append(n)
+    _ripup(board, R, fails, "rebuild-ripup")
+    nets, _ = open_nets(board)
+    left = [n for n in nets if short(n) != "GND"]
+    if left:
+        _ripup(board, R, left, "rebuild-last", u201_too=True)
+
+
+def stage_clfix(board, B, R):
+    """Clearance errors on power-class tracks (routed before the router kept the POWER class's 0.127 mm from
+    their own side): the offending pieces come out and the net is joined up again."""
+    _, bad = open_nets(board)
+    pw = NETCLASSES["POWER"][-1]
+    doomed, nets = [], set()
+    for v in bad:
+        if v["type"] != "clearance":
+            continue
+        for it in v["items"]:
+            m = re.match(r"(Track|Via) \[([^\]]+)\]", it["description"])
+            if not m or not re.search(pw, short(m.group(2))):
+                continue
+            x, y = it["pos"]["x"], it["pos"]["y"]
+            for t in board.GetTracks():
+                if t.GetNetname() == m.group(2) and t.HitTest(pcbnew.VECTOR2I_MM(x, y)) and t not in doomed:
+                    doomed.append(t)
+                    nets.add(m.group(2))
+    for t in doomed:
+        board.Remove(t)
+    GRAVE.extend(doomed)
+    R.changed()
+    for n in nets:
+        left = route_net(R, board, n, window=10.0)
+        pcbnew.SaveBoard(ROUTED, board)
+        log(f"clfix {short(n)}: " + ("rejoined" if not left else f"{len(left)} pieces apart"))
+
+
+def stage_neck(board, B, R):
+    """Power-class tracks too close to a neighbouring pad (a wide trace leaving a fine-pitch connector pin):
+    the offending pieces get narrower, just enough to keep the clearance (not below 0.2 mm)."""
+    for rnd in range(3):
+        _, bad = open_nets(board)
+        n = 0
+        for v in bad:
+            m = re.search(r"clearance ([0-9.]+) mm; actual ([0-9.]+) mm", v.get("description", ""))
+            if v["type"] != "clearance" or not m:
+                continue
+            short_by = float(m.group(1)) - float(m.group(2))
+            for it in v["items"]:
+                mt = re.match(r"Track \[([^\]]+)\]", it["description"])
+                if not mt:
+                    continue
+                at = pcbnew.VECTOR2I_MM(it["pos"]["x"], it["pos"]["y"])
+                for t in board.GetTracks():
+                    if t.GetClass() != "PCB_VIA" and t.GetNetname() == mt.group(1) and t.HitTest(at):
+                        w = pcbnew.ToMM(t.GetWidth())
+                        nw = max(0.2, math.floor((w - 2 * short_by - 0.01) * 100) / 100)
+                        if nw < w:
+                            t.SetWidth(pcbnew.FromMM(nw))
+                            n += 1
+                            log(f"neck {short(mt.group(1))}: {w:.2f} -> {nw:.2f} mm at "
+                                f"({it['pos']['x'] - O[0]:.2f}, {it['pos']['y'] - O[1]:.2f})")
+        R.changed()
+        if not n:
+            break
+        pcbnew.SaveBoard(ROUTED, board)
+
+
+def stage_one(board, B, R):
+    """Rip-up routing of the nets in $NETS (comma-separated short names) only: for testing one net at a time."""
+    want = os.environ["NETS"].split(",")
+    queue = [str(k) for k in board.GetNetsByName().keys() if short(str(k)) in want]
+    _ripup(board, R, queue, "one", u201_too=True)
+
+
+def draw_xtal(board, B, names):
+    """The crystal lines as stage_north draws them (both on the top layer, no via)."""
+    for n in ("XIN_628", "XOUT_628"):
+        nc = board.FindNet(names[n]).GetNetCode()
+        old = [t for t in board.GetTracks() if t.GetNetCode() == nc]
+        for t in old:
+            board.Remove(t)
+        GRAVE.extend(old)
+
+    def draw(net, pts, w=0.1):
+        ni = board.FindNet(names[net])
+        for a, b_ in zip(pts, pts[1:]):
+            t = pcbnew.PCB_TRACK(board)
+            t.SetStart(B.mm(*a)); t.SetEnd(B.mm(*b_)); t.SetWidth(pcbnew.FromMM(w))
+            t.SetLayer(pcbnew.F_Cu); t.SetNet(ni)
+            board.Add(t)
+    draw("XOUT_628", [(42.375, 18.075), (42.70, 17.75), (42.70, 13.25), (43.30, 12.65)])
+    draw("XOUT_628", [(43.77, 12.3), (44.80, 12.3), (45.20, 12.09), (46.19, 12.09)])
+    draw("XIN_628", [(42.375, 17.425), (42.375, 16.85), (41.57, 16.05), (41.57, 14.0)])
+    draw("XIN_628", [(41.57, 14.0), (40.70, 13.13), (40.70, 10.6), (41.15, 10.15), (41.15, 9.91)])
+
+
+def stage_xtal_draw(board, B, R):
+    draw_xtal(board, B, {short(str(k)): str(k) for k in board.GetNetsByName().keys()})
+    R.changed()
+    pcbnew.SaveBoard(ROUTED, board)
+
+
+def stage_north(board, B, R):
+    """The crystal lines, drawn: both on the top layer with no via. XOUT leaves ball L9 through the row channel to
+    the gap between balls M9 and M8 and runs north between the crystal's pads 1 and 2 to pad 3; XIN goes straight
+    north from M9 (outer ring) to pad 1 and round pad 4's west side to C203; XOUT on to C204. What sat in their
+    way (the DDC lines' fanout, and pieces of 1V1_628 and 3V3_IO north of the chip) comes out and is routed
+    again around them."""
+    names = {short(str(k)): str(k) for k in board.GetNetsByName().keys()}
+    whole = [board.FindNet(names[n]).GetNetCode() for n in ("XIN_628", "XOUT_628", "RX_SDA", "RX_SCL")]
+    box = (40.3, 9.3, 46.0, 18.5)
+    rails = [board.FindNet(names[n]).GetNetCode() for n in ("1V1_628", "3V3_IO")]
+    doomed = []
+    for t in board.GetTracks():
+        g = _geom(t)
+        if t.GetNetCode() in whole:
+            doomed.append(t)
+        elif t.GetNetCode() in rails and (t.GetClass() == "PCB_VIA" or t.GetLayer() == pcbnew.F_Cu) and any(
+                box[0] <= x - O[0] <= box[2] and box[1] <= y - O[1] <= box[3] for x, y in ((g[0], g[1]), (g[2], g[3]))):
+            doomed.append(t)
+    for t in doomed:
+        board.Remove(t)
+    GRAVE.extend(doomed)
+    for nc in rails:
+        prune_dead_ends(board, nc, _dogbones(board))
+
+    draw_xtal(board, B, names)
+    R.changed()
+    pcbnew.SaveBoard(ROUTED, board)
+    log(f"north: crystal lines drawn; {len(doomed)} items out")
+    for n in ("1V1_628", "3V3_IO"):
+        left = route_net(R, board, names[n], window=10.0)
+        pcbnew.SaveBoard(ROUTED, board)
+        log(f"north {n}: " + ("rejoined" if not left else f"{len(left)} pieces apart"))
+    _ripup(board, R, [names["RX_SCL"], names["RX_SDA"]], "north", u201_too=True,
+           fixed={board.FindNet(names[n]).GetNetCode() for n in ("XIN_628", "XOUT_628")})
+
+
+COMMITTED = os.path.join(ROOT, "freerouting", "committed_routed.kicad_pcb")   # the rev A board before respace.py
+
+
+def stage_restore_rails(board, B, R):
+    """The low-speed RK628D signals routed since the re-spacing come out first (their dogbones stay): they took
+    the room the rails had. The RK628D's analog and I/O rails under the chip: their copper from the board before the re-spacing comes
+    back, item by item, wherever it still keeps its clearance from everything now on the board (respace.py's
+    dead-end pruning took most of it out)."""
+    u201 = {p.GetNetCode() for p in board.FindFootprintByReference("U201").Pads()}
+    sig = soft_nets(board, u201_too=True) & u201 - {board.FindNet(n).GetNetCode() for n in
+                                                    ("/HDMI in (RK628D)/XIN_628", "/HDMI in (RK628D)/XOUT_628")}
+    _rip(board, R, sig)
+    log(f"restore: ripped {sorted(short(board.FindNet(c).GetNetname()) for c in sig)}")
+    old = pcbnew.LoadBoard(COMMITTED)
+    rf = Router(board, O, (W, H), RK_BOX, res=0.025, clearance=0.1)
+    layers = [pcbnew.F_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu, pcbnew.B_Cu]
+    for name in ("RK628D_3V3", "AVDD_3V3_628", "AVDD_1V1_628"):
+        ni = [v for k, v in board.GetNetsByName().items() if short(str(k)) == name][0]
+        nc = ni.GetNetCode()
+        cand = [t for t in old.GetTracks() if short(t.GetNetname()) == name]
+        have = {(round(_geom(t)[0], 3), round(_geom(t)[1], 3), round(_geom(t)[2], 3), round(_geom(t)[3], 3),
+                 t.GetLayer() if t.GetClass() != "PCB_VIA" else -1) for t in board.GetTracks() if t.GetNetCode() == nc}
+        grids = {}
+
+        def free(x, y, half, lys):
+            key = (round(half, 3), tuple(lys))
+            if key not in grids:
+                grids[key] = rf.blocked(nc, half, lys).any(axis=0)
+            g = grids[key]
+            i, j = int(round((x - O[0] - rf.x0) / rf.res)), int(round((y - O[1] - rf.y0) / rf.res))
+            return 0 <= i < rf.nx and 0 <= j < rf.ny and not g[j, i]
+        added = 0
+        for t in cand:
+            g = _geom(t)
+            via = t.GetClass() == "PCB_VIA"
+            k = (round(g[0], 3), round(g[1], 3), round(g[2], 3), round(g[3], 3), -1 if via else t.GetLayer())
+            if k in have:
+                continue
+            if via:
+                ok = free(g[0], g[1], pcbnew.ToMM(t.GetWidth()) / 2, layers)
+            else:
+                half = pcbnew.ToMM(t.GetWidth()) / 2
+                n = max(2, int(math.hypot(g[2] - g[0], g[3] - g[1]) / 0.0125))
+                ok = all(free(g[0] + (g[2] - g[0]) * s / n, g[1] + (g[3] - g[1]) * s / n, half, [t.GetLayer()])
+                         for s in range(n + 1))
+            if not ok:
+                continue
+            if via:
+                v = pcbnew.PCB_VIA(board)
+                v.SetPosition(t.GetPosition()); v.SetViaType(pcbnew.VIATYPE_THROUGH)
+                v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu); v.SetWidth(t.GetWidth()); v.SetDrill(t.GetDrill())
+                v.SetNet(ni)
+                board.Add(v)
+            else:
+                n_ = pcbnew.PCB_TRACK(board)
+                n_.SetStart(t.GetStart()); n_.SetEnd(t.GetEnd()); n_.SetWidth(t.GetWidth())
+                n_.SetLayer(t.GetLayer()); n_.SetNet(ni)
+                board.Add(n_)
+            added += 1
+        rf.changed()
+        R.changed()
+        log(f"restore {name}: {added} of {len(cand)} old items back")
+    pcbnew.SaveBoard(ROUTED, board)
+
+
+def stage_rail_last(board, B, R):
+    """RK628D_3V3's copper outside the chip's courtyard comes out (its dogbones and the copper under the chip
+    stay); it is routed again after the chip's signals, 0.2 mm wide (stage rebuild_rk with LAST=RK628D_3V3)."""
+    nc = board.FindNet("RK628D_3V3").GetNetCode()
+    c = board.FindFootprintByReference("U201").GetCourtyard(pcbnew.F_CrtYd).BBox()
+    box = (pcbnew.ToMM(c.GetLeft()), pcbnew.ToMM(c.GetTop()), pcbnew.ToMM(c.GetRight()), pcbnew.ToMM(c.GetBottom()))
+    dog = _dogbones(board, {nc})
+    doomed = [t for t in board.GetTracks() if t.GetNetCode() == nc and t.m_Uuid.AsString() not in dog and not all(
+        box[0] <= x <= box[2] and box[1] <= y <= box[3] for x, y in ((_geom(t)[0], _geom(t)[1]), (_geom(t)[2], _geom(t)[3])))]
+    for t in doomed:
+        board.Remove(t)
+    GRAVE.extend(doomed)
+    prune_dead_ends(board, nc, dog)
+    R.changed()
+    pcbnew.SaveBoard(ROUTED, board)
+    log(f"rail_last: {len(doomed)} RK628D_3V3 items out")
+    os.environ["LAST"] = "RK628D_3V3"
+    stage_rebuild_rk(board, B, R)
+
+
+def stage_resetfix(board, B, R):
+    """RK628D_RESET_N (ball H4) is walled in on the top layer by GND and AVDD_1V1_628 fanout vias. Drawn: a via on
+    its free diagonal site, a hop on In1 (the GND plane, under the ball field only) along the row line between the
+    via rows to a via beyond ball H1, and the top layer from there to its route east. RK628D_INT's back-layer trace
+    sat on the new via's site; it is routed again."""
+    names = {short(str(k)): str(k) for k in board.GetNetsByName().keys()}
+    rst = board.FindNet(names["RK628D_RESET_N"])
+    intc = board.FindNet(names["RK628D_INT"]).GetNetCode()
+    _rip(board, R, {intc})
+
+    def via(x, y):
+        v = pcbnew.PCB_VIA(board)
+        v.SetPosition(B.mm(x, y)); v.SetViaType(pcbnew.VIATYPE_THROUGH); v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
+        v.SetWidth(pcbnew.FromMM(0.3)); v.SetDrill(pcbnew.FromMM(0.15)); v.SetNet(rst)
+        board.Add(v)
+
+    def track(layer, pts, w):
+        for a, b_ in zip(pts, pts[1:]):
+            t = pcbnew.PCB_TRACK(board)
+            t.SetStart(B.mm(*a)); t.SetEnd(B.mm(*b_)); t.SetWidth(pcbnew.FromMM(w)); t.SetLayer(layer)
+            t.SetNet(rst)
+            board.Add(t)
+    via(45.95, 19.70)
+    track(pcbnew.In1_Cu, [(45.95, 19.70), (46.275, 20.025), (47.575, 20.025), (47.90, 20.35)], 0.09)
+    via(47.90, 20.35)
+    track(pcbnew.F_Cu, [(47.90, 20.35), (48.15, 20.35)], 0.1)
+    prune_dead_ends(board, rst.GetNetCode(), _dogbones(board))
+    R.changed()
+    pcbnew.SaveBoard(ROUTED, board)
+    log("resetfix: RESET_N drawn through In1; RK628D_INT out")
+    _ripup(board, R, [names["RK628D_INT"]], "resetfix", u201_too=True, fixed={rst.GetNetCode()})
+
+
+def stage_resetfix2(board, B, R):
+    """After resetfix: the AVDD_3V3_628 piece on In2 and the I2S_628_SCLK piece on the back that come too close to
+    RESET_N's new vias come out; AVDD_3V3_628 is joined again (fine grid, small vias), then I2S_628_SCLK and
+    RK628D_INT are routed again."""
+    names = {short(str(k)): str(k) for k in board.GetNetsByName().keys()}
+    rst = board.FindNet(names["RK628D_RESET_N"]).GetNetCode()
+    vias = [_geom(t) for t in board.GetTracks() if t.GetNetCode() == rst and t.GetClass() == "PCB_VIA"]
+    avdd = board.FindNet(names["AVDD_3V3_628"]).GetNetCode()
+    sclk = board.FindNet(names["I2S_628_SCLK"]).GetNetCode()
+    doomed = [t for t in board.GetTracks() if t.GetNetCode() == avdd and t.GetClass() != "PCB_VIA" and
+              any(_seg_dist(v, _geom(t)) < 0.075 + _geom(t)[4] + 0.2 for v in vias)]
+    for t in doomed:
+        board.Remove(t)
+    GRAVE.extend(doomed)
+    _rip(board, R, {sclk})
+    R.changed()
+    if not RF:
+        _configs(board, names["AVDD_3V3_628"], 0.1)
+    left = RF[0].connect(names["AVDD_3V3_628"], net_terms(board, avdd), 0.1,
+                         layers=[pcbnew.F_Cu, pcbnew.B_Cu, pcbnew.In2_Cu], via=(0.3, 0.15), window=4.0,
+                         max_expand=3000000, greed=1.5)
+    pcbnew.SaveBoard(ROUTED, board)
+    log(f"resetfix2: {len(doomed)} AVDD_3V3_628 pieces out, rejoined: {'yes' if not left else 'NO'}")
+    _ripup(board, R, [names["I2S_628_SCLK"], names["RK628D_INT"]], "resetfix2", u201_too=True, fixed={rst, avdd})
+
+
+def _drc_item(board, nc, it):
+    """The board item a DRC report entry names (a pad, track or via of net nc at the reported spot)."""
+    at = pcbnew.VECTOR2I_MM(it["pos"]["x"], it["pos"]["y"])
+    m = re.match(r"Pad (\S+) \[[^\]]+\] of (\S+)", it["description"])
+    if m:
+        return board.FindFootprintByReference(m.group(2)).FindPadByNumber(m.group(1))
+    for t in board.GetTracks():
+        if t.GetNetCode() == nc and t.HitTest(at):
+            return t
+    return None
+
+
+def stage_gaps(board, B, R):
+    """Each unconnected pair DRC reports on the nets in $NETS, joined one pair at a time with a small search
+    window: the RK628D-area router first (0.025 mm, small vias), then the 0.05 mm board router."""
+    want = os.environ["NETS"].split(",")
+    w = float(os.environ.get("WIDTH", "0.15"))
+    _, _ = open_nets(board)
+    if not RF:
+        _configs(board, "/HDMI in (RK628D)/AVDD_3V3_628", 0.1)       # (makes the RK628D-area router)
+    u201 = {p.GetNetCode() for p in board.FindFootprintByReference("U201").Pads()}
+    if not FINE:
+        FINE.append(make_router(board, 0.05))
+    pairs = []
+    for u in LAST_DRC[0]["unconnected_items"]:
+        m = re.search(r"\[([^\]]+)\]", u["items"][0]["description"])
+        if m and short(m.group(1)) in want:
+            pairs.append((m.group(1), u["items"]))
+    for name, items in pairs:
+        nc = board.FindNet(name).GetNetCode()
+        a, b_ = (_drc_item(board, nc, it) for it in items)
+        if a is None or b_ is None:
+            log(f"gaps {short(name)}: item not found")
+            continue
+        board.BuildConnectivity()
+        if board.GetConnectivity().GetConnectedItems(a, False) and \
+                b_ in list(board.GetConnectivity().GetConnectedItems(a, False)):
+            continue                                   # joined already by an earlier pair's route
+        def group(x):
+            """x and everything copper-joined to it on its net (found geometrically: the connectivity API's
+            connected items include the other islands)."""
+            items = [p for f in board.GetFootprints() for p in f.Pads() if p.GetNetCode() == nc] + \
+                [t for t in board.GetTracks() if t.GetNetCode() == nc]
+
+            def pts(t):
+                if t.GetClass() == "PCB_TRACK":
+                    return [t.GetStart(), t.GetEnd()]
+                return [t.GetPosition()]
+
+            def lays(t):
+                if t.GetClass() == "PCB_TRACK":
+                    return {t.GetLayer()}
+                return {l for l in (pcbnew.F_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu, pcbnew.B_Cu) if t.IsOnLayer(l)}
+            parent = list(range(len(items)))
+
+            def find(i):
+                while parent[i] != i:
+                    parent[i] = parent[parent[i]]
+                    i = parent[i]
+                return i
+            for i, u in enumerate(items):
+                for j in range(i + 1, len(items)):
+                    v = items[j]
+                    if not (lays(u) & lays(v)):
+                        continue
+                    if any(v.HitTest(q) for q in pts(u)) or any(u.HitTest(q) for q in pts(v)):
+                        parent[find(i)] = find(j)
+            k = next(i for i, u in enumerate(items) if u.m_Uuid.AsString() == x.m_Uuid.AsString())
+            return [u for i, u in enumerate(items) if find(i) == find(k)]
+        ga, gb = (group(a), group(b_)) if os.environ.get("GROUPS") else ([a], [b_])
+        ok = False
+        tries = ((RF[0], w, 3.0), (RF[0], 0.1, 5.0)) if nc in u201 or name.endswith("RK628D_3V3") else ()
+        for r, ww, win in tries + ((FINE[0], w, 6.0), (FINE[0], 0.1, 10.0)):
+            lys = [pcbnew.F_Cu, pcbnew.B_Cu, pcbnew.In2_Cu] + ([pcbnew.In1_Cu] if r is RF[0] and os.environ.get("IN1")
+                                                                 else [])
+            left = r.connect(name, [ga, gb], ww, layers=lys,
+                             via=(0.3, 0.15), window=win, max_expand=int(os.environ.get("MAXEXP", "800000")), greed=1.5)
+            # (a box router drops terminals outside its box and reports success: check the two really met)
+            if not left and any(u.m_Uuid.AsString() == b_.m_Uuid.AsString() for u in group(a)):
+                ok = True
+                break
+        R.changed()
+        pcbnew.SaveBoard(ROUTED, board)
+        log(f"gaps {short(name)}: {items[0]['description'][:30]} .. {items[1]['description'][:30]}: "
+            + ("joined" if ok else "OPEN"))
+
+
+def stage_dejunk(board, B, R):
+    """Copper left over from failed tries: on every low-speed signal net, each track or via whose removal leaves
+    the net exactly as connected (part of a loop or a spur) comes out, then dead ends are pruned. RK628D dogbones,
+    the crystal lines and the power, regulator and high-speed nets are left alone."""
+    soft = soft_nets(board, u201_too=True)
+    dog = _dogbones(board)
+    out = 0
+    for nc in sorted(soft):
+        items = [t for t in board.GetTracks() if t.GetNetCode() == nc and t.m_Uuid.AsString() not in dog]
+        if not items:
+            continue
+        board.BuildConnectivity()
+        base = board.GetConnectivity().GetUnconnectedCount(False)
+        for t in sorted(items, key=lambda t: t.GetClass() != "PCB_VIA"):   # vias first: their loops are the cost
+            board.Remove(t)
+            board.BuildConnectivity()
+            if board.GetConnectivity().GetUnconnectedCount(False) > base:
+                board.Add(t)
+            else:
+                GRAVE.append(t)
+                out += 1
+        prune_dead_ends(board, nc, dog)
+    R.changed()
+    pcbnew.SaveBoard(ROUTED, board)
+    log(f"dejunk: {out} redundant items out")
+
+
+def _restore(board, names, res=0.05, source=None):
+    """Copper of these nets from the board before the re-spacing, item by item, wherever it still keeps its
+    clearance from everything now on the board. Returns {name: (items back, items before)}."""
+    old = pcbnew.LoadBoard(source or COMMITTED)
+    r = Router(board, O, (W, H), (0.0, 0.0, W, H), res=res, clearance=0.1)
+    pw = NETCLASSES["POWER"][-1]
+    for nm, ni in board.GetNetsByName().items():
+        if re.search(pw, short(str(nm))):
+            r.net_cl[ni.GetNetCode()] = 0.127
+    layers = [pcbnew.F_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu, pcbnew.B_Cu]
+    by = {}
+    for t in old.GetTracks():
+        by.setdefault(short(t.GetNetname()), []).append(t)
+    out = {}
+    for name in names:
+        ni = [v for k, v in board.GetNetsByName().items() if short(str(k)) == name][0]
+        nc = ni.GetNetCode()
+        grids = {}
+        have = {(round(_geom(t)[0], 3), round(_geom(t)[1], 3), round(_geom(t)[2], 3), round(_geom(t)[3], 3),
+                 _geom(t)[5]) for t in board.GetTracks() if t.GetNetCode() == nc}
+
+        def free(x, y, half, lys):
+            key = (round(half, 3), tuple(lys))
+            if key not in grids:
+                grids[key] = r.blocked(nc, half, lys).any(axis=0)
+            g = grids[key]
+            i, j = int(round((x - O[0] - r.x0) / r.res)), int(round((y - O[1] - r.y0) / r.res))
+            return 0 <= i < r.nx and 0 <= j < r.ny and not g[j, i]
+        added = 0
+        for t in by.get(name, []):
+            g = _geom(t)
+            if t.GetClass() == "PCB_VIA":
+                ok = free(g[0], g[1], pcbnew.ToMM(t.GetWidth()) / 2, layers)
+            else:
+                half = pcbnew.ToMM(t.GetWidth()) / 2
+                n = max(2, int(math.hypot(g[2] - g[0], g[3] - g[1]) / (r.res / 2)))
+                ok = all(free(g[0] + (g[2] - g[0]) * s_ / n, g[1] + (g[3] - g[1]) * s_ / n, half, [t.GetLayer()])
+                         for s_ in range(n + 1))
+            if not ok or (k_ := (round(g[0], 3), round(g[1], 3), round(g[2], 3), round(g[3], 3), g[5])) in have:
+                continue
+            have.add(k_)
+            if t.GetClass() == "PCB_VIA":
+                v = pcbnew.PCB_VIA(board)
+                v.SetPosition(t.GetPosition()); v.SetViaType(pcbnew.VIATYPE_THROUGH)
+                v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu); v.SetWidth(t.GetWidth()); v.SetDrill(t.GetDrill())
+            else:
+                v = pcbnew.PCB_TRACK(board)
+                v.SetStart(t.GetStart()); v.SetEnd(t.GetEnd()); v.SetWidth(t.GetWidth()); v.SetLayer(t.GetLayer())
+            v.SetNet(ni)
+            board.Add(v)
+            added += 1
+        r.changed()
+        out[name] = (added, len(by.get(name, [])))
+    R_ = ROUTERS[0] if ROUTERS else None
+    if R_:
+        R_.changed()
+    return out
+
+
+def stage_restore_signals(board, B, R):
+    """The low-speed signals away from the RK628D: what this rebuild routed of them comes out, and their routes
+    from the board before the re-spacing come back wherever they still fit (their connectors did not move); dead
+    ends are pruned. What is left open is routed afterwards (stage rebuild_rk)."""
+    u201 = {p.GetNetCode() for p in board.FindFootprintByReference("U201").Pads()}
+    codes = soft_nets(board, u201_too=True) - u201
+    names = sorted(short(board.FindNet(c).GetNetname()) for c in codes)
+    old = pcbnew.LoadBoard(COMMITTED)
+    oldnames = {short(t.GetNetname()) for t in old.GetTracks()}
+    allsig = [short(str(k)) for k, v in board.GetNetsByName().items() if v.GetNetCode() not in u201 and
+              short(str(k)) in oldnames and not any(re.search(c[-1], short(str(k))) for c in NETCLASSES.values())
+              and short(str(k)) not in POWER_ORDER and short(str(k)) != "GND" and
+              not re.match(r"(FB|BS|BST|FS|CT)\d*(_|$)|AVDD|RK628D_3V3|1V1_628|XIN_628|XOUT_628", short(str(k)))]
+    _rip(board, R, codes)
+    log(f"restore_signals: ripped {len(codes)} nets")
+    got = _restore(board, allsig)              # no pruning: a route missing a piece keeps both halves for stage gaps
+    R.changed()
+    pcbnew.SaveBoard(ROUTED, board)
+    log("restore_signals: " + ", ".join(f"{n} {a}/{b}" for n, (a, b) in sorted(got.items())))
+    nets, _ = open_nets(board)
+    os.environ["NETS"] = ",".join(short(n) for n in nets if short(n) in allsig)
+    os.environ["GROUPS"] = "1"
+    stage_gaps(board, B, R)
+
+
+def stage_restore_from(board, B, R):
+    """$NETS' copper from the checkpoint $FROM, wherever it fits (items already here are skipped)."""
+    got = _restore(board, os.environ["NETS"].split(","), source=os.environ["FROM"])
+    R.changed()
+    pcbnew.SaveBoard(ROUTED, board)
+    log("restore_from: " + ", ".join(f"{n} {a}/{b}" for n, (a, b) in sorted(got.items())))
+
+
+def stage_restore_open(board, B, R):
+    """Every low-speed signal net still open (not the RK628D's) gets its route from the board before the
+    re-spacing back wherever it fits, with no pruning: a route with one piece that no longer fits stays as two
+    pieces with a short gap, which stage gaps then closes."""
+    nets, _ = open_nets(board)
+    u201 = {p.GetNetCode() for p in board.FindFootprintByReference("U201").Pads()}
+    names = [short(n) for n in nets if short(n) != "GND" and board.FindNet(n).GetNetCode() not in u201]
+    got = _restore(board, names)
+    R.changed()
+    pcbnew.SaveBoard(ROUTED, board)
+    log("restore_open: " + ", ".join(f"{n} {a}/{b}" for n, (a, b) in sorted(got.items())))
+    os.environ["NETS"] = ",".join(names)
+    os.environ["GROUPS"] = "1"
+    stage_gaps(board, B, R)
+
+
+def stage_revert_parts(board, B, R):
+    """Small parts gen/respace.py moved that sit on a net still open: each goes back to its place on the board before
+    the re-spacing (side, position, rotation) when that spot is free of every other part's courtyard now, and
+    its nets' copper comes out, to be restored from that board and gap-filled (stage restore_signals)."""
+    nets, _ = open_nets(board)
+    openc = {board.FindNet(n).GetNetCode() for n in nets if short(n) != "GND"}
+    old = pcbnew.LoadBoard(COMMITTED)
+
+    def court(f):
+        side = pcbnew.B_CrtYd if f.IsFlipped() else pcbnew.F_CrtYd
+        c = f.GetCourtyard(side)
+        bb = c.BBox() if c.OutlineCount() else f.GetBoundingBox(False)
+        return (bb.GetLeft(), bb.GetTop(), bb.GetRight(), bb.GetBottom())
+    moved = []
+    group = set(os.environ.get("GROUP", "").split(",")) - {""}     # these go back together, whatever their nets
+    for f in board.GetFootprints():
+        g = old.FindFootprintByReference(f.GetReference())
+        if g is None or (not any(p.GetNetCode() in openc for p in f.Pads()) and f.GetReference() not in group):
+            continue
+        if f.GetPosition() == g.GetPosition() and f.IsFlipped() == g.IsFlipped():
+            continue
+        oc = court(g)
+        clash = [h.GetReference() for h in board.GetFootprints() if h.GetReference() != f.GetReference()
+                 and h.GetReference() not in group and h.IsFlipped() == g.IsFlipped() and not (court(h)[2] <= oc[0] or court(h)[0] >= oc[2] or
+                                                             court(h)[3] <= oc[1] or court(h)[1] >= oc[3])]
+        if clash:
+            log(f"revert {f.GetReference()}: old spot taken by {clash}")
+            continue
+        moved.append(f.GetReference())
+        if f.IsFlipped() != g.IsFlipped():
+            f.Flip(f.GetPosition(), pcbnew.FLIP_DIRECTION_LEFT_RIGHT)
+        f.SetPosition(g.GetPosition())
+        f.SetOrientation(g.GetOrientation())
+    codes = {p.GetNetCode() for r in moved for p in board.FindFootprintByReference(r).Pads()} - \
+        {board.FindNet("GND").GetNetCode()}
+    codes = {c for c in codes if c in soft_nets(board, u201_too=True) or c in openc}
+    _rip(board, R, codes)
+    R.changed()
+    pcbnew.SaveBoard(ROUTED, board)
+    log(f"revert: {moved} back in place; ripped {sorted(short(board.FindNet(c).GetNetname()) for c in codes)}")
+
+
+def stage_repin(board, B, R):
+    """RK628D_INT and RK628D_PWR_EN move from J69 (J701) pins 46 and 24 to J1 (J703) pins 93 and 95 (gen/module.py):
+    the pads change nets, the two nets' copper outside the RK628D corner comes out (the corner's escape stays),
+    and stage gaps joins them to the new pins."""
+    moves = {("J701", "46"): None, ("J701", "24"): None, ("J703", "93"): "RK628D_INT", ("J703", "95"): "RK628D_PWR_EN"}
+    for (ref, num), net in moves.items():
+        pad = board.FindFootprintByReference(ref).FindPadByNumber(num)
+        if net is None:
+            pad.SetNetCode(0)
+        else:
+            pad.SetNet(board.FindNet(net))
+    codes = {board.FindNet(n).GetNetCode() for n in ("RK628D_INT", "RK628D_PWR_EN")}
+    box = (12.0, 2.0, 54.0, 32.0)
+    doomed = [t for t in board.GetTracks() if t.GetNetCode() in codes and not all(
+        box[0] <= x - O[0] <= box[2] and box[1] <= y - O[1] <= box[3]
+        for x, y in ((_geom(t)[0], _geom(t)[1]), (_geom(t)[2], _geom(t)[3])))]
+    for t in doomed:
+        board.Remove(t)
+    GRAVE.extend(doomed)
+    for c in codes:
+        prune_dead_ends(board, c, _dogbones(board))
+    R.changed()
+    pcbnew.SaveBoard(ROUTED, board)
+    log(f"repin: pads moved, {len(doomed)} items out")
+    os.environ["NETS"] = "RK628D_INT,RK628D_PWR_EN"
+    os.environ["GROUPS"] = "1"
+    stage_gaps(board, B, R)
+
+
+def stage_escape(board, B, R):
+    """$NET's RK628D ball out of the ball field: the 0.025 mm RK628D-area router (In1 allowed under the chip) from
+    the net's copper there to the first of the points $TO ('x,y x,y ...', board mm) it can reach."""
+    name = [str(k) for k in board.GetNetsByName().keys() if short(str(k)) == os.environ["NET"]][0]
+    nc = board.FindNet(name).GetNetCode()
+    if not RF:
+        _configs(board, "/HDMI in (RK628D)/AVDD_3V3_628", 0.1)
+    _pin(board)
+    mine = [t for t in board.GetTracks() if t.GetNetCode() == nc] + \
+        [p for p in board.FindFootprintByReference("U201").Pads() if p.GetNetCode() == nc]
+    for pt in os.environ["TO"].split():
+        x, y = (float(v) for v in pt.split(","))
+        left = RF[0].connect(name, [mine, (x, y)], 0.1,
+                             layers=[pcbnew.F_Cu, pcbnew.B_Cu, pcbnew.In2_Cu, pcbnew.In1_Cu], via=(0.3, 0.15),
+                             window=4.0, max_expand=4000000, greed=1.5)
+        log(f"escape {short(name)} to ({x}, {y}): " + ("out" if not left else "no"))
+        if not left:
+            break
+    R.changed()
+    pcbnew.SaveBoard(ROUTED, board)
+
+
+# placement fixes after the review of Oct 24: (ref, side "F"/"B", x, y, rotation) or a rotation alone ("+180")
+PLACEFIX = [
+    ("L103", "+180"),                    # its switch pad faced away from U105's SW pin (7.4 mm): now 3 mm
+    ("L104", "+180"),                    # the same at U106 (7.5 mm)
+    ("C121", "F", 28.45, 29.6, 270),     # U106's bootstrap cap beside pins 6 (BST) and 2 (SW), west of the IC
+    ("C203", "F", 39.85, 14.0, 180),     # crystal load caps against the crystal's pads (were 4 mm out)
+    ("C204", "F", 45.55, 12.3, 0),
+    ("D101", "+180"),                    # VIN_RAW toward the fuse, VDC toward the jack
+    ("D103", "+180"),                    # VBUS_SW toward the USB-C switch, VIN_RAW toward the fuse
+]
+PLACEFIX_INT = [("C207", "B", 49.05, 18.22, 90)]    # 1 mm east: frees a via site at the ball field's east edge
+
+
+def stage_intfix(board, B, R):
+    """RK628D_INT out of the ball field: C207 (a 100 nF on RK628D_3V3, on the back at the east edge) moves 1 mm
+    east, then the RK628D-area router (In1 allowed under the chip) takes INT from its fanout via to the edge,
+    stage gaps joins it to J703 pin 93, and C207 is joined again."""
+    global PLACEFIX
+    keep, PLACEFIX = PLACEFIX, PLACEFIX_INT
+    f = board.FindFootprintByReference("C207")
+    nets = {p.GetNetCode() for p in f.Pads()}
+    doomed = [t for t in board.GetTracks() if t.GetNetCode() in nets and any(
+        (p.HitTest(t.GetPosition()) if t.GetClass() == "PCB_VIA" else (p.HitTest(t.GetStart()) or p.HitTest(t.GetEnd())))
+        for p in f.Pads() if p.GetNetCode() == t.GetNetCode())]
+    for t in doomed:
+        board.Remove(t)
+    GRAVE.extend(doomed)
+    prune_dead_ends(board, board.FindNet("RK628D_3V3").GetNetCode(), _dogbones(board))
+    _, side, x, y, rot = PLACEFIX_INT[0]
+    f.SetPosition(B.mm(x, y)); f.SetOrientationDegrees(rot)
+    PLACEFIX = keep
+    R.changed()
+    pcbnew.SaveBoard(ROUTED, board)
+    log(f"intfix: C207 moved, {len(doomed)} items out")
+    os.environ["NET"] = "RK628D_INT"
+    os.environ.setdefault("TO", "49.3,18.7 49.3,19.4 49.3,20.1 49.3,18.0 49.6,19.0")
+    stage_escape(board, B, R)
+    os.environ["NETS"] = "RK628D_INT,RK628D_3V3"
+    os.environ["GROUPS"] = "1"
+    stage_gaps(board, B, R)
+    B.gnd_vias(R, ["C207"], only_unconnected=True)
+    R.changed()
+
+
+def stage_placefix(board, B, R):
+    """Moves the parts in PLACEFIX (and C702/C703 next to the CM3's SOM_3V3/SOM_1V8 pins, on the back), with
+    the copper that touched their pads taken out first; their nets are joined again afterwards (stage
+    gaps/route_net) and GND pads get vias."""
+    moved = [m[0] for m in PLACEFIX] + ["C702", "C703"]
+    nets = set()
+    doomed = []
+    for ref in moved:
+        f = board.FindFootprintByReference(ref)
+        for p in f.Pads():
+            if p.GetNetCode() == 0:
+                continue
+            nets.add(p.GetNetCode())
+            for t in board.GetTracks():
+                if t.GetNetCode() != p.GetNetCode() or t in doomed:
+                    continue
+                if t.GetClass() == "PCB_VIA":
+                    hit = p.HitTest(t.GetPosition())
+                else:
+                    hit = p.HitTest(t.GetStart()) or p.HitTest(t.GetEnd())
+                if hit:
+                    doomed.append(t)
+    for t in doomed:
+        board.Remove(t)
+    GRAVE.extend(doomed)
+    gnd = board.FindNet("GND").GetNetCode()
+    for nc in nets - {gnd}:
+        prune_dead_ends(board, nc, _dogbones(board))
+    for m in PLACEFIX:
+        f = board.FindFootprintByReference(m[0])
+        if len(m) == 2:
+            f.SetOrientationDegrees((f.GetOrientationDegrees() + 180) % 360)
+        else:
+            _, side, x, y, rot = m
+            if f.IsFlipped() != (side == "B"):
+                f.Flip(f.GetPosition(), pcbnew.FLIP_DIRECTION_LEFT_RIGHT)
+            f.SetOrientationDegrees(rot)
+            f.SetPosition(B.mm(x, y))
+    R.changed()
+    # C702/C703: on the back, as near the SOM_3V3 / SOM_1V8 pins' vias as there is room
+    for ref, net in (("C702", "SOM_3V3"), ("C703", "SOM_1V8")):
+        pins = [p for p in board.FindFootprintByReference("J701").Pads() if short(p.GetNetname()) == net]
+        tx = sum(B.xy(p)[0] for p in pins) / len(pins)
+        best = place_near(B, R, ref, {net: (tx, 64.6), "GND": (tx, 64.6)}, back=True, span=3.0, step=0.1, keepout=[])
+        log(f"placefix {ref}: back at ({best[1]:.2f}, {best[2]:.2f}), {best[3]} deg")
+    pcbnew.SaveBoard(ROUTED, board)
+    log(f"placefix: {len(doomed)} items out on {len(nets)} nets; moved {moved}")
+
+
+def stage_placefix2(board, B, R):
+    """Second round of stage placefix: the crystal's load caps and C702/C703 found spots free of other copper
+    (place_near), and the 1V1_628 copper left beside L104's turned switch pad comes out."""
+    y = board.FindFootprintByReference("Y201")
+    yp = {p.GetNumber(): B.xy(p) for p in y.Pads()}
+    for ref, net, pin, gnd in (("C203", "XIN_628", "1", "4"), ("C204", "XOUT_628", "3", "2")):
+        f = board.FindFootprintByReference(ref)
+        f.SetPosition(B.mm(200, 200))              # off the board while its spot is chosen
+        R.changed()
+        best = None
+        for back in (False, True):
+            try:
+                b_ = place_near(B, R, ref, {net: yp[pin], "GND": yp[gnd]}, back=back, span=3.0, step=0.05, keepout=[])
+            except SystemExit:
+                continue
+            if best is None or b_[0] < best[0] - 1.0:      # the back only if clearly better
+                best = b_ + (back,)
+        _, x, y_, rot, back = best
+        if f.IsFlipped() != back:
+            f.Flip(f.GetPosition(), pcbnew.FLIP_DIRECTION_LEFT_RIGHT)
+        f.SetOrientationDegrees(rot); f.SetPosition(B.mm(x, y_))
+        R.changed()
+        log(f"placefix2 {ref}: {'back' if back else 'top'} at ({x:.2f}, {y_:.2f}), {rot} deg")
+    for ref, net in (("C702", "SOM_3V3"), ("C703", "SOM_1V8")):
+        f = board.FindFootprintByReference(ref)
+        f.SetPosition(B.mm(200, 200))
+        R.changed()
+        pins = [p for p in board.FindFootprintByReference("J701").Pads() if short(p.GetNetname()) == net]
+        tx = sum(B.xy(p)[0] for p in pins) / len(pins)
+        best = place_near(B, R, ref, {net: (tx, 63.2), "GND": (tx, 63.2)}, back=True, span=4.0, step=0.1,
+                          keepout=[(55.0, 63.4, 90.0, 72.0)])
+        log(f"placefix2 {ref}: back at ({best[1]:.2f}, {best[2]:.2f}), {best[3]} deg")
+    l = board.FindFootprintByReference("L104")
+    sw = [B.xy(p) for p in l.Pads() if short(p.GetNetname()) == "SW_628"][0]
+    nc = board.FindNet("1V1_628").GetNetCode()
+    doomed = [t for t in board.GetTracks() if t.GetNetCode() == nc and
+              min(math.hypot(_geom(t)[0] - O[0] - sw[0], _geom(t)[1] - O[1] - sw[1]),
+                  math.hypot(_geom(t)[2] - O[0] - sw[0], _geom(t)[3] - O[1] - sw[1])) < 2.6]
+    for t in doomed:
+        board.Remove(t)
+    GRAVE.extend(doomed)
+    prune_dead_ends(board, nc, _dogbones(board))
+    R.changed()
+    pcbnew.SaveBoard(ROUTED, board)
+    log(f"placefix2: {len(doomed)} 1V1_628 items beside L104 out")
+
+
+def stage_placefix_route(board, B, R):
+    """After placefix/placefix2: GND vias at the moved parts' GND pads, then their power nets joined again (switch
+    nodes first, wide where there is room), then the crystal and the other signals by stage gaps."""
+    miss = B.gnd_vias(R, ["C121", "C203", "C204", "C702", "C703"], only_unconnected=True)
+    log(f"placefix_route: GND vias placed; no room at {miss}")
+    names = {short(str(k)): str(k) for k in board.GetNetsByName().keys()}
+    for n in ("SW_IO", "SW_628", "BST_628", "BST_IO", "3V3_IO", "1V1_628", "VIN_RAW", "VDC", "VBUS_SW", "SOM_3V3",
+              "SOM_1V8"):
+        left = route_net(R, board, names[n], window=10.0)
+        pcbnew.SaveBoard(ROUTED, board)
+        log(f"placefix_route {n}: " + ("joined" if not left else f"{len(left)} pieces apart"))
+    nets, _ = open_nets(board)
+    os.environ["NETS"] = ",".join(short(n) for n in nets if short(n) not in ("GND", "RK628D_INT"))
+    os.environ["GROUPS"] = "1"
+    stage_gaps(board, B, R)
+
+
+def stage_c207(board, B, R):
+    """C207 (100 nF on RK628D_3V3, on the back) had no way left to its rail at the chip's east edge (INT and SCL
+    now leave there): it goes, still on the back, next to one of the rail's vias north of the chip, is joined to
+    it and gets a GND via."""
+    f = board.FindFootprintByReference("C207")
+    nc = board.FindNet("RK628D_3V3").GetNetCode()
+    doomed = [t for t in board.GetTracks() if t.GetNetCode() == nc and any(
+        (p.HitTest(t.GetPosition()) if t.GetClass() == "PCB_VIA" else (p.HitTest(t.GetStart()) or p.HitTest(t.GetEnd())))
+        for p in f.Pads())]
+    for t in doomed:
+        board.Remove(t)
+    GRAVE.extend(doomed)
+    f.SetPosition(B.mm(200, 200))
+    R.changed()
+    best = place_near(B, R, "C207", {"RK628D_3V3": (44.85, 14.15), "GND": (44.85, 14.15)}, back=True, span=3.0,
+                      step=0.05, keepout=[])
+    log(f"c207: back at ({best[1]:.2f}, {best[2]:.2f}), {best[3]} deg")
+    pcbnew.SaveBoard(ROUTED, board)
+    os.environ["NETS"] = "RK628D_3V3"
+    os.environ["GROUPS"] = "1"
+    stage_gaps(board, B, R)
+    B.gnd_vias(R, ["C207"], only_unconnected=True)
+    R.changed()
+
+
+def stage_gndpads(board, B, R):
+    """GND pads still cut off from the planes (islands.py: mostly connector pins between other nets' traces): each
+    gets a small via (0.3/0.15 mm) to the inner GND planes, reached by a straight trace from the pad on its own layer
+    (0.15 mm, or 0.1 mm), at the nearest spot where both keep their clearances. Every candidate is checked against
+    everything on the board (gen/handroute.py's rules) before it is added."""
+    import handroute as H
+    gnd = board.FindNet("GND")
+    gc = gnd.GetNetCode()
+    subprocess.run([KP, os.path.join(HERE, "finish.py")], capture_output=True)
+    r = subprocess.run([KP, os.path.join(HERE, "islands.py")], capture_output=True, text=True)
+    isl = json.loads([l for l in r.stdout.splitlines() if l.startswith("[")][-1])
+    others = H.obstacles(board, gc)
+    done, failed = 0, []
+    for il in isl:
+        ok = False
+        for ref, num in il["pads"]:
+            f = board.FindFootprintByReference(ref)
+            p = f.FindPadByNumber(num)
+            x, y = B.xy(p)
+            lay = "B" if f.IsFlipped() and not p.HasHole() else "F"
+            near = [o for o in others if min(math.dist(o[1], (x, y)), math.dist(o[2], (x, y))) < 4 or
+                    H.seg_dist(o[1], o[2], (x - 3, y - 3), (x + 3, y + 3)) < 3]
+            cands = []
+            for rad in [0.45 + 0.05 * k for k in range(42)]:
+                for a in range(0, 360, 10):
+                    vx, vy = round(x + rad * math.cos(math.radians(a)), 3), round(y + rad * math.sin(math.radians(a)), 3)
+                    cands.append((rad, vx, vy))
+            # also: out along the pad's long axis first (between a connector's neighbouring pins), then to the via
+            bb = p.GetBoundingBox()
+            ax = (1, 0) if bb.GetWidth() >= bb.GetHeight() else (0, 1)
+            half = max(pcbnew.ToMM(bb.GetWidth()), pcbnew.ToMM(bb.GetHeight())) / 2
+            paths = [[(x, y), (vx, vy)] for _, vx, vy in cands]
+            for sgn in (1, -1):
+                for ext in [half + 0.2 + 0.1 * k for k in range(16)]:
+                    ex, ey = round(x + sgn * ax[0] * ext, 3), round(y + sgn * ax[1] * ext, 3)
+                    for rad in (0.0, 0.35, 0.5, 0.7):
+                        for a in range(0, 360, 30 if rad else 360):
+                            vx, vy = round(ex + rad * math.cos(math.radians(a)), 3), round(ey + rad * math.sin(math.radians(a)), 3)
+                            paths.append([(x, y), (ex, ey), (vx, vy)] if rad else [(x, y), (ex, ey)])
+            paths.sort(key=lambda pp: sum(math.dist(a_, b_) for a_, b_ in zip(pp, pp[1:])))
+            # first choice: a trace to a GND via already there (it reaches the planes); straight or one bend
+            gv = [B.xy(t) for t in board.GetTracks() if t.GetClass() == "PCB_VIA" and t.GetNetCode() == gc
+                  and math.dist(B.xy(t), (x, y)) < 3.0]
+            joins = []
+            for vx, vy in gv:
+                joins += [[(x, y), (vx, vy)], [(x, y), (vx, y), (vx, vy)], [(x, y), (x, vy), (vx, vy)]]
+            joins.sort(key=lambda pp: sum(math.dist(a_, b_) for a_, b_ in zip(pp, pp[1:])))
+            for pp in joins:
+                for w in (0.2, 0.15, 0.1):
+                    new = H.parse([f"{lay}/{w}:" + " ".join(f"{a_},{b_}" for a_, b_ in pp)])
+                    if H.problems(new, near, quiet=True) == 0:
+                        for ly, a_, b_, h, dr in new:
+                            t = pcbnew.PCB_TRACK(board)
+                            t.SetStart(B.mm(*a_)); t.SetEnd(B.mm(*b_)); t.SetWidth(pcbnew.FromMM(2 * h))
+                            t.SetLayer(ly); t.SetNet(gnd)
+                            board.Add(t)
+                        ok = True
+                        break
+                if ok:
+                    break
+            if ok:
+                break
+            mine = [(round(g[0], 3), round(g[1], 3)) for g in (B.xy(t) for t in board.GetTracks()
+                                                             if t.GetClass() == "PCB_VIA" and t.GetNetCode() == gc)]
+            for pp in paths:
+                vx, vy = pp[-1]
+                if any(math.dist((vx, vy), m) < 0.15 + 0.075 + 0.25 + 0.075 - 0.15 + 0.4 for m in mine):
+                    continue                                     # own-net hole spacing (0.25 mm hole to hole)
+                for w in (0.15, 0.1):
+                    new = H.parse([f"{lay}/{w}:" + " ".join(f"{a_},{b_}" for a_, b_ in pp), f"V:{vx},{vy}"])
+                    if H.problems(new, near, quiet=True) == 0:
+                        for ly, a_, b_, h, dr in new:
+                            if ly is None:
+                                v = pcbnew.PCB_VIA(board)
+                                v.SetPosition(B.mm(*a_)); v.SetViaType(pcbnew.VIATYPE_THROUGH)
+                                v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
+                                v.SetWidth(pcbnew.FromMM(0.3)); v.SetDrill(pcbnew.FromMM(0.15)); v.SetNet(gnd)
+                                board.Add(v)
+                                others.append((None, a_, a_, 0.15, 0.075, "via GND"))
+                            else:
+                                t = pcbnew.PCB_TRACK(board)
+                                t.SetStart(B.mm(*a_)); t.SetEnd(B.mm(*b_)); t.SetWidth(pcbnew.FromMM(2 * h))
+                                t.SetLayer(ly); t.SetNet(gnd)
+                                board.Add(t)
+                        ok = True
+                        break
+                if ok:
+                    break
+            if ok:
+                break
+        if ok:
+            done += 1
+        else:
+            failed.append(il["pads"])
+    R.changed()
+    pcbnew.SaveBoard(ROUTED, board)
+    log(f"gndpads: {done} of {len(isl)} islands joined to the planes; no room at {failed}")
+
+
+GNDFORCE = [   # (pad, GND path in gen/handroute.py's notation): low-speed signals in the way are ripped and rerouted
+    ("C207.2", ["B/0.2:50.23,14.95 50.23,16.04 49.11,16.04"]),
+    ("C218.2", ["B/0.2:48.35,22.95 47.15,22.95 47.15,22.55"]),
+]
+GNDFORCE_D203 = [("D203.3/8", ["F/0.2:31.07,13.09 31.07,13.86", "V:31.07,13.475"])]   # after R217 moved off
+
+
+def stage_gndforce(board, B, R):
+    """Decoupling caps whose GND pad could not reach the planes: a short GND trace to the nearest GND via or pad,
+    with the low-speed signal traces in its way taken out first and routed again afterwards (stage gaps)."""
+    import handroute as H
+    gnd = board.FindNet("GND")
+    gc = gnd.GetNetCode()
+    soft = soft_nets(board, u201_too=True)
+    ripped = set()
+    todo = GNDFORCE_D203 if os.environ.get("D203") else GNDFORCE
+    if os.environ.get("AUTO"):
+        # every GND pad still cut off: out along the pad's axis to a via, the candidate whose only conflicts are
+        # low-speed signal tracks (fewest first), those tracks cut and joined again afterwards
+        subprocess.run([KP, os.path.join(HERE, "finish.py")], capture_output=True)
+        r = subprocess.run([KP, os.path.join(HERE, "islands.py")], capture_output=True, text=True)
+        isl = json.loads([l for l in r.stdout.splitlines() if l.startswith("[")][-1])
+        softn = {short(board.FindNet(c).GetNetname()) for c in soft}
+        allob = H.obstacles(board, gc)
+        mine = [B.xy(t) for t in board.GetTracks() if t.GetClass() == "PCB_VIA" and t.GetNetCode() == gc]
+        todo = []
+        skip = set(os.environ.get("SKIP", "").split(","))
+        for il in isl:
+            ref, num = il["pads"][0]
+            if f"{ref}.{num}" in skip:
+                continue
+            f = board.FindFootprintByReference(ref)
+            p = f.FindPadByNumber(num)
+            x, y = B.xy(p)
+            lay = "B" if f.IsFlipped() and not p.HasHole() else "F"
+            bb = p.GetBoundingBox()
+            ax = (1, 0) if bb.GetWidth() >= bb.GetHeight() else (0, 1)
+            half = max(pcbnew.ToMM(bb.GetWidth()), pcbnew.ToMM(bb.GetHeight())) / 2
+            near = [o for o in allob if min(math.dist(o[1], (x, y)), math.dist(o[2], (x, y))) < 4 or
+                    H.seg_dist(o[1], o[2], (x - 3, y - 3), (x + 3, y + 3)) < 3]
+            best = None
+            for sgn in (1, -1):
+                for ext in [half + 0.25 + 0.1 * k for k in range(12)]:
+                    vx, vy = round(x + sgn * ax[0] * ext, 3), round(y + sgn * ax[1] * ext, 3)
+                    if any(math.dist((vx, vy), m) < 0.45 for m in mine):
+                        continue
+                    specs = [f"{lay}/0.15:{x},{y} {vx},{vy}", f"V:{vx},{vy}"]
+                    new = H.parse(specs)
+                    hits, hard = set(), False
+                    for ly, a, b_, h, dr in new:
+                        for oly, oa, ob, oh, odr, desc in near:
+                            same = ly is None or oly is None or ly in oly
+                            d = H.seg_dist(a, b_, oa, ob)
+                            bad = (same and d < h + oh + 0.1) or (dr and d - dr - oh < 0.2) or \
+                                (odr and same and d - odr - h < 0.2) or (dr and odr and d - dr - odr < 0.25)
+                            if bad:
+                                if desc.startswith("track ") and desc.split()[1] in softn:
+                                    hits.add(desc.split()[1])
+                                else:
+                                    hard = True
+                    if not hard and (best is None or len(hits) < best[0]):
+                        best = (len(hits), specs)
+            if best:
+                todo.append((f"{ref}.{num}", best[1]))
+                mine.append(tuple(float(v) for v in best[1][1][2:].split(",")))
+            else:
+                log(f"gndforce {ref}.{num}: no candidate free of fixed copper")
+    for pad, specs in todo:
+        new = H.parse(specs)
+        others = H.obstacles(board, gc)
+        hit = set()
+        for ly, a, b_, h, dr in new:
+            for oly, oa, ob, oh, odr, desc in others:
+                same = ly is None or oly is None or ly in oly
+                if same and H.seg_dist(a, b_, oa, ob) < h + oh + 0.1 + 0.01 and desc.startswith("track "):
+                    hit.add(desc.split()[1])
+        codes = {c for c in soft if short(board.FindNet(c).GetNetname()) in hit}
+        if hit - {short(board.FindNet(c).GetNetname()) for c in codes}:
+            log(f"gndforce {pad}: blocked by fixed nets {sorted(hit)}; skipped")
+            continue
+        # only the pieces in the way come out (a whole long route would be hard to get back)
+        cut = []
+        for t in board.GetTracks():
+            if t.GetNetCode() not in codes or t.GetClass() == "PCB_VIA":
+                continue
+            g = ((pcbnew.ToMM(t.GetStart().x) - O[0], pcbnew.ToMM(t.GetStart().y) - O[1]),
+                 (pcbnew.ToMM(t.GetEnd().x) - O[0], pcbnew.ToMM(t.GetEnd().y) - O[1]))
+            for ly, a, b_, h, dr in new:
+                if (ly is None or ly == t.GetLayer()) and \
+                        H.seg_dist(a, b_, g[0], g[1]) < h + pcbnew.ToMM(t.GetWidth()) / 2 + 0.1 + 0.01:
+                    cut.append(t)
+                    break
+        for t in cut:
+            board.Remove(t)
+        GRAVE.extend(cut)
+        ripped |= codes
+        if H.problems(new, H.obstacles(board, gc), quiet=True):
+            log(f"gndforce {pad}: still blocked after ripping {sorted(hit)}; skipped")
+            continue
+        for ly, a, b_, h, dr in new:
+            if ly is None:
+                v = pcbnew.PCB_VIA(board)
+                v.SetPosition(B.mm(*a)); v.SetViaType(pcbnew.VIATYPE_THROUGH); v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
+                v.SetWidth(pcbnew.FromMM(0.3)); v.SetDrill(pcbnew.FromMM(0.15)); v.SetNet(gnd)
+                board.Add(v)
+                continue
+            t = pcbnew.PCB_TRACK(board)
+            t.SetStart(B.mm(*a)); t.SetEnd(B.mm(*b_)); t.SetWidth(pcbnew.FromMM(2 * h)); t.SetLayer(ly); t.SetNet(gnd)
+            board.Add(t)
+        log(f"gndforce {pad}: joined; ripped {sorted(hit)}")
+    R.changed()
+    pcbnew.SaveBoard(ROUTED, board)
+    if ripped:
+        os.environ["NETS"] = ",".join(short(board.FindNet(c).GetNetname()) for c in ripped)
+        os.environ["GROUPS"] = "1"
+        stage_gaps(board, B, R)
+
+
+def stage_moveto(board, B, R):
+    """$REF (a small cap on the back) goes to the free spot nearest a via of its rail ($NET, near $AT 'x,y') where
+    its pads clear everything; its rail pad is joined (stage gaps) and its GND pad gets a via (stage gndpads)."""
+    ref, net = os.environ["REF"], os.environ["NET"]
+    at = tuple(float(v) for v in os.environ["AT"].split(","))
+    f = board.FindFootprintByReference(ref)
+    codes = {p.GetNetCode() for p in f.Pads()}
+    doomed = [t for t in board.GetTracks() if t.GetNetCode() in codes and any(
+        (p.HitTest(t.GetPosition()) if t.GetClass() == "PCB_VIA" else (p.HitTest(t.GetStart()) or p.HitTest(t.GetEnd())))
+        for p in f.Pads())]
+    for t in doomed:
+        board.Remove(t)
+    GRAVE.extend(doomed)
+    f.SetPosition(B.mm(200, 200))
+    R.changed()
+    best = place_near(B, R, ref, {net: at, "GND": at}, back=f.IsFlipped(), span=3.0, step=0.05, keepout=[])
+    log(f"moveto {ref}: at ({best[1]:.2f}, {best[2]:.2f}), {best[3]} deg")
+    pcbnew.SaveBoard(ROUTED, board)
+    os.environ["NETS"] = net
+    os.environ["GROUPS"] = "1"
+    stage_gaps(board, B, R)
+    stage_gndpads(board, B, R)
+
+
+STAGES = {"moveto": stage_moveto, "gndforce": stage_gndforce, "gndpads": stage_gndpads, "c207": stage_c207, "intfix": stage_intfix, "placefix_route": stage_placefix_route, "placefix2": stage_placefix2, "placefix": stage_placefix, "escape": stage_escape, "repin": stage_repin, "revert_parts": stage_revert_parts, "restore_open": stage_restore_open, "restore_from": stage_restore_from, "restore_signals": stage_restore_signals, "dejunk": stage_dejunk, "gaps": stage_gaps, "resetfix2": stage_resetfix2, "resetfix": stage_resetfix, "rail_last": stage_rail_last, "xtal_draw": stage_xtal_draw, "restore_rails": stage_restore_rails, "north": stage_north, "one": stage_one, "neck": stage_neck, "clfix": stage_clfix, "reserve": stage_reserve, "rebuild_rk": stage_rebuild_rk, "rebuild": stage_rebuild, "in2bridge": stage_in2bridge, "c219": stage_c219, "cluster": stage_cluster, "gndfix": stage_gndfix, "clean": stage_clean, "harvest": stage_harvest, "corner": stage_corner, "xtal": stage_xtal, "localfix": stage_localfix, "sequence": stage_sequence, "tpmove": stage_tpmove, "replan": stage_replan, "rkplace": stage_rkplace, "tune": stage_tune, "pcie": stage_pcie, "rxpair": stage_rxpair, "shadow": stage_shadow, "pairs_again": stage_pairs_again, "pairfix": stage_pairfix, "repair": stage_repair, "ripup": stage_ripup, "rkrip": stage_rkrip, "holes": stage_holes, "rip_j69": stage_rip_j69, "j69": stage_j69, "pairs": stage_pairs, "power": stage_power, "signals": stage_signals, "rk628": stage_rk628,
           "gnd": stage_gnd}
 
 if __name__ == "__main__":
