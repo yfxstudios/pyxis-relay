@@ -207,8 +207,11 @@ left out. Pins not listed are ground or no-connect.
 | Function | CM3 pin(s) | RK3566 function |
 |---|---|---|
 | CSI-2 D0–D3, CLK (4-lane) | J68: D0 117/115, D1 123/121, CLK0 129/127, D2 130/128, D3 136/134 | MIPI_CSI_RX (4-lane mode uses CLK0) |
-| RK628D I2C SCL / SDA | J69 28 / 36 | GPIO0_C6 / GPIO4_B4, as a bit-banged bus (Linux i2c-gpio): I2C2_M1's SCL pin (35) had no room for its trace. Register setup only, so 100 kHz in software is plenty |
-| RK628D RESET_N, PLUGIN_DET | J69 48, 50 | GPIO0_B7, GPIO0_C7 |
+| RK628D I2C SCL / SDA | J69 35 / 36 | I2C2_M1 (GPIO4_B5 / GPIO4_B4), the hardware I2C2 controller. VCCIO6 = GPIO_VREF, tied to 3.3 V |
+| RK628D RESET_N | J1 20 | GPIO0_D6 (oscillator/PMUIO1 domain, 3.3 V), beside INT on J1 18 |
+| RK628D PLUGIN_DET | J69 76 | GPIO0_A4 (PMUIO1, 3.3 V), SDMMC0_DET by default, an input |
+
+The RK628D's I/O runs at 3.3 V, so none of its lines may use GPIO0_B0–C7: that bank (PMUIO2) is 1.8 V on the CM3.
 | RK628D INT, PWR_EN | J1 18, 95 | GPIO0_D5, GPIO0_C4 (same PMUIO2 bank; on J1 because the traces to J69's middle pins had no room) |
 | CEC_GPIO (0 Ω option) | J68 151 | GPIO4_D1 (HDMI_TX_CEC pad, VCCIO7 at 3.3 V; on J68 to keep the trace short) |
 | HDMI TX D0–D2, CLK | J68 182/184, 176/178, 170/172, 188/190 | HDMI_TX |

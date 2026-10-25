@@ -26,7 +26,9 @@ def build(project):
           footprint="Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12", LCSC="C165948")
     s.add("Power_Protection:USBLC6-2SC6", (80, 175),
           {"1": "USB_OTG_DP_C", "6": "USB_OTG_DP", "3": "USB_OTG_DM_C", "4": "USB_OTG_DM", "2": "GND",
-           "5": "VBUS_C"}, footprint="Package_TO_SOT_SMD:SOT-23-6")
+           # pin 5 floats: tied to VBUS_C its 6-9 V clamp would conduct at the 9 V PD contract. The data-line
+           # clamps still work through the internal Zener.
+           "5": None}, footprint="Package_TO_SOT_SMD:SOT-23-6")
     s.add("Interface_USB:CH224K", (95, 130),
           {"VDD": "VBUS_C", "VBUS": "VBUS_C", "CC1": "CC1", "CC2": "CC2", "DP": None, "DM": None,
            "CFG1": "PD_CFG1", "CFG2": None, "CFG3": None, "PG": "PD_PG_N", "GND": "GND"},

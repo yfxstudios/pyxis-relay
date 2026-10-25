@@ -5243,26 +5243,9 @@
 			)
 		)
 	)
-	(wire
-		(pts
-			(xy 80.01 170.18)
-			(xy 80.01 167.64)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "458c371a-bd75-511b-a490-5dc4e2aa1189")
-	)
-	(label "VBUS_C"
-		(at 80.01 167.64 90)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "b7aca9d2-7e7b-5c9c-be56-e25130676da1")
+	(no_connect
+		(at 80.01 170.18)
+		(uuid "2dfcf967-7a99-531e-8791-3ff92b393cb1")
 	)
 	(wire
 		(pts

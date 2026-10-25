@@ -4,3 +4,4 @@ routed.kicad_pro
 autoroute.log
 *.lck
 ~*
+analysis/

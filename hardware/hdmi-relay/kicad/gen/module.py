@@ -18,8 +18,9 @@ GND = "GND"
 ASSIGN = {
     "J69": {
         3: "MDI3_P", 5: "MDI3_N", 4: "MDI1_P", 6: "MDI1_N", 11: "MDI2_P", 9: "MDI2_N", 12: "MDI0_P", 10: "MDI0_N",
-        48: "RK628D_RESET_N", 50: "RK628D_PLUGIN_DET",
-        28: "I2C_628_SCL", 36: "I2C_628_SDA",                       # GPIO0_C6, GPIO4_B4: i2c-gpio (pin 35 had no room)
+        # the RK628D's I/O is 3.3 V: its lines stay off GPIO0_B0-C7 (PMUIO2, 1.8 V on the CM3)
+        76: "RK628D_PLUGIN_DET",                                     # GPIO0_A4 (PMUIO1, 3.3 V); SDMMC0_DET, an input
+        35: "I2C_628_SCL", 36: "I2C_628_SDA",                       # I2C2_M1, GPIO4_B5/B4 (VCCIO6 = GPIO_VREF, 3.3 V)
         37: "SDI_UART_TX",                                           # GPIO4_C5 = UART9_TX_M1 (V1.32: was SARADC)
         93: "RECOVERY_ADC",                                          # SARADC_VIN0: low at boot = Rockusb recovery
         30: "LED_STATUS", 56: "LED_WIFI", 58: "PD_PG_N",
@@ -55,6 +56,7 @@ ASSIGN = {
         36: "SDI_UART_RX",                                           # UART9_RX_M1 (TX is J69 pin 37)
         4: "SDI_GPIO5", 6: "SDI_GPIO6", 8: "SDI_GPIO7", 10: "SDI_GPIO8",
         18: "RK628D_INT", 95: "RK628D_PWR_EN",                       # GPIO0_D5, GPIO0_C4: J69's middle is full
+        20: "RK628D_RESET_N",                                        # GPIO0_D6 (OSC/PMUIO1, 3.3 V), beside INT
     },
 }
 OFFSET = {"J69": 0, "J68": 100, "J1": 0}

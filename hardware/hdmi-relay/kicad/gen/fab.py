@@ -84,7 +84,7 @@ LCSC_BY = {
     ("DEBUG UART", "PinHeader_1x03_P2.54mm_Vertical"): "C2937625",   # PZ254V-11-03P
     ("RESET", "SW_SPST_TL3342"): "C2886898",               # TL3342F160QG
     ("RECOVERY", "SW_SPST_TL3342"): "C2886898",
-    ("DC 6-17V", "BarrelJack_Horizontal"): "C3096082",     # CUI-style PJ-002A: check against the footprint
+    ("DC 6-17V", "BarrelJack_Horizontal"): "C2961147",     # CUI PJ-002AH: 5 A (PJ-002A is 2.5 A), same layout; 2.0 mm pin
     ("RJ45 1000BASE-T magjack", "RJ45_Pulse_JK0654219NL_Horizontal"): "C3179417",  # Pulse JK0654219NL (no stock)
 }
 # not placed by the assembler: bare pads

@@ -424,6 +424,7 @@ Pictures: [top copper](renders/rev_a_routed_F.png), [back copper](renders/rev_a_
 - `gen/silk.py`: places every reference designator (0.8 mm text) clear of pads, outlines and the board edge, or
   hides it if no spot is clear (48 of them; F.Fab still shows every reference).
 - `gen/sync.py`: copies the schematic's fields, DNP and BOM flags and unused-pin nets onto the footprints.
+- `gen/fiducials.py`: places the assembly fiducials.
 
 `relay.kicad_dru` has one rule: J301's outline may cross the board edge, since the jack hangs over it.
 
@@ -447,9 +448,24 @@ RK628D:
 - CEC_GPIO: J68 pin 151 (GPIO4_D1).
 - RK628D_INT: J1 pin 18.
 - RK628D_PWR_EN: J1 pin 95.
-- RK628D I2C: J69 pins 28 (SCL, GPIO0_C6) and 36 (SDA, GPIO4_B4), driven by the `i2c-gpio` driver, so the
-  device tree needs an i2c-gpio node.
-- RK628D_RESET_N and RK628D_PLUGIN_DET: J69 pins 48 and 50.
+- RK628D I2C: J69 pins 35 (SCL) and 36 (SDA), the CM3's hardware I2C2 (I2C2_M1).
+- RK628D_RESET_N: J1 pin 20 (GPIO0_D6).
+- RK628D_PLUGIN_DET: J69 pin 76 (GPIO0_A4).
+- All of the RK628D's lines are on 3.3 V CM3 banks. GPIO0_B0–C7 (PMUIO2) is 1.8 V on the CM3, so its 3.3 V signals
+  must stay off it; `checks/iolevels.py` checks every CM3 pin.
+
+**Fixes after verification (Oct 24, see TEST_REPORT.md):**
+- **I/O levels:** SCL, RESET_N and PLUGIN_DET moved off the CM3's 1.8 V bank (pins above). Making room for SCL
+  meant re-routing one short SDI_I2C_SDA link under J701.
+- **VIN into U104:** the 0.3 mm neck is replaced by a 0.8 mm path from U104 pin 5 straight to C109. The trunk
+  from F101 is now 1.6 mm, then 1.0 mm.
+- **USB ESD (U101):** its VBUS pin is now unconnected. On VBUS_C it would have conducted at the 9 V PD contract.
+- **DC jack:** CUI PJ-002AH (5 A) instead of PJ-002A (2.5 A). It has the same footprint and a 2.0 mm centre pin.
+- **Fiducials:** `gen/fiducials.py` places three on each side (1 mm dot, 2 mm mask opening), board-only and kept
+  out of the BOM and CPL.
+- **U106 input cap:** no top-side spot for a 100 nF beats C119's current loop. Every spot within 3 mm is inside
+  U106, L104 or C119's courtyard, and the best legal spot gives a 9.4 mm loop against 7.2 mm today. For rev B,
+  move L104 down about 1 mm.
 
 **Placement fixes:**
 - **RK628D corner re-spaced:** at least 0.8 mm between courtyards (`gen/respace.py`), then routed again. Only that

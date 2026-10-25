@@ -7281,37 +7281,9 @@
 			)
 		)
 	)
-	(wire
-		(pts
-			(xy 140.97 170.18)
-			(xy 143.51 170.18)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "3b87011e-7371-5d3a-8ad7-ebf45e25ad5d")
-	)
-	(global_label "I2C_628_SCL"
-		(shape passive)
-		(at 143.51 170.18 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "9ea9d056-5d2a-52a7-ac80-7257330ac8e0")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 143.51 170.18 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
+	(no_connect
+		(at 140.97 170.18)
+		(uuid "b593e009-ab41-5d6b-9e72-8ff2c5ab67b2")
 	)
 	(wire
 		(pts
@@ -7599,9 +7571,37 @@
 			)
 		)
 	)
-	(no_connect
-		(at 80.01 180.34)
-		(uuid "a048556c-1b89-5ca2-b7e0-9edbddce7652")
+	(wire
+		(pts
+			(xy 80.01 180.34)
+			(xy 77.47 180.34)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "68316e81-8aa2-5cff-b03a-905a86d84714")
+	)
+	(global_label "I2C_628_SCL"
+		(shape passive)
+		(at 77.47 180.34 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "91c26a9a-9ee5-5ad2-9869-86e35db5c4fd")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 77.47 180.34 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 	)
 	(wire
 		(pts
@@ -8081,37 +8081,9 @@
 			)
 		)
 	)
-	(wire
-		(pts
-			(xy 140.97 195.58)
-			(xy 143.51 195.58)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "ff906072-c6e2-5e32-a9df-9c7c60736938")
-	)
-	(global_label "RK628D_RESET_N"
-		(shape passive)
-		(at 143.51 195.58 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "d12f91d6-7d6b-59b5-874c-89373a8bcfae")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 143.51 195.58 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
+	(no_connect
+		(at 140.97 195.58)
+		(uuid "e4334bdb-ed86-522b-b293-3c52442f242a")
 	)
 	(wire
 		(pts
@@ -8177,37 +8149,9 @@
 			)
 		)
 	)
-	(wire
-		(pts
-			(xy 140.97 198.12)
-			(xy 143.51 198.12)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "01c0d10e-f51e-5210-8e87-c4dfd2324514")
-	)
-	(global_label "RK628D_PLUGIN_DET"
-		(shape passive)
-		(at 143.51 198.12 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "2b498374-eeec-591a-a7a5-777725c5bafb")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 143.51 198.12 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
+	(no_connect
+		(at 140.97 198.12)
+		(uuid "f9c26838-6607-5e6d-9322-4beebb6a277e")
 	)
 	(wire
 		(pts
@@ -9142,9 +9086,37 @@
 		(at 80.01 231.14)
 		(uuid "4423e16e-447a-5442-8209-ef9765037f3c")
 	)
-	(no_connect
-		(at 140.97 231.14)
-		(uuid "1e2eaa7e-56aa-52fe-a516-5f3e1922017f")
+	(wire
+		(pts
+			(xy 140.97 231.14)
+			(xy 143.51 231.14)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c85b2b2b-4d10-5455-a5d9-d71ccbb9ebad")
+	)
+	(global_label "RK628D_PLUGIN_DET"
+		(shape passive)
+		(at 143.51 231.14 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "1cff81fd-f974-5e92-9216-f0e845675ac3")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 143.51 231.14 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 	)
 	(wire
 		(pts
@@ -14558,9 +14530,37 @@
 			)
 		)
 	)
-	(no_connect
-		(at 480.06 160.02)
-		(uuid "2ebec34b-6d65-5332-bd7a-a198d949b325")
+	(wire
+		(pts
+			(xy 480.06 160.02)
+			(xy 482.6 160.02)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e4081ed0-0c69-5ffc-a9cc-8f0542cfe4cc")
+	)
+	(global_label "RK628D_RESET_N"
+		(shape passive)
+		(at 482.6 160.02 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "9957a7b1-41c0-5b65-9d8a-c319c1b75763")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 482.6 160.02 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 	)
 	(no_connect
 		(at 419.1 162.56)
