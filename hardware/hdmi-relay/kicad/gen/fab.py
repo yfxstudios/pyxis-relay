@@ -114,18 +114,28 @@ def main():
     run("sch", "export", "bom", "--fields", "Value,Reference,Footprint,LCSC,${QUANTITY}",
         "--labels", "Comment,Designator,Footprint,LCSC Part #,Qty", "--group-by", "Value,Footprint,LCSC",
         "--ref-range-delimiter", "", "--exclude-dnp", "-o", raw, SCH)
-    with open(raw) as f, open(os.path.join(FAB, "relay-bom.csv"), "w", newline="") as g:
-        w = csv.writer(g)
-        w.writerow(["Comment", "Designator", "Footprint", "LCSC Part #"])
-        missing = 0
+    # one line per LCSC number: JLCPCB unselects every line of a part that appears on two lines (e.g. "22uF" and
+    # "22uF/10V"), which would leave those parts unplaced
+    lines = {}
+    with open(raw) as f:
         for row in csv.DictReader(f):
             fp = row["Footprint"].split(":")[-1]
             if fp.startswith(NOT_PLACED):
                 continue
             lcsc = row["LCSC Part #"] or LCSC_BY.get((row["Comment"], fp), "")
-            w.writerow([row["Comment"], row["Designator"], fp, lcsc])
-            missing += not lcsc
+            key = lcsc or (row["Comment"], fp)
+            if key in lines:
+                lines[key][1] += "," + row["Designator"]
+            else:
+                lines[key] = [row["Comment"], row["Designator"], fp, lcsc]
     os.remove(raw)
+    with open(os.path.join(FAB, "relay-bom.csv"), "w", newline="") as g:
+        w = csv.writer(g)
+        w.writerow(["Comment", "Designator", "Footprint", "LCSC Part #"])
+        for line in lines.values():
+            line[1] = ",".join(sorted(line[1].split(","), key=lambda r: (r.rstrip("0123456789"), int(r[len(r.rstrip("0123456789")):] or 0))))
+            w.writerow(line)
+        missing = sum(not line[3] for line in lines.values())
 
     # pick-and-place from the board
     pos = os.path.join(FAB, "pos-raw.csv")
@@ -142,8 +152,65 @@ def main():
                         "Top" if row["Side"] == "top" else "Bottom", f"{float(row['Rot']):.1f}"])
             n += 1
     os.remove(pos)
+    _centre_cm3(os.path.join(FAB, "relay-cpl.csv"))
+    _rotate_for_jlc(os.path.join(FAB, "relay-cpl.csv"))
     print(f"fab/: gerbers + drill ({len(os.listdir(gerb))} files, zipped), BOM ({missing} lines without an LCSC "
           f"number), CPL ({n} parts)")
+
+
+# Degrees (counter-clockwise, seen from the top) added to KiCad's rotation so JLCPCB's model of the part lines up
+# with its footprint, found in JLCPCB's placement viewer: lead pattern against pads, and the model's pin-1 mark
+# against the footprint's pin 1. Their models don't share KiCad's zero orientation.
+JLC_ROT = {
+    "Q101": 180, "Q201": 180, "Q202": 180, "Q203": 180,     # SOT-23: the model's two-lead side was on the 1-pad side
+    "U101": -90, "U102": -90,                               # model leads crossed the pad rows
+    "U103": 180, "U104": 180, "U105": 180, "U106": 180,     # pin 1 at the opposite corner
+    "U201": -90,                                            # RK628D: ball A1 one corner round
+    "J201": 90, "J401": 90,                                 # HDMI: model body turned across the shell tabs
+}
+
+
+def _rotate_for_jlc(cpl):
+    with open(cpl) as f:
+        rows = list(csv.reader(f))
+    for row in rows[1:]:
+        if row[0] in JLC_ROT:
+            rot = (float(row[4]) + JLC_ROT[row[0]]) % 360
+            row[4] = f"{rot - 360 if rot > 180 else rot:.1f}"
+    with open(cpl, "w", newline="") as f:
+        csv.writer(f).writerows(rows)
+
+
+def _centre_cm3(cpl):
+    """The three CM3 receptacle footprints share the module's origin (its centre), so the position file would put
+    all three in the same spot. JLCPCB places at the part's centre: use each one's pad centre, and turn the
+    rotation so the part's long side follows its pad row (0 = long side along X)."""
+    import pcbnew
+    board = pcbnew.LoadBoard(BOARD)
+    fix = {}
+    for f in board.GetFootprints():
+        if not str(f.GetFPID().GetLibItemName()).startswith("Radxa_CM3_"):
+            continue
+        bb = None
+        for p in f.Pads():
+            pb = p.GetBoundingBox()
+            if bb is None:
+                bb = pb
+            else:
+                bb.Merge(pb)
+        c, o = bb.GetCenter(), f.GetPosition()
+        fix[f.GetReference()] = (pcbnew.ToMM(c.x - o.x), pcbnew.ToMM(c.y - o.y),
+                                 0.0 if bb.GetWidth() > bb.GetHeight() else 90.0)
+    with open(cpl) as f:
+        rows = list(csv.reader(f))
+    for row in rows[1:]:
+        if row[0] in fix:
+            dx, dy, rot = fix[row[0]]
+            row[1] = f"{float(row[1][:-2]) + dx:.3f}mm"
+            row[2] = f"{float(row[2][:-2]) - dy:.3f}mm"          # the position file's Y points up
+            row[4] = f"{rot:.1f}"
+    with open(cpl, "w", newline="") as f:
+        csv.writer(f).writerows(rows)
 
 
 if __name__ == "__main__":
