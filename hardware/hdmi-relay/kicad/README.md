@@ -446,10 +446,10 @@ kept solid under the back-layer high-speed pairs; B signal.
 **Pin moves (gen/module.py, REV_A_SPEC.md section 7).** There was no room to reach the old pins next to the
 RK628D:
 - CEC_GPIO: J68 pin 151 (GPIO4_D1).
-- RK628D_INT: J1 pin 18.
+- RK628D_INT: J1 pin 18 (J1 pin 12 since Oct 25).
 - RK628D_PWR_EN: J1 pin 95.
 - RK628D I2C: J69 pins 35 (SCL) and 36 (SDA), the CM3's hardware I2C2 (I2C2_M1).
-- RK628D_RESET_N: J1 pin 20 (GPIO0_D6).
+- RK628D_RESET_N: J1 pin 20 (GPIO0_D6; J1 pin 10 since Oct 25).
 - RK628D_PLUGIN_DET: J69 pin 76 (GPIO0_A4).
 - All of the RK628D's lines are on 3.3 V CM3 banks. GPIO0_B0–C7 (PMUIO2) is 1.8 V on the CM3, so its 3.3 V signals
   must stay off it; `checks/iolevels.py` checks every CM3 pin.
@@ -488,6 +488,63 @@ copper clearance (0.1 mm), hole to copper (0.2 mm) and hole to hole (0.25 mm) ag
 
 **Before ordering:** check the CPL rotations in JLCPCB's preview, and the mechanical points listed in the section
 above.
+
+## Pin fixes (Oct 25)
+
+`REVIEW_INDEPENDENT.md` found that the Oct 24 I/O audit had the CM3's banks wrong. GPIO0_D3–D6 (the oscillator
+domain) are 1.8 V only, not 3.3 V, and GPIO0_B0–D2 (PMUIO2) are 1.8 V. Six nets moved (REV_A_SPEC.md section 7):
+
+| Net | Was | Now |
+|---|---|---|
+| RK628D_INT | J1 18, GPIO0_D5 (1.8 V only) | J1 12, GPIO3_C3 (VCCIO5, 3.3 V) |
+| RK628D_RESET_N | J1 20, GPIO0_D6 (1.8 V only) | J1 10, GPIO3_C2 (VCCIO5, 3.3 V); was SDI_GPIO8 |
+| BT_DISABLE_N | J1 34, GPIO0_D3 (1.8 V only), 10k to 3V3_IO | J1 40, GPIO1_A4 (VCCIO_ACODEC, 3.3 V in the device tree) |
+| LED_STATUS | J69 30, GPIO0_C5 (1.8 V) | J69 34, GPIO4_B1 (VCCIO6, 3.3 V); was SDI_GPIO2 |
+| LED_WIFI | J69 56, GPIO0_B5 (1.8 V, module pull-up) | J69 75, GPIO0_A5 (PMUIO1, 3.3 V) |
+| PD_PG_N | J69 58, GPIO0_B6 (2.2k to 1.8 V on the module) | off the module: PG drives Q101 only |
+
+Other schematic changes:
+- **LED resistors:** R601/R602 are 150 Ω (C25082), so the LEDs get about 1–3 mA from 3.3 V.
+- **R501 (PERST# pull-up):** DNP. GPIO1_B2 is in VCCIO_ACODEC, off at power-up, and its reset pull-down holds
+  the card in reset until the driver releases it.
+- **J601:** valued "DEBUG UART 1V8".
+- **SDI header pins 32 and 38:** unused (GPIO2 and GPIO8 gave their CM3 pins away).
+
+**Board.** The copper was changed on the routed checkpoint, not re-routed from scratch. Starting from the Oct 24
+`routed.kicad_pcb`:
+1. `gen/pinmove.py pads`: reassigns the pads (MOVES), cuts each net's stub to its old pad (CUT, CUT_VIAS) and
+   removes SDI_GPIO2/8 (DROP).
+2. Tails to the new pads:
+   - LED_STATUS: `gen/handroute.py LED_STATUS 'F/0.127:63.4,64.05 64.65,64.05 65.08,64.48 65.08,65.3' --commit`.
+   - The rest: `gen/localroute.py NET x0,y0,x1,y1 --layers F,B,2 --commit`, in this order:
+     - RK628D_RESET_N 78,44,102,66
+     - RK628D_INT 78,38,102,66
+     - BT_DISABLE_N 82,44,98,60
+     - LED_WIFI 60,52,82,72
+
+   `gen/localroute.py` runs `gen/router.py` on a window only, so it takes seconds; a whole-board grid takes many
+   minutes per net.
+3. `gen/pinmove.py tidy`: re-draws LED_WIFI's tail to pad 75 from a via at DVP_D6's old place in the gap between
+   J701's rows. The router's tail along the gap cut pad 71 (GND) off from the fill, and every via spot right of pad
+   71 is taken by back-layer tracks.
+   Then `gen/localroute.py DVP_D6 64,62,80,72 --layers 2,F,B --commit` puts DVP_D6 on In2 under the pads.
+4. `gen/pinmove.py prune`: removes copper left dangling.
+5. `gen/sync.py`: now also updates footprint values and renames nets that became local to one sheet
+   (PD_PG_N → /Power/PD_PG_N).
+6. `gen/finish.py`, DRC with schematic parity, then `gen/fab.py` and `python3 gen/pcbway_bom.py`.
+
+Result: DRC 0 violations, 0 unconnected, 0 parity; ERC 0; `checks/iolevels.py` 0 pins flagged.
+
+**ESD pass-through links (REVIEW_FABLE.md B1).** The RClamp0524P's pins 6/7/9/10 are NC, so each protected line
+must have copper across its pad pair. Added on `routed.kicad_pcb` after the pin fixes, before `gen/sync.py`:
+```
+gen/handroute.py PORT_SCL 'F/0.2:30.57,13.095 30.57,13.865' --commit
+gen/handroute.py PORT_SDA 'F/0.2:30.07,13.095 30.07,13.865' --commit
+gen/handroute.py HDMITX_SCL 'F/0.2:81.5,13.385 81.5,12.615' --commit
+gen/handroute.py HDMITX_SDA 'F/0.2:82.0,13.385 82.0,12.615' --commit
+```
+**C501/C502 (M1):** 0 Ω on the capacitor pads; the CM3 has the PCIe TX AC caps. `gen/fab.py`
+clears `fab/`, so the MPN map for the PCBWay BOM lives in `gen/lcsc-mpn.json`.
 
 - `relay.kicad_sch`: root sheet; one `.kicad_sch` per sheet.
 - `relay.kicad_sym` and `relay.pretty/`: project symbols and footprints, also generated.

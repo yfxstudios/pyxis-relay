@@ -2239,7 +2239,7 @@
 				)
 			)
 		)
-		(property "Value" "DEBUG UART"
+		(property "Value" "DEBUG UART 1V8"
 			(at 39.37 64.77 0)
 			(effects
 				(font
@@ -2266,6 +2266,15 @@
 			)
 		)
 		(property "Description" ""
+			(at 39.37 59.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Note" "1.8 V levels (GPIO0_D0/D1 are in the CM3's 1.8 V PMUIO2): use a 1.8 V adapter"
 			(at 39.37 59.69 0)
 			(effects
 				(font
@@ -2811,7 +2820,7 @@
 				)
 			)
 		)
-		(property "Value" "1k"
+		(property "Value" "150R"
 			(at 180.34 59.69 0)
 			(effects
 				(font
@@ -3096,7 +3105,7 @@
 				)
 			)
 		)
-		(property "Value" "1k"
+		(property "Value" "150R"
 			(at 209.55 59.69 0)
 			(effects
 				(font
@@ -4675,37 +4684,9 @@
 			)
 		)
 	)
-	(wire
-		(pts
-			(xy 337.82 154.94)
-			(xy 340.36 154.94)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "d5399e09-65e4-5341-96a0-a963f9188168")
-	)
-	(global_label "SDI_GPIO2"
-		(shape passive)
-		(at 340.36 154.94 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "da800cdb-789c-517f-8ce5-6f56ba535d29")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 340.36 154.94 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
+	(no_connect
+		(at 337.82 154.94)
+		(uuid "2fc75fdf-176f-519b-881c-7b0291b3586e")
 	)
 	(wire
 		(pts
@@ -4867,37 +4848,9 @@
 			)
 		)
 	)
-	(wire
-		(pts
-			(xy 337.82 162.56)
-			(xy 340.36 162.56)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "e8b4cb5a-0e6b-535c-840a-cf3dd58e0823")
-	)
-	(global_label "SDI_GPIO8"
-		(shape passive)
-		(at 340.36 162.56 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "355fd55e-4b15-5617-817d-216c3edd1155")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 340.36 162.56 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
+	(no_connect
+		(at 337.82 162.56)
+		(uuid "3072169a-cf53-5d0d-8438-9f1c61e57576")
 	)
 	(wire
 		(pts

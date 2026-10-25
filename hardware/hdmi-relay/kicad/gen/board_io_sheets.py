@@ -63,10 +63,16 @@ def m2(project):
     # the 2230 card's hold-down: an M2 standoff (or nut and screw) at the card's far end, on GND
     s.add("Mechanical:MountingHole_Pad", (330, 140), {"1": "GND"}, ref="H", value="M.2 2230 standoff",
           footprint="MountingHole:MountingHole_2.2mm_M2_Pad_Via")
-    cap(s, (110, 90), "PCIE_TX_P", "M2_PER_P", "100nF")
-    cap(s, (120, 90), "PCIE_TX_N", "M2_PER_N", "100nF")
+    # PCIe TX AC coupling is on the module (CM3 C54/C55, 100 nF): a second 100 nF here would leave 50 nF, under the
+    # CEM minimum of 75 nF. C501/C502 are fitted as 0R links; 100 nF pads kept for rev B experiments.
+    note = "0R link: the CM3 has the TX AC caps (C54/C55)"
+    cap(s, (110, 90), "PCIE_TX_P", "M2_PER_P", "0R", Note=note)
+    cap(s, (120, 90), "PCIE_TX_N", "M2_PER_N", "0R", Note=note)
+    # PERST#'s pull-up (R501) is not fitted: GPIO1_B2 sits in VCCIO_ACODEC, off until software enables it, and its
+    # reset pull-down keeps the card in reset until the driver releases it. CLKREQ/WAKE: set VCCIO_ACODEC to 3.3 V,
+    # always on, in the device tree.
     for i, net in enumerate(("PCIE_PERST_N", "PCIE_CLKREQ_N", "PCIE_WAKE_N", "WIFI_DISABLE_N", "BT_DISABLE_N")):
-        resistor(s, (290 + 10 * i, 60), "3V3_IO", net, "10k")
+        resistor(s, (290 + 10 * i, 60), "3V3_IO", net, "10k", **({"dnp": True} if i == 0 else {}))
     for i, v in enumerate(("22uF", "22uF", "100nF", "100nF")):
         cap(s, (290 + 10 * i, 230), "3V3_IO", "GND", v, footprint=C0805 if v == "22uF" else C0402)
     return s
@@ -79,24 +85,25 @@ def board_io(project):
            "and mounting holes.  The SDI header carries the module's 16-bit DVP camera input (BT.1120 from an SDI\n"
            "receiver such as the GS2971A).  On the CM3 the DVP pins are free: its Ethernet uses GMAC1_M0.", (20, 15), 2)
     s.add("Connector_Generic:Conn_01x03", (40, 60), {"Pin_1": "DEBUG_TX", "Pin_2": "DEBUG_RX", "Pin_3": "GND"},
-          value="DEBUG UART", ref="J", footprint="Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical")
+          value="DEBUG UART 1V8", ref="J", Note="1.8 V levels (GPIO0_D0/D1 are in the CM3's 1.8 V PMUIO2): use a 1.8 V adapter", footprint="Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical")
     # buttons
     s.add("Switch:SW_Push", (100, 60), {"1": "SOM_RESET_N", "2": "GND"}, value="RESET",
           footprint="Button_Switch_SMD:SW_SPST_TL3342")
     s.add("Switch:SW_Push", (100, 90), {"1": "RECOVERY_ADC", "2": "GND"}, value="RECOVERY",
           footprint="Button_Switch_SMD:SW_SPST_TL3342",
           Note="Held at power-up: Rockusb recovery for flashing over USB-C (CM3 datasheet 3.11)")
-    # LEDs: GPIO high = on
+    # LEDs: GPIO high = on, from 3.3 V CM3 pins; 150R gives about 2-3 mA through a white or blue LED
     for i, (net, col) in enumerate((("LED_STATUS", "white"), ("LED_WIFI", "blue"))):
         x = 180 + 30 * i
-        resistor(s, (x, 60), net, f"{net}_A", "1k")
+        resistor(s, (x, 60), net, f"{net}_A", "150R")
         s.add("Device:LED", (x + 12, 80), {"A": f"{net}_A", "K": "GND"}, value=col, footprint=LED0603)
     resistor(s, (250, 60), "3V3_IO", "LED_PWR_A", "2.2k")
     s.add("Device:LED", (262, 80), {"A": "LED_PWR_A", "K": "GND"}, value="red PWR", footprint=LED0603)
     # SDI add-on header
     pins = ["5V_SYS", "5V_SYS", "3V3_IO", "3V3_IO", "GND", "GND"]
     pins += [f"DVP_D{i}" for i in range(16)] + ["DVP_PCLK", "GND", "DVP_HSYNC", "DVP_VSYNC"]
-    pins += ["SDI_I2C_SCL", "SDI_I2C_SDA", "SDI_UART_TX", "SDI_UART_RX"] + [f"SDI_GPIO{i}" for i in range(1, 9)]
+    pins += ["SDI_I2C_SCL", "SDI_I2C_SDA", "SDI_UART_TX", "SDI_UART_RX"] + ["SDI_GPIO1", None] + [f"SDI_GPIO{i}" for i in range(3, 8)] + [None]
+    # pins 32 and 38 unused: their CM3 pins now drive LED_STATUS and reset the RK628D (Oct 25 level fixes)
     pins += ["GND", "GND"]
     assert len(pins) == 40
     s.add("Connector_Generic:Conn_02x20_Odd_Even", (330, 140), {str(i + 1): n for i, n in enumerate(pins)},

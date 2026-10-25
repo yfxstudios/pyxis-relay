@@ -5414,26 +5414,15 @@
 		)
 		(uuid "737937df-4990-5c7e-b9c1-466713cd9543")
 	)
-	(global_label "PD_PG_N"
-		(shape passive)
+	(label "PD_PG_N"
 		(at 107.95 124.46 0)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify left)
+			(justify left bottom)
 		)
 		(uuid "7997949a-b2dd-5700-a0b3-3219831072d2")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 107.95 124.46 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
 	)
 	(wire
 		(pts
@@ -6050,26 +6039,15 @@
 		)
 		(uuid "65edac0d-f848-53c7-836a-0dde1a6522cb")
 	)
-	(global_label "PD_PG_N"
-		(shape passive)
+	(label "PD_PG_N"
 		(at 139.7 111.76 270)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify right)
+			(justify right bottom)
 		)
 		(uuid "20bbdaa7-0edd-5344-8c05-533e9ae8d515")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 139.7 111.76 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
 	)
 	(symbol
 		(lib_id "Transistor_FET:AO3401A")
@@ -6170,26 +6148,15 @@
 		)
 		(uuid "5d38ab45-7be0-5514-a750-9b61628f1ea9")
 	)
-	(global_label "PD_PG_N"
-		(shape passive)
+	(label "PD_PG_N"
 		(at 152.4 119.38 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify right)
+			(justify right bottom)
 		)
 		(uuid "75f16b4c-962c-5664-b062-6c457f06168b")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 152.4 119.38 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
 	)
 	(wire
 		(pts

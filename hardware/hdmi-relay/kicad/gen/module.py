@@ -23,7 +23,10 @@ ASSIGN = {
         35: "I2C_628_SCL", 36: "I2C_628_SDA",                       # I2C2_M1, GPIO4_B5/B4 (VCCIO6 = GPIO_VREF, 3.3 V)
         37: "SDI_UART_TX",                                           # GPIO4_C5 = UART9_TX_M1 (V1.32: was SARADC)
         93: "RECOVERY_ADC",                                          # SARADC_VIN0: low at boot = Rockusb recovery
-        30: "LED_STATUS", 56: "LED_WIFI", 58: "PD_PG_N",
+        # GPIO0_B0-D2 (PMUIO2) are 1.8 V on the CM3 and GPIO0_D3-D6 (OSC) are 1.8 V only (CM3 schematic p.7): the
+        # LEDs and every 3.3 V control line use VCCIO5/6/7 or PMUIO1 pins. PD_PG_N stays off the module: GPIO0_B6
+        # carries a 2.2k pull-up to 1.8 V there, which held Q101 on.
+        34: "LED_STATUS", 75: "LED_WIFI",                            # GPIO4_B1 (VCCIO6), GPIO0_A5 (PMUIO1)
         51: "DEBUG_RX", 55: "DEBUG_TX",                              # UART2_M0, the boot console
         100: "SOM_RESET_N",                                          # PMIC_RESET_KEY
         77: "5V_SOM", 79: "5V_SOM", 81: "5V_SOM", 83: "5V_SOM", 85: "5V_SOM", 87: "5V_SOM",
@@ -33,7 +36,7 @@ ASSIGN = {
         41: "DVP_D0", 49: "DVP_D1", 26: "DVP_D2", 25: "DVP_D3", 27: "DVP_D4", 45: "DVP_D5", 47: "DVP_D6",
         54: "DVP_D7", 21: "DVP_D14", 91: "DVP_D15", 89: "DVP_HSYNC", 95: "DVP_VSYNC", 97: "DVP_PCLK",
         38: "SDI_I2C_SCL", 44: "SDI_I2C_SDA",                       # I2C4_M0
-        29: "SDI_GPIO1", 34: "SDI_GPIO2", 39: "SDI_GPIO3", 40: "SDI_GPIO4",
+        29: "SDI_GPIO1", 39: "SDI_GPIO3", 40: "SDI_GPIO4",           # 34 (was SDI_GPIO2) drives LED_STATUS
     },
     "J68": {
         103: "USB_OTG_DM", 105: "USB_OTG_DP",
@@ -48,15 +51,16 @@ ASSIGN = {
         151: "CEC_GPIO",                                             # GPIO4_D1 (VCCIO7, 3.3 V): next to the RK628D
     },
     "J1": {
-        34: "BT_DISABLE_N", 74: "WIFI_DISABLE_N", 38: "PCIE_WAKE_N",
+        40: "BT_DISABLE_N", 74: "WIFI_DISABLE_N", 38: "PCIE_WAKE_N",   # GPIO1_A4/B1 (VCCIO_ACODEC: 3.3 V in the DT), GPIO0_A0
         14: "VIN_SENSE",                                             # SARADC_VIN3, 0-1.8 V
         63: "USB_BT_DP", 65: "USB_BT_DM",                            # USB2 HOST2
         97: "OTG_VBUSDET",
         75: "DVP_D8", 77: "DVP_D9", 79: "DVP_D10", 81: "DVP_D11", 83: "DVP_D12", 85: "DVP_D13",
         36: "SDI_UART_RX",                                           # UART9_RX_M1 (TX is J69 pin 37)
-        4: "SDI_GPIO5", 6: "SDI_GPIO6", 8: "SDI_GPIO7", 10: "SDI_GPIO8",
-        18: "RK628D_INT", 95: "RK628D_PWR_EN",                       # GPIO0_D5, GPIO0_C4: J69's middle is full
-        20: "RK628D_RESET_N",                                        # GPIO0_D6 (OSC/PMUIO1, 3.3 V), beside INT
+        4: "SDI_GPIO5", 6: "SDI_GPIO6", 8: "SDI_GPIO7",              # GPIO3_A1/B4/C1 (VCCIO5 = 3.3 V)
+        12: "RK628D_INT",                                            # GPIO3_C3 (VCCIO5 = 3.3 V)
+        10: "RK628D_RESET_N",                                        # GPIO3_C2 (VCCIO5 = 3.3 V); was SDI_GPIO8
+        95: "RK628D_PWR_EN",                                         # GPIO0_C4 (1.8 V) into an NPN base: fine
     },
 }
 OFFSET = {"J69": 0, "J68": 100, "J1": 0}

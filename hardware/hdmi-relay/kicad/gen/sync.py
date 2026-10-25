@@ -3,8 +3,9 @@ Schematic" would, without touching placement or copper.
 
   .../bin/python3 gen/sync.py
 
-From the schematic's netlist: each footprint's fields (Datasheet, Note, LCSC, ...), its do-not-populate and
-exclude-from-BOM flags, and the single-pin "unconnected-(...)" nets KiCad gives unused pins. MOUNT_CM3 (the CM3's
+From the schematic's netlist: each footprint's value and fields (Datasheet, Note, LCSC, ...), its do-not-populate
+and exclude-from-BOM flags, the single-pin "unconnected-(...)" nets KiCad gives unused pins, and net names (a net
+that became local to one sheet gets the sheet path; its copper goes with it). MOUNT_CM3 (the CM3's
 mounting outline, placed by gen/pcb.py) has no symbol: it is marked board-only.
 """
 import os
@@ -30,12 +31,15 @@ def main():
                    capture_output=True)
     root = ET.parse(xml).getroot()
     board = pcbnew.LoadBoard(ROUTED)
-    fields = flags = nets = 0
+    fields = flags = nets = values = renamed = 0
     for c in root.iter("comp"):
         f = board.FindFootprintByReference(c.get("ref"))
         if f is None:
             continue
         props = {p.get("name"): p.get("value") for p in c.findall("property")}
+        if f.GetValue() != c.findtext("value"):
+            f.SetValue(c.findtext("value"))
+            values += 1
         for fl in c.iter("field"):
             name, text = fl.get("name"), fl.text or ""
             if name in SKIP:
@@ -53,6 +57,22 @@ def main():
             f.SetExcludedFromBOM(nobom)
             flags += 1
     for n in root.iter("net"):
+        name = n.get("name")
+        if name.startswith("unconnected-("):
+            continue
+        pads = [board.FindFootprintByReference(x.get("ref")) for x in n.findall("node")]
+        pads = [f.FindPadByNumber(x.get("pin")) for f, x in zip(pads, n.findall("node")) if f]
+        old = {p.GetNetname() for p in pads if p is not None and p.GetNetCode() != 0}
+        if len(old) != 1 or name in old or board.FindNet(name) is not None:
+            continue
+        oi = board.FindNet(old.pop())
+        ni = pcbnew.NETINFO_ITEM(board, name)
+        board.Add(ni)
+        for item in list(board.GetTracks()) + list(board.Zones()) + [p for f in board.GetFootprints() for p in f.Pads()]:
+            if item.GetNetCode() == oi.GetNetCode():
+                item.SetNet(ni)
+        renamed += 1
+    for n in root.iter("net"):
         name = n.get("name").replace("/", "{slash}")     # KiCad's escape in net names
         if not name.startswith("unconnected-("):
             continue
@@ -69,7 +89,8 @@ def main():
             nets += 1
     board.FindFootprintByReference("MOUNT_CM3").SetBoardOnly(True)
     pcbnew.SaveBoard(ROUTED, board)
-    print(f"sync: {fields} fields, {flags} DNP/BOM flags, {nets} unused pins given their unconnected-(...) nets")
+    print(f"sync: {values} values, {fields} fields, {flags} DNP/BOM flags, {renamed} nets renamed, "
+          f"{nets} unused pins given their unconnected-(...) nets")
 
 
 if __name__ == "__main__":

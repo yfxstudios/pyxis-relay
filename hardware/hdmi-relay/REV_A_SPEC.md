@@ -136,6 +136,7 @@ This copies the DshanPi-A1 circuit (schematic pages 31–32), with our changes m
 - **Connector:** full-size HDMI type A, SMD with through-hole shell legs ([LCSC C2902698](https://www.lcsc.com/product-detail/C2902698.html)).
   The case clamps the cable for strain relief; there's no locking connector at this price.
 - **Static protection:**
+  - each RCLAMP0524P line has copper straight across its pad pair (pins 6/7/9/10 are NC on this part)
   - two RCLAMP0524P on the four high-speed pairs ([LCSC C907837](https://lcsc.com/product-detail/TVS_TECH-PUBLIC-RCLAMP0524P_C907837.html))
   - a third RCLAMP0524P on HPD, CEC, SCL and SDA (one part number instead of the reference's WE05MFC)
 - **Hot-plug detect:** the RK628D drives HPD to the camera directly, through 22 Ω. Camera-present detection: the
@@ -204,36 +205,44 @@ This copies the DshanPi-A1 circuit (schematic pages 31–32), with our changes m
 All of it is in [`kicad/gen/module.py`](kicad/gen/module.py), which fails the build if a pin is assigned twice or
 left out. Pins not listed are ground or no-connect.
 
+**I/O voltage (Oct 25 fix).** On the CM3, GPIO0_B0–D2 (PMUIO2) are 1.8 V and GPIO0_D3–D6 (the oscillator domain,
+PMUIO0) are 1.8 V only (CM3 V1.322 schematic p.7). Everything that meets a 3.3 V part, a 3.3 V pull-up or an LED uses
+PMUIO1 (GPIO0_A*), VCCIO5, VCCIO6 (GPIO_VREF = 3.3 V here) or VCCIO7. `kicad/checks/iolevels.py` checks every CM3
+pin against its bank. PD_PG_N no longer reaches the module: GPIO0_B6 has a 2.2 kΩ pull-up to 1.8 V on the module,
+which held the USB-C VBUS gate (Q101) on.
+
+**Device tree requirements.** VCCIO_ACODEC (RK817 LDO4) set to 3.3 V and always on, with pmu-io-domains vccio1 =
+3.3 V: BT_DISABLE#, PERST#, CLKREQ# and WAKE# sit in that domain. Keep GPIO0_D4 (TF_DET) low or unused: driven high,
+it makes the module pull RK628D PLUGIN_DET low.
+
 | Function | CM3 pin(s) | RK3566 function |
 |---|---|---|
 | CSI-2 D0–D3, CLK (4-lane) | J68: D0 117/115, D1 123/121, CLK0 129/127, D2 130/128, D3 136/134 | MIPI_CSI_RX (4-lane mode uses CLK0) |
 | RK628D I2C SCL / SDA | J69 35 / 36 | I2C2_M1 (GPIO4_B5 / GPIO4_B4), the hardware I2C2 controller. VCCIO6 = GPIO_VREF, tied to 3.3 V |
-| RK628D RESET_N | J1 20 | GPIO0_D6 (oscillator/PMUIO1 domain, 3.3 V), beside INT on J1 18 |
+| RK628D RESET_N | J1 10 | GPIO3_C2 (VCCIO5, 3.3 V) |
 | RK628D PLUGIN_DET | J69 76 | GPIO0_A4 (PMUIO1, 3.3 V), SDMMC0_DET by default, an input |
-
-The RK628D's I/O runs at 3.3 V, so none of its lines may use GPIO0_B0–C7: that bank (PMUIO2) is 1.8 V on the CM3.
-| RK628D INT, PWR_EN | J1 18, 95 | GPIO0_D5, GPIO0_C4 (same PMUIO2 bank; on J1 because the traces to J69's middle pins had no room) |
+| RK628D INT | J1 12 | GPIO3_C3 (VCCIO5, 3.3 V) |
+| RK628D PWR_EN | J1 95 | GPIO0_C4 (PMUIO2, 1.8 V): it only drives an NPN base, so 1.8 V is enough |
 | CEC_GPIO (0 Ω option) | J68 151 | GPIO4_D1 (HDMI_TX_CEC pad, VCCIO7 at 3.3 V; on J68 to keep the trace short) |
 | HDMI TX D0–D2, CLK | J68 182/184, 176/178, 170/172, 188/190 | HDMI_TX |
 | HDMI HPD, DDC SDA / SCL | J68 153, 199 / 200 | Level-shifted on the module |
 | Ethernet MDI0–3 | J69 12/10, 4/6, 11/9, 3/5 | On-module RTL8211F |
 | PCIe TX, RX, REFCLK | J68 122/124, 116/118, 110/112 | PCIE20 (multi-PHY2) |
 | PCIe PERST#, CLKREQ#, WAKE# | J68 109, J68 102, J1 38 | PCIE20_*_M2 (CLKREQ and WAKE must share one mux group) |
-| WIFI_DISABLE#, BT_DISABLE# | J1 74, J1 34 | GPIO0_A0, GPIO0_D3 |
+| WIFI_DISABLE#, BT_DISABLE# | J1 74, J1 40 | GPIO0_A0 (PMUIO1, 3.3 V), GPIO1_A4 (VCCIO1 = VCCIO_ACODEC: set to 3.3 V in the device tree) |
 | USB to M.2 (Bluetooth) | J1 63/65 | USB2 HOST2 |
 | USB OTG to USB-C (flashing) | J68 105/103; VBUSDET J1 97 | USB_OTG0 |
 | VIN_SENSE | J1 14 | SARADC_VIN3 (0–1.8 V) |
 | RECOVERY button | J69 93 | SARADC_VIN0 |
 | RESET button | J69 100 | PMIC_RESET_KEY |
-| PD_PG_N | J69 58 | GPIO0_B6 |
-| LED_STATUS, LED_WIFI | J69 30, 56 | GPIO0_C5, GPIO0_B5 |
-| Debug UART RX / TX | J69 51 / 55 | UART2_M0 |
+| LED_STATUS, LED_WIFI | J69 34, 75 | GPIO4_B1 (VCCIO6, 3.3 V), GPIO0_A5 (PMUIO1, 3.3 V); each sources its LED through 150 Ω |
+| Debug UART RX / TX | J69 51 / 55 | UART2_M0 (PMUIO2: **1.8 V levels**, use a 1.8 V USB-UART adapter) |
 | DVP D0–D7 | J69 41, 49, 26, 25, 27, 45, 47, 54 | CIF_D0–D7 |
 | DVP D8–D13 | J1 75, 77, 79, 81, 83, 85 | CIF_D8–D13 |
 | DVP D14, D15, HSYNC, VSYNC, PCLK | J69 21, 91, 89, 95, 97 | CIF_D14, CIF_D15, CIF_HREF, CIF_VSYNC, CIF_CLKIN |
 | SDI I2C SCL / SDA | J69 38 / 44 | I2C4_M0 |
 | SDI UART TX / RX | J69 37 / J1 36 | UART9_M1 |
-| SDI GPIO1–8 | J69 29, 34, 39, 40; J1 4, 6, 8, 10 | GPIO4_A7, GPIO4_B1, GPIO4_A6, GPIO4_B0, GPIO3_A1, GPIO3_B4, GPIO3_C1, GPIO3_C2 |
+| SDI GPIO1, 3–7 | J69 29, 39, 40; J1 4, 6, 8 | GPIO4_A7, GPIO4_A6, GPIO4_B0, GPIO3_A1, GPIO3_B4, GPIO3_C1. GPIO2 and GPIO8 (header pins 32, 38) are unused: their CM3 pins now drive LED_STATUS and RK628D_RESET_N |
 | 5V_SOM | J69 77, 79, 81, 83, 85, 87 | Module supply |
 | GPIO_VREF + module 3.3 V out | J69 78, 84, 86 | Tied together (3.3 V I/O) |
 | Module 1.8 V out | J69 88, 90 | Pull-up for RECOVERY |

@@ -11,7 +11,8 @@ the fixes, every check below was run again:
 - **KiCad DRC with schematic parity:** 0 violations, 0 unconnected, 0 parity issues.
 - **ERC:** 0.
 - **SPICE:** 39 pass, 0 fail.
-- **I/O level audit:** clean.
+- **I/O level audit:** clean. **This was wrong** (Oct 25): the audit treated GPIO0_D3–D6 as 3.3 V; they are 1.8 V
+  only. See "Fixed on Oct 25" below.
 
 ## Fixed after the first pass
 
@@ -25,7 +26,7 @@ The RK628D runs its I/O at 3.3 V; the CM3's PMUIO2 bank (GPIO0_B0–C7) is 1.8 V
 | Net | Was | Now |
 |---|---|---|
 | I2C_628_SCL | J69 28, GPIO0_C6 (1.8 V), with a 3.3 V pull-up | **J69 35**, GPIO4_B5. Hardware I2C2_M1 with SDA on 36 (VCCIO6 = GPIO_VREF = 3.3 V), so i2c-gpio is no longer needed |
-| RK628D_RESET_N | J69 48, GPIO0_B7 (1.8 V) | **J1 20**, GPIO0_D6 (oscillator/PMUIO1, 3.3 V), beside INT |
+| RK628D_RESET_N | J69 48, GPIO0_B7 (1.8 V) | **J1 20**, GPIO0_D6. Wrong: that pin is 1.8 V only. Moved again on Oct 25 |
 | RK628D_PLUGIN_DET | J69 50, GPIO0_C7 (1.8 V), with a 3.3 V pull-up | **J69 76**, GPIO0_A4 (PMUIO1, 3.3 V), SDMMC0_DET, an input |
 
 Notes on the moves:
@@ -36,7 +37,7 @@ Notes on the moves:
 
 **Device tree impact:**
 - The RK628D now sits on `i2c2` with pinctrl `i2c2m1_xfer`.
-- Its reset GPIO is GPIO0_D6, and plug-detect is GPIO0_A4 (active low, needs a pull-up).
+- Its reset GPIO is GPIO3_C2 since Oct 25 (was GPIO0_D6), and plug-detect is GPIO0_A4 (active low, needs a pull-up).
 
 **2. VIN neck into U104.**
 - **Before:** a 0.3 mm × 1.8 mm neck at 267 A/mm² (6 V battery, CM3 at 3 A).
@@ -57,7 +58,7 @@ Notes on the moves:
 | CH224A (U102) | Pin table and eSSOP10 package (WCH datasheet sections 4 and 9) | **Match** |
 | USBLC6-2SC6 (U101) | Pinout and ratings (UMW datasheet: V_RWM 5 V, V_BR 6–9 V) | Pinout matches. **Fixed:** pin 5 (VBUS) was on VBUS_C, which carries 9 V once PD negotiates. That is above the clamp's breakdown voltage, so the part would have overheated. Pin 5 is now unconnected; the data-line clamps still work through the internal Zener |
 | AP22804 (U401) | SOT25 pin table (Diodes datasheet, now in `datasheets/`) | **Match**: OUT, GND, FLG unused, EN tied high (active-high A version), IN with 1 µF |
-| RClamp0524P (D201–D203, D401–D403) | Pin configuration (TechPublic datasheet) | **Match**. All six run each line straight across its column (1↔10, 2↔9, 4↔7, 5↔6), with GND on 3 and 8 |
+| RClamp0524P (D201–D203, D401–D403) | Pin configuration (TechPublic datasheet) | **Wrong as first checked** (REVIEW_FABLE.md B1). Pins 6/7/9/10 are NC, so each line needs copper across its pad pair. D203 and D403's DDC (and D203's HPD/CEC) relied on the part instead. Fixed Oct 25 with F.Cu links; the TMDS arrays already had them |
 | Magjack J301 (Pulse JK0654219NL) | JK0654219 schematic and recommended PCB layout | **Match**: pins, centre taps and every hole size and spacing |
 | DC jack J101 | CUI PJ-002A drawing and recommended layout | Footprint and pins **match** (1 = centre/+, 2 = sleeve/GND). **Changed** to CUI PJ-002AH (C2961147): same layout, 5 A instead of 2.5 A |
 
@@ -66,6 +67,70 @@ Notes on the moves:
 - **DC plug size:** the PJ-002A family has a **2.0 mm** centre pin. A 5.5 × 2.1 mm plug fits but can be loose. Use a 5.5 × 2.0 mm supply plug, or choose a 2.1 mm jack together with the case.
 
 The 6.8 µH inductors (C2041457) show 141 in stock, which is enough.
+
+## Fixed on Oct 25 (after the independent review)
+
+`REVIEW_INDEPENDENT.md` found the bank map in `checks/iolevels.py` wrong. GPIO0_D3–D6 are in the oscillator
+domain (PMUIO0), 1.8 V only, per CM3 V1.322 schematic p.7. The script is rewritten:
+- it reads the kicad-cli netlist;
+- the bank map is corrected;
+- it flags pull-ups or parts above the bank voltage, LEDs a bank can't light, the module's own 1.8 V pull-ups,
+  and unknown banks;
+- it exits 1 on any flag.
+
+On the Oct 24 schematic it flags 6 pins. After the fixes it flags 0.
+
+| Review ID | Fix |
+|---|---|
+| M1, M8 | RK628D_INT → J1 12 (GPIO3_C3), RK628D_RESET_N → J1 10 (GPIO3_C2), both VCCIO5 = 3.3 V |
+| M2 | LED_STATUS → J69 34 (GPIO4_B1, VCCIO6), LED_WIFI → J69 75 (GPIO0_A5, PMUIO1); R601/R602 150 Ω |
+| M3 | PD_PG_N no longer reaches the module; the CH224A's PG drives Q101 only |
+| M4 | PRODUCTION.md station 4: flash with 12 V on the DC jack plus USB-C for data |
+| M5 | BT_DISABLE_N → J1 40 (GPIO1_A4, VCCIO_ACODEC at 3.3 V in the device tree) |
+| M12 (part) | R501 (PERST# pull-up) DNP; device tree note below |
+| N1 | J601 valued "DEBUG UART 1V8"; REV_A_SPEC and PRODUCTION say 1.8 V |
+
+**Device tree requirements:**
+- VCCIO_ACODEC (RK817 LDO4) at 3.3 V, always on, with pmu-io-domains vccio1 = 3.3 V. BT_DISABLE#, PERST#,
+  CLKREQ# and WAKE# need it.
+- Keep GPIO0_D4 (TF_DET) low or unused (M13).
+- RK628D reset = GPIO3_C2, INT = GPIO3_C3.
+
+**Re-run after the fixes:**
+- DRC with schematic parity: 0 violations, 0 unconnected, 0 parity.
+- ERC: 0.
+- `checks/iolevels.py`: 0 flagged.
+
+`checks/b2bfit.py`, `returnpath.py` and `irdrop.py` are unchanged. SPICE wasn't re-run: no analog part changed
+apart from the two LED resistors.
+
+**Copper changed:** the tails to the new pins, and part of DVP_D6, which now runs on In2 under J701's pads 69–87 (README,
+"Pin fixes (Oct 25)").
+
+**Not fixed in rev A (accepted; rev B):**
+- **M6:** CSI skew counting the module's lengths. Run the lowest lane rate; check for CRC errors.
+- **M7:** the AP22804's 2.7–3.3 A limit on HDMITX_5V.
+- **M9:** 0.3 mm LX_5V and LX_SOM necks; SW_IO through 3 vias.
+- **M10:** F101's 3 A hold and J102 (PH, 2 A) are below the worst-case VIN current. Keep the load realistic.
+- **M11:** uncoupled PCIe TX and USB pairs, asymmetric vias.
+- **M12:** CLKREQ#/WAKE# pull-ups (R502/R503) still go to 3V3_IO before VCCIO1 is up. R505 (BT_DISABLE#) does
+  the same now. A small back-feed through the pad clamps until the device tree turns on LDO4.
+- **M13:** software only.
+- **N1 silk:** no "1V8" silkscreen yet. The value field and the docs carry it.
+- **N2–N7:** notes, no change.
+
+## Fixed on Oct 25, second review (REVIEW_FABLE.md)
+
+- **B1, HDMI DDC through the ESD arrays:** 0.2 mm F.Cu links across D203 (1–10, 2–9, 4–7, 5–6) and D403 (1–10,
+  2–9, 5–6), drawn with `gen/handroute.py`. Without them both HDMI ports would lose EDID if the clone's NC pins
+  really are open.
+- **M1, double PCIe TX AC coupling:** C501/C502 fitted as 0 Ω (C17168). The CM3 already has C54/C55.
+- **Re-run:** DRC with parity 0/0/0, ERC 0, `checks/iolevels.py` 0 flagged.
+- **Still open from that review:**
+  - M2: CSI skew counting the module's lengths. Run ≤600 Mb/s per lane on rev A.
+  - M3: U104 temperature at 3 A in the case. Measure; keep sustained draw ≤1.5–2 A.
+  - M4: select stackup JLC04161H-3313 at every order.
+  - Its Minors and Notes.
 
 ## Still open, accepted for rev A
 

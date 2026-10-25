@@ -2958,7 +2958,7 @@
 				)
 			)
 		)
-		(property "Value" "100nF"
+		(property "Value" "0R"
 			(at 111.76 92.71 0)
 			(effects
 				(font
@@ -2985,6 +2985,15 @@
 			)
 		)
 		(property "Description" ""
+			(at 110.49 90.17 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Note" "0R link: the CM3 has the TX AC caps (C54/C55)"
 			(at 110.49 90.17 0)
 			(effects
 				(font
@@ -3078,7 +3087,7 @@
 				)
 			)
 		)
-		(property "Value" "100nF"
+		(property "Value" "0R"
 			(at 119.38 92.71 0)
 			(effects
 				(font
@@ -3105,6 +3114,15 @@
 			)
 		)
 		(property "Description" ""
+			(at 119.38 90.17 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Note" "0R link: the CM3 has the TX AC caps (C54/C55)"
 			(at 119.38 90.17 0)
 			(effects
 				(font
@@ -3188,7 +3206,7 @@
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "22ce30dd-d894-5b6e-803b-f4c928e9e42b")
 		(property "Reference" "R501"
 			(at 292.1 59.69 0)

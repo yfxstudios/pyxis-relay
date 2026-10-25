@@ -39,6 +39,8 @@ LCSC_BY = {
     ("10uF/10V", "C_0805_2012Metric"): "C15850",       # CL21A106KAYNNNE
     ("110k", "R_0402_1005Metric"): "C25745",           # 0402WGF1103TCE
     ("15k", "R_0402_1005Metric"): "C25756",            # 0402WGF1502TCE
+    ("150R", "R_0402_1005Metric"): "C25082",           # 0402WGF1500TCE
+    ("0R", "C_0402_1005Metric"): "C17168",             # 0402WGF0000TCE, 0R link on a capacitor footprint (C501/C502)
     ("18pF", "C_0402_1005Metric"): "C1549",            # 0402CG180J500NT
     ("1k", "R_0402_1005Metric"): "C11702",             # 0402WGF1001TCE
     ("1nF", "C_0402_1005Metric"): "C1523",             # 0402B102K500NT
@@ -81,7 +83,7 @@ LCSC_BY = {
     ("HDMI IN", "HDMI_A_Molex_208658-1001_Horizontal"): "C916313",   # Molex 2086581001
     ("HDMI OUT", "HDMI_A_Molex_208658-1001_Horizontal"): "C916313",
     ("M.2 E-key 2230", "TE_M.2_E_2x38-1MP_P0.5mm"): "C2977809",      # TE 2199230-4
-    ("DEBUG UART", "PinHeader_1x03_P2.54mm_Vertical"): "C2937625",   # PZ254V-11-03P
+    ("DEBUG UART 1V8", "PinHeader_1x03_P2.54mm_Vertical"): "C2937625",   # PZ254V-11-03P
     ("RESET", "SW_SPST_TL3342"): "C2886898",               # TL3342F160QG
     ("RECOVERY", "SW_SPST_TL3342"): "C2886898",
     ("DC 6-17V", "BarrelJack_Horizontal"): "C2961147",     # CUI PJ-002AH: 5 A (PJ-002A is 2.5 A), same layout; 2.0 mm pin

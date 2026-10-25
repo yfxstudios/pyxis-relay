@@ -7349,37 +7349,9 @@
 			)
 		)
 	)
-	(wire
-		(pts
-			(xy 140.97 172.72)
-			(xy 143.51 172.72)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "5d09bc6f-a6b5-5fae-b2c7-a46911c6dd3c")
-	)
-	(global_label "LED_STATUS"
-		(shape passive)
-		(at 143.51 172.72 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "db7c3591-5d78-5956-8b7f-7885c81b274d")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 143.51 172.72 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
+	(no_connect
+		(at 140.97 172.72)
+		(uuid "87c56b6a-eff0-5d3a-8ec5-b0007b95a7a5")
 	)
 	(no_connect
 		(at 80.01 175.26)
@@ -7550,7 +7522,7 @@
 		)
 		(uuid "a17303cb-1118-5d5a-80f5-978576b81e2c")
 	)
-	(global_label "SDI_GPIO2"
+	(global_label "LED_STATUS"
 		(shape passive)
 		(at 143.51 177.8 0)
 		(fields_autoplaced yes)
@@ -7560,7 +7532,7 @@
 			)
 			(justify left)
 		)
-		(uuid "f6b364d0-3022-5c96-bb1d-da573c666187")
+		(uuid "a1931c26-e331-54dd-9835-3881e6ba2388")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 143.51 177.8 0)
 			(effects
@@ -8403,73 +8375,17 @@
 			)
 		)
 	)
-	(wire
-		(pts
-			(xy 140.97 205.74)
-			(xy 143.51 205.74)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "d2ac2d36-1ff1-59b8-8782-37a34c0ba372")
-	)
-	(global_label "LED_WIFI"
-		(shape passive)
-		(at 143.51 205.74 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "6f74e068-bbd9-54a4-bae5-daffc7697a68")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 143.51 205.74 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
+	(no_connect
+		(at 140.97 205.74)
+		(uuid "810b0dc6-c855-56b1-b21a-d734b131dfd5")
 	)
 	(no_connect
 		(at 80.01 208.28)
 		(uuid "b06241ab-bfeb-57fa-9ee3-cefd2b22b7b3")
 	)
-	(wire
-		(pts
-			(xy 140.97 208.28)
-			(xy 143.51 208.28)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "179c280f-b0d5-5ec7-8713-7e7afaaba225")
-	)
-	(global_label "PD_PG_N"
-		(shape passive)
-		(at 143.51 208.28 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "5cb9efde-7b85-5b88-a9bc-78b7ecabfbac")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 143.51 208.28 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
+	(no_connect
+		(at 140.97 208.28)
+		(uuid "664cc5ee-9823-5f92-9e51-f6e4dc97d2e8")
 	)
 	(wire
 		(pts
@@ -9082,9 +8998,37 @@
 			)
 		)
 	)
-	(no_connect
-		(at 80.01 231.14)
-		(uuid "4423e16e-447a-5442-8209-ef9765037f3c")
+	(wire
+		(pts
+			(xy 80.01 231.14)
+			(xy 77.47 231.14)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "799edd6a-9ca2-52f5-a3cc-05dfca6be0c6")
+	)
+	(global_label "LED_WIFI"
+		(shape passive)
+		(at 77.47 231.14 180)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "e0ef969f-c936-5223-9714-c5376666a153")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 77.47 231.14 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 	)
 	(wire
 		(pts
@@ -14117,7 +14061,7 @@
 		)
 		(uuid "567435b0-46fe-55eb-9b51-041177dfb105")
 	)
-	(global_label "SDI_GPIO8"
+	(global_label "RK628D_RESET_N"
 		(shape passive)
 		(at 482.6 147.32 0)
 		(fields_autoplaced yes)
@@ -14127,7 +14071,7 @@
 			)
 			(justify left)
 		)
-		(uuid "d686f835-8f07-5f56-9257-6326f584deae")
+		(uuid "ad7c9c8f-2b17-516d-bb89-9ff1bc7fcdfb")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 482.6 147.32 0)
 			(effects
@@ -14219,9 +14163,37 @@
 		(at 419.1 149.86)
 		(uuid "af019fbd-8e1f-580b-959e-85485f5749de")
 	)
-	(no_connect
-		(at 480.06 149.86)
-		(uuid "7006afa6-bf4b-52cb-b9d5-79e9eeab9d04")
+	(wire
+		(pts
+			(xy 480.06 149.86)
+			(xy 482.6 149.86)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "751f885b-ab66-5506-b1c2-c927a6f67227")
+	)
+	(global_label "RK628D_INT"
+		(shape passive)
+		(at 482.6 149.86 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "ceeb64c4-7011-5cff-b341-ec60d9dcdb75")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 482.6 149.86 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 	)
 	(wire
 		(pts
@@ -14344,37 +14316,9 @@
 		(at 419.1 157.48)
 		(uuid "cbbe5a37-f672-5bc1-8e72-7751f56f9476")
 	)
-	(wire
-		(pts
-			(xy 480.06 157.48)
-			(xy 482.6 157.48)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "fb972a0f-3c2a-541b-8ecd-4f0d83fcd1f6")
-	)
-	(global_label "RK628D_INT"
-		(shape passive)
-		(at 482.6 157.48 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "4ef021b9-7df0-5055-8dee-8bcc10dbdce0")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 482.6 157.48 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
+	(no_connect
+		(at 480.06 157.48)
+		(uuid "99343019-15cb-5f02-9f9b-3d9184ec6d4d")
 	)
 	(wire
 		(pts
@@ -14530,37 +14474,9 @@
 			)
 		)
 	)
-	(wire
-		(pts
-			(xy 480.06 160.02)
-			(xy 482.6 160.02)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "e4081ed0-0c69-5ffc-a9cc-8f0542cfe4cc")
-	)
-	(global_label "RK628D_RESET_N"
-		(shape passive)
-		(at 482.6 160.02 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "9957a7b1-41c0-5b65-9d8a-c319c1b75763")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 482.6 160.02 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
+	(no_connect
+		(at 480.06 160.02)
+		(uuid "2ebec34b-6d65-5332-bd7a-a198d949b325")
 	)
 	(no_connect
 		(at 419.1 162.56)
@@ -14910,37 +14826,9 @@
 		(at 419.1 177.8)
 		(uuid "a1920346-19c3-5ca2-856a-395e506057af")
 	)
-	(wire
-		(pts
-			(xy 480.06 177.8)
-			(xy 482.6 177.8)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "b2a9c6c7-ae98-5a8e-babe-4357e70f8ea0")
-	)
-	(global_label "BT_DISABLE_N"
-		(shape passive)
-		(at 482.6 177.8 0)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "af629427-8287-5422-b334-075252162754")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 482.6 177.8 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
+	(no_connect
+		(at 480.06 177.8)
+		(uuid "fc0bba0c-962e-52f7-84c1-6d8eb97f3782")
 	)
 	(no_connect
 		(at 419.1 180.34)
@@ -15123,9 +15011,37 @@
 			)
 		)
 	)
-	(no_connect
-		(at 480.06 185.42)
-		(uuid "b395ac73-45aa-5aaa-b8ae-b818132b3625")
+	(wire
+		(pts
+			(xy 480.06 185.42)
+			(xy 482.6 185.42)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a1bb74ce-e7a1-5772-a69f-b592ac4c3a14")
+	)
+	(global_label "BT_DISABLE_N"
+		(shape passive)
+		(at 482.6 185.42 0)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "2238a81f-41db-5762-bd0d-92ffb7c17e39")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 482.6 185.42 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 	)
 	(no_connect
 		(at 419.1 187.96)

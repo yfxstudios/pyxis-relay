@@ -41,8 +41,85 @@ from.
 | | **Subtotal** | | **$71.90** | |
 | 22 | Scrap and failed units, 3% | | $2.15 | Assumption |
 | | **Landed unit cost, before import duty** | | **about $74** | |
-| 23 | **US import duty** | | **$0–17?** | **Not known.** Duties on Chinese electronics have changed often. At 25% of about $68 customs value it adds about $17 per unit. Ask a customs broker for the rate on this product's tariff code. |
+| 23 | **US import duty** | | **$0–17?** | **Update Oct 24: JLCPCB's checkout charged 35% on the board order (HS 847330); see [shipping and duties](#shipping-and-us-duties-from-jlcpcbs-checkout-oct-24-2026).** Originally: **Not known.** Duties on Chinese electronics have changed often. At 25% of about $68 customs value it adds about $17 per unit. Ask a customs broker for the rate on this product's tariff code. |
 | | **Landed unit cost, with 25% duty** | | **about $91** | |
+
+## JLCPCB quote for the rev A board, 500 units (Oct 24, 2026)
+
+An instant quote on JLCPCB's site for the finished rev A files (`kicad/fab/`), replacing the estimates for the
+circuit board, its parts and its assembly (items 2, 3, 5, 7–16 and the JLCPCB part of item 17 above). Not
+ordered. The quote file is saved in the JLCPCB account as "relay-gerbers".
+
+**Order set up as:** 500 boards as 125 panels of 2 × 2 (JLCPCB's suggestion for volume), 4 layers, 120 × 100 mm,
+1.6 mm, FR4 TG155, ENIG, JLC04161H-3313 stackup, 0.15 mm vias epoxy-filled and capped, standard assembly on both
+sides, parts from JLCPCB/LCSC stock, 5–6 day build.
+
+| | Order total | Per board | Notes |
+|---|---|---|---|
+| Circuit boards | $1,560.94 | $3.12 | $672 of it ($1.34 a board) is what the 0.15 mm filled vias force: the via size ($345.71), epoxy filling ($172.86), a four-wire Kelvin test ($99.91), TG155 ($34.57) and the plating method ($18.94). ENIG is $162.50 ($0.33). |
+| Assembly fees | $765.58 | $1.53 | Setup $51.50, stencil $16.54, feeder loading $75.95, SMT $508.20, hand soldering $3.61, manual assembly $66.13, fixture $41.35, packaging $2.30. |
+| Parts in stock (52 lines) | $4,921.84 | $9.84 | JLCPCB's own prices, including their spares. |
+| Parts short at 500 (6 lines) | $3,804.35 | $7.61 | Priced from the same page but not in the total, as JLCPCB doesn't have enough stock: magjack J301 ($3.42 a board), RK628D ($2.36; 27 in stock), two buttons ($1.09), four inductors ($0.74). These need JLCPCB's pre-order or global sourcing, or a stocked substitute. |
+| Fitting the short parts | — | ~$0.20 | Assumption: they're left out of the assembly fees above. |
+| **Board, assembled** | **≈ $11,050** | **≈ $22.30** | Before shipping (65.6 kg for the order). |
+
+### Shipping and US duties, from JLCPCB's checkout (Oct 24, 2026)
+
+The 500-board order was saved to the cart and taken to the shipping step of checkout (not submitted), shipping to
+the US with duties paid by JLCPCB (DDP). Declared as "Development Board", HS code 847330.
+
+| Shipping method (DDP) | Shipping | Duties and taxes | Disbursement fee | Order total |
+|---|---|---|---|---|
+| UPS Express Saver, 2–4 days | **$758.54** | $2,536.93 | $63.42 | **$10,607.25** |
+| FedEx Express, 2–5 days | $884.89 | $2,536.93 | $63.42 | $10,733.60 |
+| DHL Express, 2–4 days | $947.83 | $2,536.93 | $50.74 | $10,783.86 |
+
+**The duty is exactly 35% of the goods value** ($2,536.93 on $7,248.36), whatever the shipping method, plus a
+fee of 2.5% of the duty (UPS, FedEx). The order weighs 65.6 kg.
+
+Those totals leave out the six short part lines ($3,804.35), so the whole board order, with them added at the same
+35% duty, is:
+
+| Per board | |
+|---|---|
+| Board, assembled (all parts) | $22.31 |
+| Shipping, UPS DDP | $1.52 |
+| US duty, 35% | $7.74 |
+| Duty disbursement fee | $0.19 |
+| **Board, landed in the US** | **≈ $31.75** |
+
+That's $15,776 for the 500 boards.
+
+**What 35% does to the unit cost.** The per-unit table assumed 25% on the whole product. If everything from China
+(module, Wi-Fi card, antennas, case, box, charger) also pays 35%, the duty is about $27 a unit (about $8 on the
+board, about $19 on the rest), and:
+
+| | Before duty | With duty |
+|---|---|---|
+| Rev A as quoted, 35% duty | about $85 | **about $112** |
+| Rev B parts changes, 35% duty | about $78 | about $103 |
+
+So with today's 35% rate, $90 isn't reachable by board changes alone: the duty is now larger than the whole
+carrier board. The levers are the module price, which product pays which rate (ask a customs broker whether a
+different HS code fits, and whether the module, made by Radxa, is cheaper to import separately), and assembling
+the final product somewhere other than China.
+
+**Against the estimate:** the same items were estimated at $13.11 a board ($11.41 of parts and board, plus $1.70
+of JLCPCB assembly), so the quote is **about $9.20 a board higher**. Replacing them in the per-unit table:
+
+| | Estimate (Oct 22) | With the quote |
+|---|---|---|
+| Subtotal | $71.90 | **$81.09** |
+| Scrap and failed units, 3% | $2.15 | $2.43 |
+| **Landed unit cost, before import duty** | about $74 | **about $83.50** |
+| US import duty at 25% of customs value | about $17 | about $19.50 |
+| **Landed unit cost, with 25% duty** | about $91 | **about $103** |
+
+**Where the extra $9.20 comes from** (quote against estimate, per board): the magjack (+$1.62), the Molex HDMI
+sockets (+$1.56), the TE M.2 socket (+$0.79), the two E-Switch buttons (+$1.05; generic 5.2 mm buttons are about
+$0.02), the bigger board with filled 0.15 mm vias (+$2.12), the ten 22 µF capacitors ($1.36 at JLCPCB's price,
++$1.2 over the passives estimate), and the second-tier regulators and USB power switch (AP22804, 2 × TPS563201,
+about +$0.6). The RK628D ($2.36), module connectors ($1.83) and DC socket ($0.62) came in as estimated.
 
 ## Where the $299 goes (direct sales from our own web shop)
 
@@ -53,14 +130,16 @@ from.
 | Shipping to the customer (free shipping) | −$10.00 | Assumption: US ground, small box |
 | Warranty and returns reserve, 3% | −$9.00 | Assumption |
 | **Net revenue** | **$271** | |
-| Landed unit cost | −$74 to −$91 | Table above |
-| **Gross profit per unit** | **$180–197** | Before one-time costs, support time and marketing |
+| Landed unit cost | −$84 to −$112 | Rev A as quoted (Oct 24), from no duty to the 35% charged at checkout; the estimate was $74–91 |
+| **Gross profit per unit** | **$159–187** | Before one-time costs, support time and marketing |
 
 **Through a dealer** such as B&H: dealers usually take 25–40% of the price. We'd receive about $180–225 a unit,
 and gross profit drops to about $88–150. That's an assumption: get the actual terms from dealers.
 
 The "about $90 target" in DESIGN.md is roughly a third of the price. It's a rule of thumb that leaves room for
-dealer discounts later. Without duty this design meets it; with a 25% duty it's about $1 over.
+dealer discounts later. Rev A as quoted meets it without duty (about $83.50) but not with duty: about $103 at 25%,
+and about $112 at the 35% JLCPCB's checkout charged. Board changes alone can't close that gap; see
+[shipping and duties](#shipping-and-us-duties-from-jlcpcbs-checkout-oct-24-2026).
 
 ## One-time costs
 
@@ -85,11 +164,20 @@ the per-unit cost above.
 | Leave the USB-C charger out of the box | $3 | Our choice |
 | Wi-Fi card bought at factory price | $2–4 | Needs a quote |
 | Processor directly on our board, at 1,000+ units | $15–25 | Adds a $20–40k+ one-time design cost |
+| **Rev B parts**, all from the Oct 24 quote: a stocked LCSC gigabit magjack such as HanRun HR911130A (C54408) instead of the Pulse ($3.42 → about $1.80); LCSC HDMI sockets instead of Molex ($1.98 → $0.42); a generic M.2 E-key socket ($1.09 → $0.30); basic-library 5.2 mm buttons ($1.09 → $0.04) | about $5.00 | High: quoted prices. The magjack and HDMI swaps need new footprints. |
+| **Rev B board:** 0.2 mm vias and no via-in-pad where the layout allows, which drops the filled vias, Kelvin test and TG155 surcharge | up to $1.34 | Medium: depends on whether the RK628D and module connectors can be fanned out without via-in-pad |
+| Cheaper 22 µF capacitors (ten per board at $0.11 each from JLCPCB) | about $0.80 | Medium: check other LCSC basic parts |
+
+With the rev B changes (about $6–7 a board), rev A's $83.50 drops to about **$77 before duty and about $95 with
+25% duty**. Reaching $90 with a 25% duty also needs one of: no charger in the box ($3), a direct Radxa module
+price ($2–5), or a factory-price Wi-Fi card ($2–4).
 
 ## To replace the assumptions
 
 1. **Quotes:** Radxa (or Arace / RS) for RM116-D2E16W0 at 5, 100, 500 and 1,000. MYIR as a fallback.
 2. **Wi-Fi card quote:** Seeed or a Realtek card maker, at 500 units.
 3. **Customs broker:** the duty rate for this product.
-4. **JLCPCB quote** once a first BOM exists: upload the files at quantity 500.
+4. ~~**JLCPCB quote** once a first BOM exists: upload the files at quantity 500.~~ Done Oct 24: see
+   [the quote](#jlcpcb-quote-for-the-rev-a-board-500-units-oct-24-2026). Still open: prices for the six lines
+   JLCPCB is short of at 500 (pre-order or global sourcing).
 5. **Test lab quotes** for FCC and CE/RED.

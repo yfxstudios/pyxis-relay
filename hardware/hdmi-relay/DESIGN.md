@@ -10,7 +10,9 @@ quotes; the rest come from a distributor listing, linked.
 ## Decisions in this revision
 
 > **Update (Oct 22):** the module changed to the Radxa CM3 (RK3566); the RK628D bridge and 1080p60 stay.
-> Landed unit cost now about $74 before import duty ([COST.md](COST.md)).
+> Landed unit cost now about $83.50 before import duty for rev A as quoted by JLCPCB at 500 units (Oct 24),
+> about $77 with the planned rev B part changes. JLCPCB's checkout charged 35% US duty on the board order, which
+> would put the landed cost at about $112 (rev B about $103) ([COST.md](COST.md)).
 
 1. **RK3568 + RK628D bridge, not RK3588.** This is the same processor as today's R5C, so FriendlyWrt, MPP, the
    factory image, first boot and the HDMI player carry over. Rockchip's own **RK628D** bridge converts HDMI to the
