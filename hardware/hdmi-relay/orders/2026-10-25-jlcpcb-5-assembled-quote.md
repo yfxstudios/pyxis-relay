@@ -75,8 +75,9 @@ ordered and not in the cart. JLCPCB auto-saved it in the account as the project 
 
 ## Before ordering
 
-- **The open checkout still has the old files** (pre-pin-fix Gerbers, BOM and CPL). Don't pay for it as is.
-  Re-order from this project, or replace its files.
-- **Review B1 and M1 have since been fixed** (ESD pass-through links; C501/C502 now 0 Ω, C17168). That means new
-  Gerbers and a new BOM line, so the quote above is a few cents off. Re-upload the current `kicad/fab/` files when
-  ordering, and select stackup JLC04161H-3313 again.
+- **In the cart (Oct 25, 14:24): relay-gerbers_Y4, $440.34**, from the files in commit 2a6e6a4: the pin fixes, the
+  ESD links (review B1) and C501/C502 as 0 Ω (M1).
+  - It's $1.52 more than the quote above: one more feeder for the 0 Ω part.
+  - Product description is Development Board (HS 847330); J301 is not placed.
+- **The old 3-assembled order (Y3, pre-fix files) was deleted from the cart.** Check out from the cart with only Y4
+  selected. The cart also holds the 500-unit quote (P2); leave it unselected.
