@@ -13,8 +13,12 @@ findings were formed. Nothing in the project was changed except adding this file
   copper across every pair.
 - **Fixed M1:** C501/C502 are now fitted as 0 Ω (C17168) on their 0402 capacitor pads.
 - **Re-run:** DRC with parity 0/0/0, ERC 0, I/O audit 0 flagged, fab outputs regenerated.
-- **Still open:** the rest. M4 means picking stackup JLC04161H-3313 at every order (see
-  `../orders/2026-10-25-jlcpcb-5-assembled-quote.md`).
+- **M3 (rev A part):** 6 GND thermal vias at U103/U104.
+- **M4:** stackup written into the board and job file; `gen/fab.py` checks it.
+- **Still open:**
+  - M2: lane-rate cap on rev A, serpentines in rev B.
+  - M3's rev B part: an exposed-pad buck.
+  - The Minors and Notes.
 
 ## Verdict
 

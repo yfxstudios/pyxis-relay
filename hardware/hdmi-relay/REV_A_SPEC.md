@@ -90,7 +90,7 @@ From the Radxa CM3 datasheet:
 | Rail | Source | Load | Rated | Part (first choice) |
 |---|---|---|---|---|
 | VIN | DC jack, NP-F slot or USB-C | — | 6–17 V, 2 A typical | — |
-| 5V_SOM | SY8303AIC buck, 500 kHz | Radxa CM3 only (3.8–5.2 V, up to 3 A) | 3 A | [LCSC C97054](https://www.lcsc.com/product-detail/C97054.html) |
+| 5V_SOM | SY8303AIC buck, 500 kHz | Radxa CM3 only (3.8–5.2 V, up to 3 A) | **1.5–2 A sustained on rev A** (thermal, below); 3 A peaks | [LCSC C97054](https://www.lcsc.com/product-detail/C97054.html) |
 | 5V_SYS | Second SY8303AIC, 500 kHz | 3V3_IO, 1V1_628, HDMI out 5 V | 3 A | Same part |
 | 3V3_IO | TPS563201 buck from 5V_SYS | M.2 Wi-Fi (about 1 A peak), RK628D I/O and 3.3 V analog, LEDs | 3 A | [LCSC C116592](https://www.lcsc.com/product-detail/C116592.html) |
 | RK628D_3V3 | P-FET switch from 3V3_IO, on when the module drives `RK628D_PWR_EN` | RK628D I/O and analog 3.3 V | — | AO3401A + MMBT3904, as in the DshanPi reference |
@@ -103,6 +103,13 @@ From the Radxa CM3 datasheet:
 - Its analog 3.3 V and 1.1 V supplies each get a ferrite bead and their own capacitors, copying the DshanPi page 31.
 - **Peak budget:** about 7 W typical. The module gets its own 15 W converter, because its 3 A maximum would
   otherwise share one converter with everything else.
+- **5V_SOM thermal limit (rev A, REVIEW_FABLE_3.md M2).** U104 (TSOT23-8, no exposed pad, θJA 60 °C/W on a
+  low-K test board) loses about 1.4 W at 3 A from 12 V. Even with its four thermal vias into In1 and the roof vent
+  over it, that's an estimated 100 °C or more in a 40 °C case. Its thermal shutdown is at 150 °C.
+  - **Rated use:** the RK3566 module draws about 1.5–2 A sustained under encode plus Wi-Fi, about 64–80 °C.
+  - **Check:** the pilot units' thermocouple test (PRODUCTION.md step 9) has to confirm it.
+  - **Don't power USB loads from the module's 5 V.** The module's six DF40 contacts carry 1.8 A at 0.3 A each.
+  - **Rev B:** a 5 V buck with an exposed pad (TPS56637 class) for both U103 and U104.
 - **Power-up order:** the CM3 sequences itself from its single 5 V input (datasheet 3.1.2). 3V3_IO comes up about
   10 ms after 5V_SYS.
 
@@ -211,8 +218,12 @@ PMUIO1 (GPIO0_A*), VCCIO5, VCCIO6 (GPIO_VREF = 3.3 V here) or VCCIO7. `kicad/che
 pin against its bank. PD_PG_N no longer reaches the module: GPIO0_B6 has a 2.2 kΩ pull-up to 1.8 V on the module,
 which held the USB-C VBUS gate (Q101) on.
 
-**Device tree requirements.** VCCIO_ACODEC (RK817 LDO4) set to 3.3 V and always on, with pmu-io-domains vccio1 =
-3.3 V: BT_DISABLE#, PERST#, CLKREQ# and WAKE# sit in that domain. Keep GPIO0_D4 (TF_DET) low or unused: driven high,
+**Device tree requirements** (all of them in `dt/rk3566-relay-carrier.dtso`). VCCIO_ACODEC (RK817 LDO4) set to 3.3 V and always on, with pmu-io-domains vccio1 =
+3.3 V: BT_DISABLE#, PERST#, CLKREQ# and WAKE# sit in that domain. Their board pull-ups are not fitted (they back-fed the
+unpowered bank), so the pinctrl must enable the SoC's pull-ups on CLKREQ# (GPIO1_B0) and WAKE# (GPIO1_B1). CSI
+data-to-clock skew, counting the module's own lengths, is now at most 6.3 mm, about 40 ps (REVIEW_FABLE_2.md M1;
+`kicad/gen/csimatch.py`). That's under 0.05 UI at 1.2 Gb/s, so no lane-rate cap is needed. Still check the CSI
+CRC/ECC counters at bring-up. Keep GPIO0_D4 (TF_DET) low or unused: driven high,
 it makes the module pull RK628D PLUGIN_DET low.
 
 | Function | CM3 pin(s) | RK3566 function |

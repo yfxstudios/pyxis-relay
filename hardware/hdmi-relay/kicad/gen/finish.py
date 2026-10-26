@@ -44,6 +44,38 @@ def prune_dead_ends(board, netcode, keep=frozenset()):
 GRAVEYARD = []
 
 
+# JLCPCB's JLC04161H-3313 stackup, the one the impedances are designed for (checks/zsolve.py). Written into the
+# board's setup so the Gerber job file and any drawing state it; gen/fab.py refuses to run without it. Vias are
+# ordered epoxy-filled and capped.
+STACKUP = """		(stackup
+			(layer "F.SilkS" (type "Top Silk Screen"))
+			(layer "F.Paste" (type "Top Solder Paste"))
+			(layer "F.Mask" (type "Top Solder Mask") (thickness 0.01))
+			(layer "F.Cu" (type "copper") (thickness 0.035))
+			(layer "dielectric 1" (type "prepreg") (thickness 0.0994) (material "3313") (epsilon_r 4.1) (loss_tangent 0.02))
+			(layer "In1.Cu" (type "copper") (thickness 0.0152))
+			(layer "dielectric 2" (type "core") (thickness 1.265) (material "FR4") (epsilon_r 4.6) (loss_tangent 0.02))
+			(layer "In2.Cu" (type "copper") (thickness 0.0152))
+			(layer "dielectric 3" (type "prepreg") (thickness 0.0994) (material "3313") (epsilon_r 4.1) (loss_tangent 0.02))
+			(layer "B.Cu" (type "copper") (thickness 0.035))
+			(layer "B.Mask" (type "Bottom Solder Mask") (thickness 0.01))
+			(layer "B.Paste" (type "Bottom Solder Paste"))
+			(layer "B.SilkS" (type "Bottom Silk Screen"))
+			(copper_finish "ENIG")
+			(dielectric_constraints yes)
+		)
+"""
+
+
+def ensure_stackup(path):
+    s = open(path).read()
+    if "(stackup" in s:
+        return
+    s = s.replace("\t(setup\n", "\t(setup\n" + STACKUP, 1)
+    s = s.replace("\t\t(capping no)\n\t\t(filling no)", "\t\t(capping yes)\n\t\t(filling yes)", 1)
+    open(path, "w").write(s)
+
+
 def finish(board):
     # two routes can each drop a via on the same spot of the same net: keep one
     # (positions read as plain numbers first: removing an item while a proxy of its position is alive breaks
@@ -88,6 +120,7 @@ if __name__ == "__main__":
     # it from what the board was loaded with: give the checkpoint the real project rules first
     import shutil
     shutil.copy(os.path.join(ROOT, "relay.kicad_pro"), ROUTED.replace(".kicad_pcb", ".kicad_pro"))
+    ensure_stackup(ROUTED)
     b = pcbnew.LoadBoard(ROUTED)
     n = finish(b)
     pcbnew.SaveBoard(OUT, b)

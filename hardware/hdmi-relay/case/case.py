@@ -42,7 +42,7 @@ FRONT = [
     dict(name="HDMI IN", c=24.0, w=15.8, h=7.0, pocket=(22.0, 12.0)),
     dict(name="HDMI OUT", c=79.0, w=15.8, h=7.0, pocket=(22.0, 12.0)),
 ]
-# Rear wall (y = 100): USB-C, DC jack (its face is 2.1 mm inside the board edge, so the opening fits the plug),
+# Rear wall (y = 100): USB-C, DC jack (its opening is 0.7 mm inside the board edge, so the opening fits the plug),
 # magjack (15.1 mm tall; it sticks out 5.5 mm past the board edge, through the wall).
 REAR = [
     dict(name="USB-C", c=16.0, w=12.6, h=7.0, z=-0.6, r=3.0),
@@ -55,12 +55,14 @@ ANTENNAS = [45.0, 75.0]                       # board y
 ANT_Z = 9.5                                   # centre above board top
 ANT_D, ANT_FLAT = 6.6, 6.0                    # 1/4"-36 RP-SMA thread, D-flat
 # Roof: light pipes over the LEDs, pinholes over the buttons, vents over the CM3.
-LIGHTPIPES = [(97.72, 18.47, "PWR"), (101.18, 18.47, "STATUS"), (115.70, 11.98, "WIFI")]  # D601, D602, D603
+LIGHTPIPES = [(97.72, 18.47, "STATUS"), (101.18, 18.47, "WIFI"), (115.70, 11.98, "PWR")]  # D601 white, D602 blue, D603 red
 LP_D = 3.1
 PINHOLES = [(100.50, 14.24, "RST"), (109.49, 14.24, "REC")]                                # SW601, SW602
 LABEL_H, LABEL_DEPTH = 2.4, 0.5               # engraved roof labels, read from the front (HDMI side)
 PIN_D = 1.8
-VENT = dict(x0=44, x1=88, y0=34, y1=66, slot=2.0, pitch=4.0)  # over the CM3 module (38-94 x 30-70)
+VENTS = [dict(x0=44, x1=88, y0=34, y1=66, slot=2.0, pitch=4.0),   # over the CM3 module (38-94 x 30-70)
+         dict(x0=48, x1=80, y0=73, y1=83, slot=2.0, pitch=4.0)]   # over the 5 V bucks U103/U104 and L101/L102 (hot
+                                                                  # air out; the low side vents are the intake)
 # Base: two 1/4"-20 heat-set inserts underneath, clear of bottom-side parts.
 TRIPOD = [(30.0, 70.0), (85.0, 85.0)]
 TRIPOD_INSERT = dict(d=8.0, depth=6.6)        # 1/4"-20 x 0.25" heat-set insert hole
@@ -108,6 +110,9 @@ def base():
         y = 20 + i * 20
         for x in (X0, X1):
             b = b.cut(box(x, -y, FLOOR + 2.5, WALL * 3, 12, 2.0))
+    # the magjack overhangs the board edge at board-top level, right over the rear wall: 0.4 mm relief under it
+    eth = next(o for o in REAR if o["name"] == "ETHERNET")
+    b = b.cut(box(eth["c"], -(Y1 - WALL / 2), Z_BT - 0.2, eth["w"], WALL + 2, 0.4 + 0.01))
     # rubber feet recesses (10 mm bumpers)
     for x, y in [(12, 12), (108, 12), (12, 88), (108, 88)]:
         b = b.cut(cq.Workplane("XY").center(*P(x, y)).circle(5.3).extrude(0.6))
@@ -149,12 +154,12 @@ def lid():
     for x, y, _ in PINHOLES:
         l = l.cut(cq.Workplane("XY").workplane(offset=Z_TOP - ROOF - 1).center(*P(x, y))
                   .circle(PIN_D / 2).extrude(ROOF + 2))
-    v = VENT
-    x = v["x0"]
-    while x + v["slot"] <= v["x1"]:
-        l = l.cut(box(x + v["slot"] / 2, -(v["y0"] + v["y1"]) / 2, Z_TOP - ROOF / 2,
-                      v["slot"], v["y1"] - v["y0"], ROOF + 2).edges("|Z").fillet(v["slot"] / 2 - 0.01))
-        x += v["pitch"]
+    for v in VENTS:
+        x = v["x0"]
+        while x + v["slot"] <= v["x1"]:
+            l = l.cut(box(x + v["slot"] / 2, -(v["y0"] + v["y1"]) / 2, Z_TOP - ROOF / 2,
+                          v["slot"], v["y1"] - v["y0"], ROOF + 2).edges("|Z").fillet(v["slot"] / 2 - 0.01))
+            x += v["pitch"]
     # Engraved labels, readable standing at the front: the LEDs sit only 3.5 mm apart, so their labels run
     # vertically, starting just behind each light pipe; the button labels sit in front of the pinholes.
     def label(text, x, y, rot, halign):

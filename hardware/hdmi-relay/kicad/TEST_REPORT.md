@@ -66,7 +66,7 @@ Notes on the moves:
 - **Magjack stock:** JK0654219NL is out of stock at LCSC. JK0-0036NL is a drop-in replacement (same drawing and same PCB-side pins; only its unused LEDs differ), but LCSC doesn't stock it either. Use JLCPCB's global sourcing, or hand-solder one bought from DigiKey or Mouser (it's through-hole).
 - **DC plug size:** the PJ-002A family has a **2.0 mm** centre pin. A 5.5 × 2.1 mm plug fits but can be loose. Use a 5.5 × 2.0 mm supply plug, or choose a 2.1 mm jack together with the case.
 
-The 6.8 µH inductors (C2041457) show 141 in stock, which is enough.
+The 6.8 µH inductors (C2041457) show 141 in stock, which is enough. They're rated 3.6 A rms (the BOM value said "5A"; corrected Oct 25). U104's 3 A plus about 0.6 A of ripple peak stays inside that.
 
 ## Fixed on Oct 25 (after the independent review)
 
@@ -126,11 +126,72 @@ apart from the two LED resistors.
   really are open.
 - **M1, double PCIe TX AC coupling:** C501/C502 fitted as 0 Ω (C17168). The CM3 already has C54/C55.
 - **Re-run:** DRC with parity 0/0/0, ERC 0, `checks/iolevels.py` 0 flagged.
+- **M3, U104 temperature:** six 0.6/0.3 mm GND vias now tie U103/U104's GND pins to the In1 plane; before,
+  neither had a via within 3 mm.
+  - Estimate, not measured: effective θJA about 40–45 °C/W, against the datasheet's 60.2 °C/W on a low-K test
+    board. That puts U104 at about 100 °C at 3 A in 40 °C air (124 °C before).
+  - Still measure it in the case soak test; keep sustained module draw ≤1.5–2 A.
+- **M4, stackup:** JLC04161H-3313 is now in the board file and the Gerber job file. `gen/fab.py` checks it and
+  writes `fab/FAB_NOTES.txt`.
+- **Re-run after M3/M4:** DRC with parity 0/0/0.
 - **Still open from that review:**
-  - M2: CSI skew counting the module's lengths. Run ≤600 Mb/s per lane on rev A.
-  - M3: U104 temperature at 3 A in the case. Measure; keep sustained draw ≤1.5–2 A.
-  - M4: select stackup JLC04161H-3313 at every order.
+  - M2: CSI skew counting the module's lengths. Cap the RK628D at ≤600–750 Mb/s per lane on rev A. The fix is
+    about 80 mm of serpentine (CLK +24, D1 +26, D2 +27, D0 +3 mm), for rev B.
   - Its Minors and Notes.
+
+## Fixed on Oct 25, third pass (REVIEW_FABLE_2.md)
+
+| Review ID | Fix |
+|---|---|
+| B1 | DC jack J101 turned to face the edge; VDC/VIN_RAW re-routed at 0.8 mm (VIN_RAW under the jack on B.Cu, 2 vias each end); F101 0.4 mm east |
+| M2 (part) | Second roof vent over U103/U104 in the case; the thermal vias were added earlier |
+| M3 (part) | R502/R503/R505 not fitted: no back-feed into the unpowered VCCIO1 bank; device tree enables the SoC pull-ups |
+| M4 | All polarised parts checked in JLCPCB's viewer; U401 and the six RClamps corrected (−90°) |
+| M5 (part) | L103/L104 moved to the stocked NT versions (C36500, C96956) |
+
+**Re-run:**
+- DRC with parity: 0/0/0.
+- ERC: 0.
+- I/O audit: 0 flagged.
+- Case fit check: PASS, after a 0.4 mm relief under the magjack overhang. A fresh board STEP export showed it
+  touching the base rim.
+
+**M1 (CSI skew), later the same day:** matched to a window by `gen/csimatch.py` (README, "Second review fixes").
+
+| Lane | Carrier P / N (mm) | Module (mm) | Total (mm) | vs CLK |
+|---|---|---|---|---|
+| CLK | 51.30 / 51.48 | 35.51 | 86.90 | — |
+| D0 | 29.38 / 29.38 | 61.06 | 90.44 | +3.54 |
+| D1 | 51.46 / 51.64 | 35.35 | 86.90 | 0.00 |
+| D2 | 40.87 / 40.87 | 39.71 | 80.58 | −6.32 |
+| D3 | 29.16 / 29.16 | 64.06 | 93.22 | +6.32 |
+
+- **Worst skew:** 6.32 mm, down from 24.2 mm. The CM3's 36 mil rule isn't met, but 6.3 mm is about 0.05 UI at
+  1.2 Gb/s.
+- **Re-run:** DRC with parity 0/0/0.
+- **Return paths for CLK/D1/D0:** unchanged from before.
+- **D2:** its new B.Cu bumps have solid In2 along the centreline. The extra flagged length (about 1 mm) is in the
+  ±0.3 mm edge samples near its vias.
+- **5V_SYS to U401/J602:** now 0.6 mm end to end (it hung from a 0.13 mm link).
+
+**Still open:**
+- M1: the last 6 mm would need D2 re-routed outside the bundle (rev B).
+- M2: measure U104 in the case.
+- M5: the RK628D (27 in stock) and the magjack have no second source.
+
+## Fixed on Oct 25, fourth pass (REVIEW_FABLE_3.md)
+
+- **m11, case labels:** the roof light-pipe labels were swapped. Now D601 = STATUS (white), D602 = WIFI (blue),
+  D603 = PWR (red).
+- **m12, SY8303:** RFS (R105/R108) is 200k (C25764). The L101/L102 value now reads its real 3.6 A rms rating.
+- **Re-run:** ERC 0; DRC with parity 0/0/0; case fit check PASS.
+
+## Majors from REVIEW_FABLE_3.md (Oct 25)
+
+- **M1:** closed by a part-by-part check in JLCPCB's viewer. No rotation changes were needed beyond U401 and the
+  RClamps.
+- **M2:** a 5V_SOM limit of 1.5–2 A sustained in REV_A_SPEC, plus a current log in the production thermal test.
+- **M3:** device-tree overlay `dt/rk3566-relay-carrier.dtso`.
 
 ## Still open, accepted for rev A
 
@@ -165,7 +226,7 @@ closure is only about 2 % (see below). Route them coupled in rev B.
   bring-up.
 - **ngspice:** 43 subcircuits simulated, 39 pass, 0 fail. The 4 "LC filter" warnings are the regulators'
   bootstrap capacitors next to their inductors, not filters.
-- **Switching frequency:** SY8303 Fsw = 105/210k = 500 kHz.
+- **Switching frequency:** SY8303 Fsw = 105/210k = 500 kHz. Changed Oct 25 to RFS = 200k: the datasheet's table gives 0.5 MHz for 200k (105/RFS gives 525 kHz), so the ±15 % oscillator tolerance no longer pushes it far below the 500 kHz range minimum (REVIEW_FABLE_3.md m12).
 - **SY8303 enable:** turns on above VIN 5.35 V.
 - **CH224A:** R101 = 6.8 kΩ requests 9 V from a PD charger.
 - **VIN_SENSE:** reads 1.55 V at 17 V input, reaching the ADC's 1.8 V full scale at 19.8 V.

@@ -62,9 +62,10 @@ def build(project):
                                "FB": f"FB_{tag}", "GND": "GND"}, value="SY8303AIC", ref="U", LCSC="C97054", Note=note)
         cap(s, (x - 40, y - 15), "VIN", "GND", "4.7uF/50V", footprint=C1206)
         cap(s, (x - 32, y - 15), "VIN", "GND", "4.7uF/50V", footprint=C1206)
-        resistor(s, (x - 24, y + 25), f"FS_{tag}", "GND", "210k", Note="Fsw[MHz] = 105 / RFS[k] -> 500 kHz")
+        resistor(s, (x - 24, y + 25), f"FS_{tag}", "GND", "200k",
+                 Note="RFS 200k = 0.5 MHz in the datasheet's table (105/RFS gives 525 kHz), the low end of 0.5-2.5 MHz")
         cap(s, (x + 30, y - 25), f"BS_{tag}", f"LX_{tag}", "10nF")
-        s.add("Device:L", (x + 45, y - 10), {"1": f"LX_{tag}", "2": net}, value="6.8uH 5A",
+        s.add("Device:L", (x + 45, y - 10), {"1": f"LX_{tag}", "2": net}, value="6.8uH 3.6A",
               footprint="Inductor_SMD:L_Bourns_SRN6045TA")
         resistor(s, (x + 60, y + 5), net, f"FB_{tag}", "110k", Note="VOUT = 0.6 (1 + 110k/15k) = 5.0 V")
         resistor(s, (x + 60, y + 27), f"FB_{tag}", "GND", "15k")

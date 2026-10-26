@@ -68,11 +68,14 @@ def m2(project):
     note = "0R link: the CM3 has the TX AC caps (C54/C55)"
     cap(s, (110, 90), "PCIE_TX_P", "M2_PER_P", "0R", Note=note)
     cap(s, (120, 90), "PCIE_TX_N", "M2_PER_N", "0R", Note=note)
-    # PERST#'s pull-up (R501) is not fitted: GPIO1_B2 sits in VCCIO_ACODEC, off until software enables it, and its
-    # reset pull-down keeps the card in reset until the driver releases it. CLKREQ/WAKE: set VCCIO_ACODEC to 3.3 V,
-    # always on, in the device tree.
+    # PERST#, CLKREQ#, WAKE# and BT_DISABLE# (GPIO1_B2/B0/B1/A4) sit in VCCIO_ACODEC (RK817 LDO4), off until
+    # software enables it: pull-ups to 3V3_IO would back-feed that bank through the pad clamps, so R501-R503 and R505
+    # are not fitted. The SoC's own pulls take over once the device tree sets LDO4 to 3.3 V, always on (pinctrl:
+    # pull-up on CLKREQ#/WAKE#, the card's open-drain outputs). PERST# rests on its reset pull-down (card held in
+    # reset) and BT_DISABLE# reads low (Bluetooth off) until the driver runs. WIFI_DISABLE# (GPIO0_A0, PMUIO1) keeps
+    # its pull-up.
     for i, net in enumerate(("PCIE_PERST_N", "PCIE_CLKREQ_N", "PCIE_WAKE_N", "WIFI_DISABLE_N", "BT_DISABLE_N")):
-        resistor(s, (290 + 10 * i, 60), "3V3_IO", net, "10k", **({"dnp": True} if i == 0 else {}))
+        resistor(s, (290 + 10 * i, 60), "3V3_IO", net, "10k", **({} if net == "WIFI_DISABLE_N" else {"dnp": True}))
     for i, v in enumerate(("22uF", "22uF", "100nF", "100nF")):
         cap(s, (290 + 10 * i, 230), "3V3_IO", "GND", v, footprint=C0805 if v == "22uF" else C0402)
     return s

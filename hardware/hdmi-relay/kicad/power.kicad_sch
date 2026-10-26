@@ -8196,7 +8196,7 @@
 				)
 			)
 		)
-		(property "Value" "210k"
+		(property "Value" "200k"
 			(at 205.74 85.09 0)
 			(effects
 				(font
@@ -8231,7 +8231,7 @@
 				(hide yes)
 			)
 		)
-		(property "Note" "Fsw[MHz] = 105 / RFS[k] -> 500 kHz"
+		(property "Note" "RFS 200k = 0.5 MHz in the datasheet's table (105/RFS gives 525 kHz), the low end of 0.5-2.5 MHz"
 			(at 205.74 85.09 0)
 			(effects
 				(font
@@ -8479,7 +8479,7 @@
 				)
 			)
 		)
-		(property "Value" "6.8uH 5A"
+		(property "Value" "6.8uH 3.6A"
 			(at 276.86 49.53 0)
 			(effects
 				(font
@@ -9978,7 +9978,7 @@
 				)
 			)
 		)
-		(property "Value" "210k"
+		(property "Value" "200k"
 			(at 205.74 165.1 0)
 			(effects
 				(font
@@ -10013,7 +10013,7 @@
 				(hide yes)
 			)
 		)
-		(property "Note" "Fsw[MHz] = 105 / RFS[k] -> 500 kHz"
+		(property "Note" "RFS 200k = 0.5 MHz in the datasheet's table (105/RFS gives 525 kHz), the low end of 0.5-2.5 MHz"
 			(at 205.74 165.1 0)
 			(effects
 				(font
@@ -10261,7 +10261,7 @@
 				)
 			)
 		)
-		(property "Value" "6.8uH 5A"
+		(property "Value" "6.8uH 3.6A"
 			(at 276.86 129.54 0)
 			(effects
 				(font

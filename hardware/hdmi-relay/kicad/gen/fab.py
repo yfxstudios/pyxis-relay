@@ -11,6 +11,7 @@ JLCPCB's assembly preview should be checked for part rotations: their library's 
 KiCad's for some packages.
 """
 import csv
+import json
 import os
 import shutil
 import subprocess
@@ -40,6 +41,7 @@ LCSC_BY = {
     ("110k", "R_0402_1005Metric"): "C25745",           # 0402WGF1103TCE
     ("15k", "R_0402_1005Metric"): "C25756",            # 0402WGF1502TCE
     ("150R", "R_0402_1005Metric"): "C25082",           # 0402WGF1500TCE
+    ("200k", "R_0402_1005Metric"): "C25764",           # 0402WGF2003TCE (SY8303 RFS)
     ("0R", "C_0402_1005Metric"): "C17168",             # 0402WGF0000TCE, 0R link on a capacitor footprint (C501/C502)
     ("18pF", "C_0402_1005Metric"): "C1549",            # 0402CG180J500NT
     ("1k", "R_0402_1005Metric"): "C11702",             # 0402WGF1001TCE
@@ -76,9 +78,11 @@ LCSC_BY = {
     ("CH224A", "SSOP-10-1EP_3.9x4.9mm_P1mm_EP2.1x3.3mm"): "C42459160",
     ("AP22804AW5", "SOT-23-5"): "C3001659",                # AP22804AW5-7
     ("24MHz", "Crystal_SMD_3225-4Pin_3.2x2.5mm"): "C70590",  # X322524MOB4SI, 12 pF load (18 pF caps)
-    ("6.8uH 5A", "L_Bourns_SRN6045TA"): "C2041457",        # Bourns SRN6045TA-6R8M (low stock: check)
-    ("2.2uH", "L_Bourns_SRN6045TA"): "C83455",             # Sunlord SWPA6045S2R2MT, same 6 x 6 mm pads
-    ("1.5uH", "L_Bourns_SRN6045TA"): "C98203",             # Sunlord SWPA6045S1R5MT, same 6 x 6 mm pads
+    ("6.8uH 3.6A", "L_Bourns_SRN6045TA"): "C2041457",      # Bourns SRN6045TA-6R8M, 3.6 A rms (low stock: check)
+    ("2.2uH", "L_Bourns_SRN6045TA"): "C36500",             # Sunlord SWPA6045S2R2NT, same 6 x 6 mm pads (the
+                                                            # MT version C83455 is delisted at LCSC)
+    ("1.5uH", "L_Bourns_SRN6045TA"): "C96956",             # Sunlord SWPA6045S1R5NT, same 6 x 6 mm pads (MT
+                                                            # version C98203 delisted)
     ("NP-F plate", "JST_PH_B2B-PH-K_1x02_P2.00mm_Vertical"): "C131337",
     ("HDMI IN", "HDMI_A_Molex_208658-1001_Horizontal"): "C916313",   # Molex 2086581001
     ("HDMI OUT", "HDMI_A_Molex_208658-1001_Horizontal"): "C916313",
@@ -91,6 +95,24 @@ LCSC_BY = {
 }
 # not placed by the assembler: bare pads
 NOT_PLACED = ("MountingHole", "TestPoint")
+
+
+NOTES = """Rev A fab notes (also in kicad/README.md)
+- 4 layers, 1.6 mm, stackup JLCPCB JLC04161H-3313 (0.0994 mm 3313 prepreg under L1 and L4). Select it at ordering:
+  the trace widths below are designed for it, and on the default 7628 stack the 100 ohm pairs come out at ~120 ohm.
+- Differential pairs on L1/L4 (width/gap, mm): 100 ohm 0.10/0.10 (HDMI, CSI, Ethernet), 90 ohm 0.12/0.10 (USB),
+  85 ohm 0.14/0.10 (PCIe).
+- ENIG. Vias 0.15 mm drill minimum, epoxy-filled and capped (via-in-pad on several parts).
+"""
+
+
+def _check_stackup(gerb):
+    """The Gerber job file must carry the 3313 stackup (gen/finish.py STACKUP), not KiCad's default 0.48 mm."""
+    job = json.load(open(next(os.path.join(gerb, f) for f in os.listdir(gerb) if f.endswith(".gbrjob"))))
+    diel = [round(m["Thickness"], 4) for m in job["MaterialStackup"] if m["Type"] == "Dielectric"]
+    if diel != [0.0994, 1.265, 0.0994]:
+        sys.exit(f"fab: the board's stackup is not JLC04161H-3313 (dielectrics {diel}): run gen/finish.py")
+    open(os.path.join(FAB, "FAB_NOTES.txt"), "w").write(NOTES)
 
 
 def run(*args):
@@ -107,6 +129,7 @@ def main():
         BOARD)
     run("pcb", "export", "drill", "--format", "excellon", "--excellon-separate-th", "--generate-map", "--map-format",
         "pdf", "-o", gerb + "/", BOARD)
+    _check_stackup(gerb)
     with zipfile.ZipFile(os.path.join(FAB, "relay-gerbers.zip"), "w", zipfile.ZIP_DEFLATED) as z:
         for f in sorted(os.listdir(gerb)):
             z.write(os.path.join(gerb, f), f)
@@ -169,6 +192,10 @@ JLC_ROT = {
     "U103": 180, "U104": 180, "U105": 180, "U106": 180,     # pin 1 at the opposite corner
     "U201": -90,                                            # RK628D: ball A1 one corner round
     "J201": 90, "J401": 90,                                 # HDMI: model body turned across the shell tabs
+    # Oct 25, checked part by part in JLCPCB's viewer (REVIEW_FABLE_2.md M4): the SOT-23-5 and USON-10 models sit
+    # 90 deg across their pads. Diodes, LEDs, C102, Y201, J103 and J501 match as exported.
+    "U401": -90,
+    "D201": -90, "D202": -90, "D203": -90, "D401": -90, "D402": -90, "D403": -90,
 }
 
 

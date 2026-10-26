@@ -3,7 +3,7 @@
   .../bin/python3 gen/handroute.py NET 'L:x,y x,y ...' ['V:x,y' ...] [--commit]
 
 Each argument is a run of track on layer L (F, 1, 2 or B: F.Cu, In1, In2, B.Cu; width after a slash, e.g. 1/0.09)
-or a via (0.3 mm, 0.15 mm drill). Without --commit it only prints what would be too close: copper within 0.1 mm,
+or a via (0.3 mm, 0.15 mm drill; another size as V/0.6/0.3:x,y). Without --commit it only prints what would be too close: copper within 0.1 mm,
 a drilled hole within 0.2 mm of copper, holes within 0.25 mm of each other.
 """
 import math
@@ -43,8 +43,9 @@ def parse(specs):
     for s in specs:
         kind, rest = s.split(":", 1)
         pts = [tuple(float(v) for v in p.split(",")) for p in rest.split()]
-        if kind == "V":
-            new.append((None, pts[0], pts[0], 0.15, 0.075))
+        if kind.startswith("V"):
+            size = [float(v) for v in kind.split("/")[1:]] or [0.3, 0.15]
+            new.append((None, pts[0], pts[0], size[0] / 2, size[1] / 2))
         else:
             ly, _, w = kind.partition("/")
             for a, b in zip(pts, pts[1:]):
@@ -127,7 +128,7 @@ def main():
             if ly is None:
                 v = pcbnew.PCB_VIA(board)
                 v.SetPosition(pcbnew.VECTOR2I_MM(O[0] + a[0], O[1] + a[1])); v.SetViaType(pcbnew.VIATYPE_THROUGH)
-                v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu); v.SetWidth(pcbnew.FromMM(0.3)); v.SetDrill(pcbnew.FromMM(0.15))
+                v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu); v.SetWidth(pcbnew.FromMM(2 * h)); v.SetDrill(pcbnew.FromMM(2 * dr))
                 v.SetNet(ni)
                 board.Add(v)
             else:

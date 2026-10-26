@@ -305,7 +305,7 @@ re-routed around the lanes; they cross them on the back.
 
 **Back panel:**
 - **USB-C:** turned to face out (it faced into the board).
-- **DC jack:** its mouth now sits at the board edge (it was 6 mm in).
+- **DC jack:** its mouth now sits at the board edge (it was 6 mm in). *Wrong:* that move put the jack's back at the edge; turned round on Oct 25 (see "Second review fixes").
 
 **Power:**
 - **Input stage:** at the inputs:
@@ -543,7 +543,69 @@ gen/handroute.py PORT_SDA 'F/0.2:30.07,13.095 30.07,13.865' --commit
 gen/handroute.py HDMITX_SCL 'F/0.2:81.5,13.385 81.5,12.615' --commit
 gen/handroute.py HDMITX_SDA 'F/0.2:82.0,13.385 82.0,12.615' --commit
 ```
-**C501/C502 (M1):** 0 Ω on the capacitor pads; the CM3 has the PCIe TX AC caps. `gen/fab.py`
+**C501/C502 (M1):** 0 Ω on the capacitor pads; the CM3 has the PCIe TX AC caps.
+
+**Regulator thermal vias (REVIEW_FABLE.md M3).** U103/U104 had no GND via within 3 mm, so their GND pins could only
+spread heat in the top pour. Six 0.6/0.3 mm vias now tie the GND pins to the In1 plane
+(`gen/handroute.py` takes a via size as `V/0.6/0.3:x,y`):
+```
+gen/handroute.py GND 'F/0.3:67.2,77.88 66.76,77.75' 'V/0.6/0.3:66.76,77.75' 'F/0.5:67.2,78.47 66.91,79.1' \
+    'V/0.6/0.3:66.91,79.1' 'F/0.4:68.52,77.83 68.96,77.85' 'V/0.6/0.3:68.96,77.85' \
+    'F/0.5:66.76,77.75 65.96,78.05' 'V/0.6/0.3:65.96,78.05' --commit
+gen/handroute.py GND 'F/0.5:50.2,78.47 49.81,78.85' 'V/0.6/0.3:49.81,78.85' 'F/0.3:50.2,77.88 49.76,77.75' \
+    'V/0.6/0.3:49.76,77.75' --commit
+```
+**Second review fixes (Oct 25, REVIEW_FABLE_2.md).**
+- **B1, DC jack facing inward.** `gen/jackfix.py` turns J101 180° about its axis line (pin 1 now at 42.0, 85.55;
+  the opening 0.7 mm inside the edge) and clears what its new pads land on: the old VDC stub, the VIN_RAW run, and
+  three GND stitching vias. F101 moves 0.4 mm east to clear J101's pin-3 courtyard, and its reference moves to
+  (53.4, 93.0). VDC and VIN_RAW are re-routed at 0.8 mm:
+  `gen/localroute.py /Power/VDC 34,78,58,100 --layers F,B --width 0.8 --via 0.6/0.3 --commit`, then the same for
+  `/Power/VIN_RAW` with box 26,76,60,100. VIN_RAW now crosses under the jack on B.Cu, with two vias at each end:
+  `gen/handroute.py VIN_RAW 'F/0.8:34.6,85.6 35.8,86.85' 'V/0.6/0.3:35.8,86.85' --commit` and `gen/jackfix.py --via`.
+  `gen/localroute.py` gained `--width` and `--via`.
+- **M3, VCCIO1 back-feed.** R502/R503/R505 are not fitted (R501 already wasn't). CLKREQ#/WAKE# need the SoC's
+  internal pull-ups, set in the device tree (REV_A_SPEC section 7).
+- **M4, CPL rotations.** Every polarised part was checked in JLCPCB's viewer. U401 (SOT-23-5) and the six RClamps
+  (USON-10) sat 90° across their pads, now corrected in `JLC_ROT`. The rest match: the diodes' cathode bands, the
+  LEDs, C102's +, Y201 and U101's pin 1, and the J103/J501 outlines. No polarised part is on the bottom side.
+- **M5, supply.** L103/L104 are now Sunlord SWPA6045S2R2NT (C36500, 2,043 in stock) and SWPA6045S1R5NT (C96956,
+  1,453), the NT versions of the delisted MT parts, on the same pads. L101/L102 stay as SRN6045TA-6R8M: 146 in stock
+  is about 73 boards, and the only well-stocked 6045 alternative (SWPA6045S6R8MT) is rated 3 A.
+- **M2, U104 heat.** The case has a second roof vent over U103/U104 and L101/L102. The board-side fix is the
+  thermal vias above. Still keep the module's sustained draw ≤1.5 A, and measure.
+- **M1, CSI skew: matched to a window** (`gen/csimatch.py`). Worst data-to-clock skew, counting the module's own
+  lengths, drops from 24 mm to 6.3 mm.
+  - D2 is boxed in between D3 and CLK, and its B.Cu pocket only fits two bumps (+14.7 mm), so D2 can't reach D3.
+  - So CLK is set to the midpoint of D2 (80.6 mm total) and D3 (93.2 mm), and D1 to CLK. D0 and D3 are unchanged.
+  - Totals (carrier + module): CLK 86.9, D0 90.4, D1 86.9, D2 80.6, D3 93.2 mm.
+
+  Steps, from the pre-M1 copy in `backup/2026-10-25-pre-M1/`:
+  1. `gen/csimatch.py clear` lifts the 5V_SYS branch to U401/J602 (its F.Cu run, and the 0.13 mm feed it hung
+     from), PCIE_PERST_N's F.Cu leg, PCIE_CLKREQ_N's B.Cu wiggle through D2's pocket, four GND stitching vias, the
+     CLK/D1 tails below y 33, and D2's straight B.Cu run.
+  2. `gen/csimatch.py add --commit`:
+     - CLK on F.Cu drops to y 40.2 with bumps down to 44.2;
+     - D1 sits inside it at y 39.4, with bumps up toward D0;
+     - D2 gets two 3.9 mm bumps on B.Cu, over solid In2.
+
+     Leg pitch 0.7 mm (0.4 mm between legs). The final legs into J702 keep the 0.4 mm pad pitch. Two GND vias go
+     back in the strip between D1's and CLK's J702 legs.
+  3. Re-route the lifted nets:
+     - `gen/localroute.py 5V_SYS 42,24,74,52 --layers F,B --width 0.6 --via 0.6/0.3 --commit` (now 0.6 mm all the
+       way);
+     - `gen/localroute.py PCIE_PERST_N 44,30,66,50 --layers F,B,2 --commit`;
+     - `gen/localroute.py PCIE_CLKREQ_N 44,24,64,40 --layers F,B,2 --commit`.
+  4. Prune dangling copper on these nets (`pinmove.prune_geometric`). Then `gen/csimatch.py tidy` moves one 5V_SYS
+     via whose In1 clearance hole reached under CLK_P.
+
+  Intra-pair: CLK and D1 come out with N 0.18 mm longer than P (about 1 ps). `gen/csimatch.py report` prints
+  everything.
+
+**Stackup in the files (M4).** `gen/finish.py` writes JLC04161H-3313 into the board setup (STACKUP): 0.0994 mm
+3313 prepreg, 1.265 mm core, ENIG, impedance-controlled, vias filled and capped. The Gerber job file now states it.
+`gen/fab.py` stops if the job file shows any other dielectrics, and writes `fab/FAB_NOTES.txt` with the pair
+geometries. Still select JLC04161H-3313 on every JLCPCB order: they don't read the job file. `gen/fab.py`
 clears `fab/`, so the MPN map for the PCBWay BOM lives in `gen/lcsc-mpn.json`.
 
 - `relay.kicad_sch`: root sheet; one `.kicad_sch` per sheet.

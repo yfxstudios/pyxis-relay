@@ -75,9 +75,17 @@ ordered and not in the cart. JLCPCB auto-saved it in the account as the project 
 
 ## Before ordering
 
-- **In the cart (Oct 25, 14:24): relay-gerbers_Y4, $440.34**, from the files in commit 2a6e6a4: the pin fixes, the
-  ESD links (review B1) and C501/C502 as 0 Ω (M1).
-  - It's $1.52 more than the quote above: one more feeder for the 0 Ω part.
-  - Product description is Development Board (HS 847330); J301 is not placed.
-- **The old 3-assembled order (Y3, pre-fix files) was deleted from the cart.** Check out from the cart with only Y4
-  selected. The cart also holds the 500-unit quote (P2); leave it unselected.
+- **In the cart (Oct 25, 16:45): relay-gerbers_Y6, $440.32.** It replaces Y5, which had the DC jack facing inward. It's
+  built from the files with:
+  - the pin fixes;
+  - the ESD links (review B1);
+  - C501/C502 as 0 Ω (M1);
+  - the U103/U104 thermal vias (M3);
+  - the 3313 stackup written into the board and job file (M4);
+  - from the second review: the DC jack turned to face the edge, R502/R503/R505 not fitted, L103/L104 on stocked
+    parts, and U401 and the RClamps' rotations corrected after checking every polarised part in the viewer.
+
+  It's $1.52 more than the quote above: one more feeder for the 0 Ω part. Product description is Development Board
+  (HS 847330); J301 is not placed.
+- **Earlier cart orders deleted:** Y3 (3 assembled, pre-fix files), Y4 (before M3/M4) and Y5 (jack backwards). Check
+  out from the cart with only Y6 selected. The cart also holds the 500-unit quote (P2); leave it unselected.

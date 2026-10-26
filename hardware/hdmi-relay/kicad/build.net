@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "/Users/matthew/Library/Application Support/Claude/scratch-workspaces/72e81736-2099-4312-9510-31637dcac54f/f681371f-3057-45f7-8f61-df3cb1c90a80/scratch-2026-10-20-e277c5/hardware/hdmi-relay/kicad/relay.kicad_sch")
-		(date "2026-10-25T14:16:15")
+		(date "2026-10-25T19:07:36")
 		(tool "Eeschema 10.0.7")
 		(sheet
 			(number "1")
@@ -2231,7 +2231,7 @@
 		)
 		(comp
 			(ref "L101")
-			(value "6.8uH 5A")
+			(value "6.8uH 3.6A")
 			(footprint "Inductor_SMD:L_Bourns_SRN6045TA")
 			(datasheet "~")
 			(fields
@@ -2285,7 +2285,7 @@
 		)
 		(comp
 			(ref "L102")
-			(value "6.8uH 5A")
+			(value "6.8uH 3.6A")
 			(footprint "Inductor_SMD:L_Bourns_SRN6045TA")
 			(datasheet "~")
 			(fields
@@ -2744,12 +2744,12 @@
 		)
 		(comp
 			(ref "R105")
-			(value "210k")
+			(value "200k")
 			(footprint "Resistor_SMD:R_0402_1005Metric")
 			(datasheet "~")
 			(fields
 				(field
-					(name "Note") "Fsw[MHz] = 105 / RFS[k] -> 500 kHz")
+					(name "Note") "RFS 200k = 0.5 MHz in the datasheet's table (105/RFS gives 525 kHz), the low end of 0.5-2.5 MHz")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
 				(field
@@ -2765,7 +2765,7 @@
 			)
 			(property
 				(name "Note")
-				(value "Fsw[MHz] = 105 / RFS[k] -> 500 kHz")
+				(value "RFS 200k = 0.5 MHz in the datasheet's table (105/RFS gives 525 kHz), the low end of 0.5-2.5 MHz")
 			)
 			(property
 				(name "Sheetname")
@@ -2918,12 +2918,12 @@
 		)
 		(comp
 			(ref "R108")
-			(value "210k")
+			(value "200k")
 			(footprint "Resistor_SMD:R_0402_1005Metric")
 			(datasheet "~")
 			(fields
 				(field
-					(name "Note") "Fsw[MHz] = 105 / RFS[k] -> 500 kHz")
+					(name "Note") "RFS 200k = 0.5 MHz in the datasheet's table (105/RFS gives 525 kHz), the low end of 0.5-2.5 MHz")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
 				(field
@@ -2939,7 +2939,7 @@
 			)
 			(property
 				(name "Note")
-				(value "Fsw[MHz] = 105 / RFS[k] -> 500 kHz")
+				(value "RFS 200k = 0.5 MHz in the datasheet's table (105/RFS gives 525 kHz), the low end of 0.5-2.5 MHz")
 			)
 			(property
 				(name "Sheetname")
@@ -10248,6 +10248,9 @@
 				(value "m2_wifi.kicad_sch")
 			)
 			(property
+				(name "dnp")
+			)
+			(property
 				(name "ki_keywords")
 				(value "R res resistor")
 			)
@@ -10300,6 +10303,9 @@
 			(property
 				(name "Sheetfile")
 				(value "m2_wifi.kicad_sch")
+			)
+			(property
+				(name "dnp")
 			)
 			(property
 				(name "ki_keywords")
@@ -10408,6 +10414,9 @@
 			(property
 				(name "Sheetfile")
 				(value "m2_wifi.kicad_sch")
+			)
+			(property
+				(name "dnp")
 			)
 			(property
 				(name "ki_keywords")

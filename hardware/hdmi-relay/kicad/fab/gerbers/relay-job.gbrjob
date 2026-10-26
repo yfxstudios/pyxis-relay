@@ -5,7 +5,7 @@
       "Application": "Pcbnew",
       "Version": "10.0.7"
     },
-    "CreationDate": "2026-10-25T14:16:40-07:00"
+    "CreationDate": "2026-10-25T19:07:57-07:00"
   },
   "GeneralSpecs": {
     "ProjectId": {
@@ -19,7 +19,8 @@
     },
     "LayerNumber": 4,
     "BoardThickness": 1.6,
-    "Finish": "None"
+    "Finish": "ENIG",
+    "ImpedanceControlled": true
   },
   "DesignRules": [
     {
@@ -119,32 +120,38 @@
     },
     {
       "Type": "Dielectric",
-      "Thickness": 0.48,
-      "Material": "FR4",
+      "Thickness": 0.0994,
+      "Material": "3313",
+      "DielectricConstant": "4.1",
+      "LossTangent": "0.02",
       "Name": "F.Cu/In1.Cu",
       "Notes": "Type: dielectric layer 1 (from F.Cu to In1.Cu)"
     },
     {
       "Type": "Copper",
-      "Thickness": 0.035,
+      "Thickness": 0.0152,
       "Name": "In1.Cu"
     },
     {
       "Type": "Dielectric",
-      "Thickness": 0.48,
+      "Thickness": 1.265,
       "Material": "FR4",
+      "DielectricConstant": "4.6",
+      "LossTangent": "0.02",
       "Name": "In1.Cu/In2.Cu",
       "Notes": "Type: dielectric layer 2 (from In1.Cu to In2.Cu)"
     },
     {
       "Type": "Copper",
-      "Thickness": 0.035,
+      "Thickness": 0.0152,
       "Name": "In2.Cu"
     },
     {
       "Type": "Dielectric",
-      "Thickness": 0.48,
-      "Material": "FR4",
+      "Thickness": 0.0994,
+      "Material": "3313",
+      "DielectricConstant": "4.1",
+      "LossTangent": "0.02",
       "Name": "In2.Cu/B.Cu",
       "Notes": "Type: dielectric layer 3 (from In2.Cu to B.Cu)"
     },

@@ -51,9 +51,9 @@ any overlap larger than 0.5 mm³. Today it passes.
 - **Left wall:** two RP-SMA bulkheads (6.6 mm D-holes, 6.0 mm across the flat), 30 mm apart, next to the Wi-Fi
   card.
 - **Roof:**
-  - 3 mm light pipes over PWR, STATUS and WIFI.
+  - 3 mm light pipes over STATUS (D601, white), WIFI (D602, blue) and PWR (D603, red).
   - 1.8 mm pinholes over RESET and RECOVERY (press with a paperclip).
-  - Vent slots over the CM3.
+  - Vent slots over the CM3, and over the 5 V bucks U103/U104 (hot air out; the low side vents are the intake).
   - Engraved labels.
 - **Base:**
   - Two ¼"-20 inserts underneath for a rig mount or an NP-F battery plate.

@@ -119,6 +119,11 @@
   "manufacturer": "UNI-ROYAL",
   "description": "RES 15k\u03a9 \u00b11% 62.5mW 0402"
  },
+ "C25764": {
+  "mpn": "0402WGF2003TCE",
+  "manufacturer": "UNI-ROYAL",
+  "description": "RES 200k 1% 62.5mW 0402"
+ },
  "C25771": {
   "mpn": "0402WGF2702TCE",
   "manufacturer": "UNI-ROYAL",
@@ -219,6 +224,11 @@
   "manufacturer": "PULSE",
   "description": "1 Shielded Gold Phosphor Bronze 0\u2103~+70\u2103 Through Hole Modular/Ethernet Connector (RJ45) Jacks With Magnetics RoHS"
  },
+ "C36500": {
+  "mpn": "SWPA6045S2R2NT",
+  "manufacturer": "Sunlord",
+  "description": "2.2uH 4.6A 18mOhm \u00b130% 6x6 shielded power inductor"
+ },
  "C4109": {
   "mpn": "0402WGF2001TCE",
   "manufacturer": "UNI-ROYAL",
@@ -288,6 +298,11 @@
   "mpn": "2086581001",
   "manufacturer": "MOLEX",
   "description": "HDMI FOR INSERT-MOLD TYPE"
+ },
+ "C96956": {
+  "mpn": "SWPA6045S1R5NT",
+  "manufacturer": "Sunlord",
+  "description": "1.5uH 4.95A 12mOhm \u00b130% 6x6 shielded power inductor"
  },
  "C97054": {
   "mpn": "SY8303AIC",

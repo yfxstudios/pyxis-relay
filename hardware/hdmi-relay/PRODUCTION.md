@@ -106,7 +106,9 @@ number:
 6. Wi-Fi: the AP comes up on 2.4 and 5 GHz; the laptop joins and pulls the stream for 30 s.
 7. Bluetooth: the controller is up and scans.
 8. Buttons: RESET reboots; RECOVERY reads low when pressed.
-9. Thermal: after 10 minutes of capture and encode in the closed case, SoC under 85 °C.
+9. Thermal: after 10 minutes of capture and encode in the closed case, SoC under 85 °C, and U104 (5 V buck, next to
+   L102) under 100 °C by thermocouple on the pilot units. Log the 5V_SOM current too: it should stay at 2 A or
+   less sustained (REV_A_SPEC.md, 5V_SOM thermal limit).
 
 ## Open
 

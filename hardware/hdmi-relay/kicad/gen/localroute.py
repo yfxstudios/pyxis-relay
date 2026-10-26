@@ -1,6 +1,6 @@
 """Routes one net's open connection inside a small window of the routed checkpoint (../routed.kicad_pcb).
 
-  .../bin/python3 gen/localroute.py NET x0,y0,x1,y1 [--layers F,B,2] [--commit]
+  .../bin/python3 gen/localroute.py NET x0,y0,x1,y1 [--layers F,B,2] [--width 0.1] [--via 0.3/0.15] [--commit]
 
 gen/router.py on a grid that covers only the window (board mm), so it takes seconds rather than the many minutes a
 whole-board grid takes. Copper outside the window is ignored, so the window must hold both ends of the gap. The
@@ -39,7 +39,10 @@ def main():
     R.shadow[pcbnew.In2_Cu] = (pcbnew.B_Cu, hs, 0.3)
     nc = board.FindNet(net).GetNetCode()
     t0 = time.time()
-    left = R.connect(net, net_terms(board, nc), 0.1, layers=layers, via=(0.3, 0.15), window=6.0,
+    width = float(sys.argv[sys.argv.index("--width") + 1]) if "--width" in sys.argv else 0.1
+    via = tuple(float(v) for v in sys.argv[sys.argv.index("--via") + 1].split("/")) if "--via" in sys.argv \
+        else (0.3, 0.15)
+    left = R.connect(net, net_terms(board, nc), width, layers=layers, via=via, window=6.0,
                      max_expand=2000000, greed=2.0)
     added = len(R.log)
     print(f"{net}: {'routed' if not left else f'{len(left)} terminals open'} in {time.time() - t0:.1f} s, "
