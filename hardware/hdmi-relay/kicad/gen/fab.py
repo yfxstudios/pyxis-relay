@@ -192,6 +192,7 @@ def main():
             n += 1
     os.remove(pos)
     _centre_cm3(os.path.join(FAB, "relay-cpl.csv"))
+    _offset_for_jlc(os.path.join(FAB, "relay-cpl.csv"))
     _rotate_for_jlc(os.path.join(FAB, "relay-cpl.csv"))
     print(f"fab/: gerbers + drill ({len(os.listdir(gerb))} files, zipped), BOM ({missing} lines without an LCSC "
           f"number), CPL ({n} parts); hand-fitted, not in either: {', '.join(sorted(HAND_FIT))}")
@@ -210,7 +211,13 @@ JLC_ROT = {
     # 90 deg across their pads. Diodes, LEDs, C102, Y201, J103 and J501 match as exported.
     "U401": -90,
     "D201": -90, "D202": -90, "D203": -90, "D401": -90, "D402": -90, "D403": -90,
+    # Oct 25, viewer: the DC jack's model faced into the board (mouth away from the edge)
+    "J101": 180,
 }
+# Board-mm offsets (x right, y down, from the footprint origin) to where JLCPCB's model must sit, measured in its
+# viewer: their models' origins aren't KiCad's. J101 (origin at pin 1): the model sat 6.5 mm into the board at the
+# origin and 4.8 mm off the edge, 3.2 mm west, at the F.Fab body centre.
+JLC_OFFSET = {"J101": (2.3, 2.75)}
 
 
 def _rotate_for_jlc(cpl):
@@ -255,6 +262,18 @@ def _centre_cm3(cpl):
     with open(cpl, "w", newline="") as f:
         csv.writer(f).writerows(rows)
 
+
+def _offset_for_jlc(cpl):
+    """Moves the JLC_OFFSET parts by their offsets (the position file's Y points up)."""
+    with open(cpl) as f:
+        rows = list(csv.reader(f))
+    for row in rows[1:]:
+        if row[0] in JLC_OFFSET:
+            dx, dy = JLC_OFFSET[row[0]]
+            row[1] = f"{float(row[1][:-2]) + dx:.3f}mm"
+            row[2] = f"{float(row[2][:-2]) - dy:.3f}mm"
+    with open(cpl, "w", newline="") as f:
+        csv.writer(f).writerows(rows)
 
 if __name__ == "__main__":
     main()
