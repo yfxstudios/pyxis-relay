@@ -186,6 +186,19 @@ apart from the two LED resistors.
 - **m12, SY8303:** RFS (R105/R108) is 200k (C25764). The L101/L102 value now reads its real 3.6 A rms rating.
 - **Re-run:** ERC 0; DRC with parity 0/0/0; case fit check PASS.
 
+## Fixed on Oct 25, final review (REVIEW_FINAL.md)
+
+- **B1, PCIe TX/RX swapped at the M.2 socket:** PETp0/n0 (J501 35/37) now take the host TX through C501/C502,
+  PERp0/n0 (41/43) go to the host RX. Re-routed at J501 (PCIE_RX shortened to 41/43, new F.Cu stubs from C501/C502
+  to 35/37, REFCLK_N moved to a via in pad 49 and B.Cu). Lengths P/N: TX+PET 62.89/63.38, RX 53.74/54.07, REFCLK
+  59.63/58.85 mm.
+- **M1, device tree:** the overlay now releases sdmmc0, vcc_sd, tf_det, vcc5v0_usb30 (GPIO3_C2 = RK628D reset),
+  vcc_ch482d1/2, the IO board's LEDs and the hym8563 from Radxa's BSP base tree. Compiled with dtc and applied with
+  fdtoverlay.
+- **M2, case:** USB-C opening notched into the base wall; tripod insert holes 5.0 mm with a 0.8 mm stop.
+- **Re-run:** ERC 0; DRC with parity 0/0/0; case fit check PASS (with the new plug and insert probes);
+  `checks/returnpath.py` flags REFCLK_N's new via at 1.26 mm from the nearest GND via (100 MHz clock: accepted).
+
 ## Majors from REVIEW_FABLE_3.md (Oct 25)
 
 - **M1:** closed by a part-by-part check in JLCPCB's viewer. No rotation changes were needed beyond U401 and the

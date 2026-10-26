@@ -218,7 +218,9 @@ PMUIO1 (GPIO0_A*), VCCIO5, VCCIO6 (GPIO_VREF = 3.3 V here) or VCCIO7. `kicad/che
 pin against its bank. PD_PG_N no longer reaches the module: GPIO0_B6 has a 2.2 kΩ pull-up to 1.8 V on the module,
 which held the USB-C VBUS gate (Q101) on.
 
-**Device tree requirements** (all of them in `dt/rk3566-relay-carrier.dtso`). VCCIO_ACODEC (RK817 LDO4) set to 3.3 V and always on, with pmu-io-domains vccio1 =
+**Device tree requirements** (all of them in `dt/rk3566-relay-carrier.dtso`, an overlay on Radxa's BSP
+rk3566-radxa-cm3-io.dtb that also turns off the IO board's sdmmc0, SD/USB/CH482D regulators, LEDs and RTC, whose
+GPIOs this carrier reuses). VCCIO_ACODEC (RK817 LDO4) set to 3.3 V and always on, with pmu-io-domains vccio1 =
 3.3 V: BT_DISABLE#, PERST#, CLKREQ# and WAKE# sit in that domain. Their board pull-ups are not fitted (they back-fed the
 unpowered bank), so the pinctrl must enable the SoC's pull-ups on CLKREQ# (GPIO1_B0) and WAKE# (GPIO1_B1). CSI
 data-to-clock skew, counting the module's own lengths, is now at most 6.3 mm, about 40 ps (REVIEW_FABLE_2.md M1;
@@ -238,7 +240,7 @@ it makes the module pull RK628D PLUGIN_DET low.
 | HDMI TX D0–D2, CLK | J68 182/184, 176/178, 170/172, 188/190 | HDMI_TX |
 | HDMI HPD, DDC SDA / SCL | J68 153, 199 / 200 | Level-shifted on the module |
 | Ethernet MDI0–3 | J69 12/10, 4/6, 11/9, 3/5 | On-module RTL8211F |
-| PCIe TX, RX, REFCLK | J68 122/124, 116/118, 110/112 | PCIE20 (multi-PHY2) |
+| PCIe TX, RX, REFCLK | J68 122/124, 116/118, 110/112 | PCIE20 (multi-PHY2). At J501: TX → C501/C502 (0 Ω) → PETp0/n0 (35/37); PERp0/n0 (41/43) → RX. PET is the host's transmit pair |
 | PCIe PERST#, CLKREQ#, WAKE# | J68 109, J68 102, J1 38 | PCIE20_*_M2 (CLKREQ and WAKE must share one mux group) |
 | WIFI_DISABLE#, BT_DISABLE# | J1 74, J1 40 | GPIO0_A0 (PMUIO1, 3.3 V), GPIO1_A4 (VCCIO1 = VCCIO_ACODEC: set to 3.3 V in the device tree) |
 | USB to M.2 (Bluetooth) | J1 63/65 | USB2 HOST2 |

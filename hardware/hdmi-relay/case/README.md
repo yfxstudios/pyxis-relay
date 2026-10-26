@@ -37,14 +37,16 @@ python case/case.py --check && python case/render.py
 
 `--check` intersects both parts with the board's 3D model, plus blocks for the parts that have no model: the CM3
 module and a 30 × 30 × 6 mm heatsink, the Wi-Fi card, the M.2 socket, the USB-C socket and the fuse. It fails on
-any overlap larger than 0.5 mm³. Today it passes.
+any overlap larger than 0.5 mm³. It also probes what a solid test cannot see: a 12 × 6.5 mm USB-C plug overmould
+from the socket face out, and the solid stop above each tripod insert hole. Today it passes.
 
 ## Layout
 
 - **Front wall:** both HDMI sockets. Their faces are 1.0 mm past the board edge; the wall is pocketed around each
   opening (22 × 12 mm) so a cable's overmould reaches the socket.
 - **Rear wall:**
-  - USB-C and DC IN.
+  - USB-C (the opening reaches 2.4 mm below the board top, notching the base wall, so the plug's overmould reaches
+    the recessed socket) and DC IN.
   - The battery lead hole (5 mm, for a grommet), for the NP-F plate's lead to J102.
   - Ethernet. **The magjack sticks out 2.9 mm** past the wall: on rev A it overhangs the board edge by 5.5 mm. Rev B
     should line it up with the other rear connectors.
@@ -56,7 +58,8 @@ any overlap larger than 0.5 mm³. Today it passes.
   - Vent slots over the CM3, and over the 5 V bucks U103/U104 (hot air out; the low side vents are the intake).
   - Engraved labels.
 - **Base:**
-  - Two ¼"-20 inserts underneath for a rig mount or an NP-F battery plate.
+  - Two ¼"-20 inserts underneath for a rig mount or an NP-F battery plate. Each boss rises to 0.2 mm under the board;
+    the 5 mm insert hole leaves 0.8 mm of solid boss as a stop, so a longer screw bottoms there, not on the board.
   - Side vents low on the left and right walls.
   - Recesses for four 10 mm rubber feet.
 
@@ -79,7 +82,7 @@ above the board. Through-hole pins stick out 2.0 mm underneath, so the board sit
 |---|---|---|
 | M3 heat-set insert, 4.0 mm hole, 5.7 mm long (e.g. Ruthex M3) | 4 | Into the lid posts |
 | M3 × 10 socket-head screw | 4 | From underneath, through the base's counterbore and the board, into the lid post's insert (about 5.6 mm of thread in the insert) |
-| ¼"-20 heat-set insert, 8 mm hole, ¼" long | 2 | Into the base, from underneath |
+| ¼"-20 heat-set insert, 8 mm hole, 0.2" (5 mm) long | 2 | Into the base, from underneath; a ¼"-long insert does not fit the 5 mm hole |
 | Rubber bumper, 10 mm | 4 | |
 | 3 mm light pipe or clear acrylic rod, 15 mm long | 3 | |
 | RP-SMA bulkhead pigtail (MHF4 or U.FL to suit the card), 100 mm | 2 | |

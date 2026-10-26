@@ -40,10 +40,12 @@ def m2(project):
     from sch import Sheet
     s = Sheet(project, "m2_wifi", "M.2 Wi-Fi + Bluetooth", 500)
     s.text("M.2 2230 E-key socket for the RTL8822CE card: Wi-Fi on PCIe x1 (combo PHY in PCIe mode), Bluetooth on\n"
-           "USB 2.0.  Host-side 100 nF AC coupling on the lanes the host transmits.  PCIe 85 ohm, USB 90 ohm.", (20, 15), 2)
+           "USB 2.0.  Host TX -> PETp0/n0 through C501/C502 (0R; AC caps on the CM3), PERp0/n0 -> host RX.  PCIe 85 ohm,\n"
+           "USB 90 ohm.", (20, 15), 2)
     conn = {
-        "PETp0": "PCIE_RX_P", "PETn0": "PCIE_RX_N",            # card transmits -> host receives
-        "PERp0": "M2_PER_P", "PERn0": "M2_PER_N",              # host transmits through the AC caps below
+        # PET/PER are named from the host: PET = host transmit -> card receive, PER = card transmit -> host receive
+        "PETp0": "M2_PET_P", "PETn0": "M2_PET_N",              # host transmits through the links below
+        "PERp0": "PCIE_RX_P", "PERn0": "PCIE_RX_N",            # card transmits -> host receives
         "REFCLKp0": "PCIE_REFCLK_P", "REFCLKn0": "PCIE_REFCLK_N",
         "~{PERST0}": "PCIE_PERST_N", "~{CLKREQ0}": "PCIE_CLKREQ_N", "~{PEWAKE0}": "PCIE_WAKE_N",
         "~{W_DISABLE1}": "WIFI_DISABLE_N", "~{W_DISABLE2}": "BT_DISABLE_N",
@@ -66,8 +68,8 @@ def m2(project):
     # PCIe TX AC coupling is on the module (CM3 C54/C55, 100 nF): a second 100 nF here would leave 50 nF, under the
     # CEM minimum of 75 nF. C501/C502 are fitted as 0R links; 100 nF pads kept for rev B experiments.
     note = "0R link: the CM3 has the TX AC caps (C54/C55)"
-    cap(s, (110, 90), "PCIE_TX_P", "M2_PER_P", "0R", Note=note)
-    cap(s, (120, 90), "PCIE_TX_N", "M2_PER_N", "0R", Note=note)
+    cap(s, (110, 90), "PCIE_TX_P", "M2_PET_P", "0R", Note=note)
+    cap(s, (120, 90), "PCIE_TX_N", "M2_PET_N", "0R", Note=note)
     # PERST#, CLKREQ#, WAKE# and BT_DISABLE# (GPIO1_B2/B0/B1/A4) sit in VCCIO_ACODEC (RK817 LDO4), off until
     # software enables it: pull-ups to 3V3_IO would back-feed that bank through the pad clamps, so R501-R503 and R505
     # are not fitted. The SoC's own pulls take over once the device tree sets LDO4 to 3.3 V, always on (pinctrl:

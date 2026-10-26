@@ -75,6 +75,10 @@ ordered and not in the cart. JLCPCB auto-saved it in the account as the project 
 
 ## Before ordering
 
+- **Superseded by the B1 fix (Oct 25, later):** Y6's Gerbers have the M.2 PCIe pairs swapped. Upload the new
+  `kicad/fab/relay-gerbers.zip` as a new order (same options, stackup JLC04161H-3313), with the same BOM and CPL
+  (unchanged), repeat the placement-viewer check, then delete Y6.
+
 - **In the cart (Oct 25, 16:45): relay-gerbers_Y6, $440.32.** It replaces Y5, which had the DC jack facing inward. It's
   built from the files with:
   - the pin fixes;

@@ -323,16 +323,16 @@ def m2(B, log):
     pairs go through the grid router as pairs (two vias side by side where they change layer)."""
     from pairroute import route_pair
     b = B.b
-    nets = {"PCIE_REFCLK_P", "PCIE_REFCLK_N", "PCIE_RX_P", "PCIE_RX_N", "PCIE_TX_P", "PCIE_TX_N", "M2_PER_P",
-            "M2_PER_N", "USB_BT_DP", "USB_BT_DM", "PCIE_PERST_N", "PCIE_CLKREQ_N", "PCIE_WAKE_N", "WIFI_DISABLE_N",
+    nets = {"PCIE_REFCLK_P", "PCIE_REFCLK_N", "PCIE_RX_P", "PCIE_RX_N", "PCIE_TX_P", "PCIE_TX_N", "M2_PET_P",
+            "M2_PET_N", "USB_BT_DP", "USB_BT_DM", "PCIE_PERST_N", "PCIE_CLKREQ_N", "PCIE_WAKE_N", "WIFI_DISABLE_N",
             "BT_DISABLE_N"}
     B.clear_nets(nets)
     # AC coupling on the host's transmit pair, just north of the card's PER pins (41, 43), host side to the north
     B.place("C501", 16.55, 20.3, 90)
     B.place("C502", 17.45, 20.3, 90)
-    for ref in ("C501", "C502"):           # turn each so its M2_PER pad faces the socket (south)
+    for ref in ("C501", "C502"):           # turn each so its M2_PET pad faces the socket (south)
         f = B.fp(ref)
-        per = [p for p in f.Pads() if "M2_PER" in p.GetNetname()][0]
+        per = [p for p in f.Pads() if "M2_PET" in p.GetNetname()][0]
         if B.xy(per)[1] < B.xy(f)[1]:
             f.SetOrientationDegrees(270)
     # 3.3 V decoupling at the socket's supply pins (2, 4 and 72, 74) and the control-line pull-ups, on the back
@@ -369,7 +369,7 @@ def m2(B, log):
         out.append(f"{name}: " + ("NO PATH" if r is None else
                                   f"P {r[0]:.1f} N {r[1]:.1f} mm" + (" CROSSED" if r[2] else "")))
     left = []
-    for nm in ("M2_PER_P", "M2_PER_N"):
+    for nm in ("M2_PET_P", "M2_PET_N"):
         left += R.connect(B.net(nm).GetNetname(), [p for fp in b.GetFootprints() for p in fp.Pads()
                                                    if p.GetNetname().split("/")[-1] == nm], 0.14, window=3.0)
     for nm in ("PCIE_PERST_N", "PCIE_CLKREQ_N", "PCIE_WAKE_N", "WIFI_DISABLE_N", "BT_DISABLE_N"):
@@ -567,7 +567,7 @@ def placement(B, log):
     per_p, per_n = pin_xy(B, "J501", "41"), pin_xy(B, "J501", "43")
     for ref, pin in (("C501", per_p), ("C502", per_n)):
         place_near(B, R, ref, {next(p.GetNetname().split("/")[-1] for p in B.fp(ref).Pads()
-                                    if "M2_PER" in p.GetNetname()): (pin[0], pin[1] - 1.2)}, span=2.5,
+                                    if "M2_PET" in p.GetNetname()): (pin[0], pin[1] - 1.2)}, span=2.5,
                    rots=(90, 270))
     for ref, pins in (("C503", ("2", "4")), ("C505", ("2", "4")), ("C504", ("72", "74")), ("C506", ("72", "74"))):
         pts = [pin_xy(B, "J501", n) for n in pins]

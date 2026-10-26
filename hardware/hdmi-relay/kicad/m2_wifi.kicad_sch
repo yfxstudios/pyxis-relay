@@ -2353,26 +2353,15 @@
 		)
 		(uuid "d3870502-7805-5a8c-b11d-5ac449560449")
 	)
-	(global_label "PCIE_RX_P"
-		(shape passive)
+	(label "M2_PET_P"
 		(at 171.45 106.68 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify right)
+			(justify right bottom)
 		)
-		(uuid "7db770e1-c13b-5e52-8b70-6800c47a98e6")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 171.45 106.68 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
+		(uuid "825ebefe-796a-5ff1-9269-72f29fab2fa3")
 	)
 	(no_connect
 		(at 224.79 154.94)
@@ -2389,26 +2378,15 @@
 		)
 		(uuid "2bd19e12-8af8-52e8-943d-cf28b2c128b2")
 	)
-	(global_label "PCIE_RX_N"
-		(shape passive)
+	(label "M2_PET_N"
 		(at 171.45 109.22 180)
-		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify right)
+			(justify right bottom)
 		)
-		(uuid "537d38d0-eb36-5c15-a0fe-1b92bb6b6eba")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 171.45 109.22 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
+		(uuid "4892e986-12f3-55cd-8970-2960699776f1")
 	)
 	(no_connect
 		(at 224.79 101.6)
@@ -2429,15 +2407,26 @@
 		)
 		(uuid "cc47a731-fb9d-5b57-a662-9b14371ad65d")
 	)
-	(label "M2_PER_P"
+	(global_label "PCIE_RX_P"
+		(shape passive)
 		(at 171.45 111.76 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify right bottom)
+			(justify right)
 		)
-		(uuid "a859d753-9b77-53a3-ab17-af1fee35888c")
+		(uuid "d5ecb868-ba21-523c-8e57-d7de219d5fab")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 171.45 111.76 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 	)
 	(no_connect
 		(at 224.79 106.68)
@@ -2454,15 +2443,26 @@
 		)
 		(uuid "80a26780-ba16-5c95-82aa-e5cc6cf92908")
 	)
-	(label "M2_PER_N"
+	(global_label "PCIE_RX_N"
+		(shape passive)
 		(at 171.45 114.3 180)
+		(fields_autoplaced yes)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
-			(justify right bottom)
+			(justify right)
 		)
-		(uuid "f749760e-f8e2-54c1-85ca-e6552d3fbc30")
+		(uuid "9f8a88e4-f721-53b2-872b-cec596cb9c1f")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 171.45 114.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 	)
 	(no_connect
 		(at 224.79 177.8)
@@ -3060,7 +3060,7 @@
 		)
 		(uuid "c9957562-d941-575c-b8cc-49fc20532933")
 	)
-	(label "M2_PER_P"
+	(label "M2_PET_P"
 		(at 110.49 96.52 270)
 		(effects
 			(font
@@ -3068,7 +3068,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "a6108495-7f39-59e0-9491-24bec087ef88")
+		(uuid "d1223a78-ef67-5a31-af20-4683178d1eab")
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -3189,7 +3189,7 @@
 		)
 		(uuid "44125491-6e6f-5ecc-b419-3a1ff62ba4dc")
 	)
-	(label "M2_PER_N"
+	(label "M2_PET_N"
 		(at 119.38 96.52 270)
 		(effects
 			(font
@@ -3197,7 +3197,7 @@
 			)
 			(justify right bottom)
 		)
-		(uuid "fcdec3a8-1310-5a1a-b8bc-cf73f5af799f")
+		(uuid "9322d928-c1c9-53dc-bb91-00179fc42cae")
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -4558,7 +4558,7 @@
 			)
 		)
 	)
-	(text "M.2 2230 E-key socket for the RTL8822CE card: Wi-Fi on PCIe x1 (combo PHY in PCIe mode), Bluetooth on\nUSB 2.0.  Host-side 100 nF AC coupling on the lanes the host transmits.  PCIe 85 ohm, USB 90 ohm."
+	(text "M.2 2230 E-key socket for the RTL8822CE card: Wi-Fi on PCIe x1 (combo PHY in PCIe mode), Bluetooth on\nUSB 2.0.  Host TX -> PETp0/n0 through C501/C502 (0R; AC caps on the CM3), PERp0/n0 -> host RX.  PCIe 85 ohm,\nUSB 90 ohm."
 		(exclude_from_sim no)
 		(at 20.32 15.24 0)
 		(effects
@@ -4567,7 +4567,7 @@
 			)
 			(justify left top)
 		)
-		(uuid "4f0f38d8-6709-5328-bb49-1189ccdeb2d5")
+		(uuid "a1357b41-3d3e-56a6-a3df-500ceff067e8")
 	)
 	(sheet_instances
 		(path "/"

@@ -529,6 +529,14 @@
       {
         "netclass": "POWER",
         "pattern": "5V_SYS"
+      },
+      {
+        "netclass": "PCIE_85R",
+        "pattern": "/M.2 Wi-Fi + Bluetooth/M2_PET_P"
+      },
+      {
+        "netclass": "PCIE_85R",
+        "pattern": "/M.2 Wi-Fi + Bluetooth/M2_PET_N"
       }
     ]
   },

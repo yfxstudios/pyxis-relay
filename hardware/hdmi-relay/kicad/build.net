@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "/Users/matthew/Library/Application Support/Claude/scratch-workspaces/72e81736-2099-4312-9510-31637dcac54f/f681371f-3057-45f7-8f61-df3cb1c90a80/scratch-2026-10-20-e277c5/hardware/hdmi-relay/kicad/relay.kicad_sch")
-		(date "2026-10-25T19:07:36")
+		(date "2026-10-25T21:34:31")
 		(tool "Eeschema 10.0.7")
 		(sheet
 			(number "1")
@@ -18387,7 +18387,7 @@
 		)
 		(net
 			(code "44")
-			(name "/M.2 Wi-Fi + Bluetooth/M2_PER_N")
+			(name "/M.2 Wi-Fi + Bluetooth/M2_PET_N")
 			(class "Default")
 			(node
 				(ref "C502")
@@ -18396,14 +18396,14 @@
 			)
 			(node
 				(ref "J501")
-				(pin "43")
-				(pinfunction "PERn0_43")
-				(pintype "input")
+				(pin "37")
+				(pinfunction "PETn0_37")
+				(pintype "output")
 			)
 		)
 		(net
 			(code "45")
-			(name "/M.2 Wi-Fi + Bluetooth/M2_PER_P")
+			(name "/M.2 Wi-Fi + Bluetooth/M2_PET_P")
 			(class "Default")
 			(node
 				(ref "C501")
@@ -18412,9 +18412,9 @@
 			)
 			(node
 				(ref "J501")
-				(pin "41")
-				(pinfunction "PERp0_41")
-				(pintype "input")
+				(pin "35")
+				(pinfunction "PETp0_35")
+				(pintype "output")
 			)
 		)
 		(net
@@ -22233,9 +22233,9 @@
 			(class "PCIE_85R")
 			(node
 				(ref "J501")
-				(pin "37")
-				(pinfunction "PETn0_37")
-				(pintype "output")
+				(pin "43")
+				(pinfunction "PERn0_43")
+				(pintype "input")
 			)
 			(node
 				(ref "J702")
@@ -22250,9 +22250,9 @@
 			(class "PCIE_85R")
 			(node
 				(ref "J501")
-				(pin "35")
-				(pinfunction "PETp0_35")
-				(pintype "output")
+				(pin "41")
+				(pinfunction "PERp0_41")
+				(pintype "input")
 			)
 			(node
 				(ref "J702")

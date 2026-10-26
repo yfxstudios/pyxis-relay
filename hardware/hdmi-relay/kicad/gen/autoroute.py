@@ -1107,7 +1107,7 @@ def stage_pcie(board, B, R):
     """The PCIe group again, as coupled pairs: RX (hardest, walled in by the others), REFCLK, TX to the AC caps,
     then the short cap-to-socket legs. Pairs that find no coupled path go to stage pairs' single traces."""
     names = ["PCIE_RX_P", "PCIE_RX_N", "PCIE_REFCLK_P", "PCIE_REFCLK_N", "PCIE_TX_P", "PCIE_TX_N",
-             "/M.2 Wi-Fi + Bluetooth/M2_PER_P", "/M.2 Wi-Fi + Bluetooth/M2_PER_N"]
+             "/M.2 Wi-Fi + Bluetooth/M2_PET_P", "/M.2 Wi-Fi + Bluetooth/M2_PET_N"]
     _rip(board, R, {board.FindNet(n).GetNetCode() for n in names})
     pad = lambda ref, num: [q for q in board.FindFootprintByReference(ref).Pads() if q.GetNumber() == num][0]  # noqa
     soft = frozenset(soft_nets(board, u201_too=True))

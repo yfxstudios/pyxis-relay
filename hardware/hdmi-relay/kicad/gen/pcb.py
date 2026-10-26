@@ -32,7 +32,7 @@ NETCLASSES = {
     "DIFF_100R": (0.10, 0.10, 0.45, 0.25, 0.10, 0.10,
                   r"^(HDMIRX|HDMITX)_(D[0-2]|CLK)_[PN]$|^CSI_(D[0-3]|CLK)_[PN]$|^MDI[0-3]_[PN]$"),
     "USB_90R":   (0.12, 0.10, 0.45, 0.25, 0.12, 0.10, r"^USB_.*_D[PM](_C)?$"),
-    "PCIE_85R":  (0.14, 0.10, 0.45, 0.25, 0.14, 0.10, r"^PCIE_(TX|RX|REFCLK)_[PN]$|^M2_PER_[PN]$"),
+    "PCIE_85R":  (0.14, 0.10, 0.45, 0.25, 0.14, 0.10, r"^PCIE_(TX|RX|REFCLK)_[PN]$|^M2_PET_[PN]$"),
     "POWER":     (0.50, 0.127, 0.60, 0.30, 0.20, 0.20,
                   r"^(VIN|VIN_RAW|VDC|VNPF|VBUS_C|VBUS_SW|5V_SYS|5V_SOM|3V3_IO|"
                   r"HDMITX_5V|HDMIRX_5V|SOM_3V3|SOM_1V8|1V0_PHY|LX_.*|SW_.*)$"),

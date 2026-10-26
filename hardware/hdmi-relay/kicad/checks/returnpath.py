@@ -15,7 +15,7 @@ from collections import defaultdict
 import pcbnew
 
 HS = re.compile(r"^(HDMIRX|HDMITX)_(D[0-2]|CLK)_[PN]$|^CSI_(D[0-3]|CLK)_[PN]$|^MDI[0-3]_[PN]$|^USB_.*_D[PM](_C)?$|"
-                r"^PCIE_(TX|RX|REFCLK)_[PN]$|^M2_PER_[PN]$|^XIN_628$|^XOUT_628$")
+                r"^PCIE_(TX|RX|REFCLK)_[PN]$|^M2_PET_[PN]$|^XIN_628$|^XOUT_628$")
 REF = {pcbnew.F_Cu: pcbnew.In1_Cu, pcbnew.B_Cu: pcbnew.In2_Cu, pcbnew.In2_Cu: pcbnew.In1_Cu}
 O = 30
 

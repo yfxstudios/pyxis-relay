@@ -42,10 +42,12 @@ FRONT = [
     dict(name="HDMI IN", c=24.0, w=15.8, h=7.0, pocket=(22.0, 12.0)),
     dict(name="HDMI OUT", c=79.0, w=15.8, h=7.0, pocket=(22.0, 12.0)),
 ]
-# Rear wall (y = 100): USB-C, DC jack (its opening is 0.7 mm inside the board edge, so the opening fits the plug),
+# Rear wall (y = 100): USB-C (its face is 0.5 mm inside the board edge, so the opening reaches 2.4 mm below the board
+# top, notching the base wall too: the plug's 6.5 mm overmould, centred 1.6 mm above the board, reaches the socket),
+# DC jack (its opening is 0.7 mm inside the board edge, so the opening fits the plug),
 # magjack (15.1 mm tall; it sticks out 5.5 mm past the board edge, through the wall).
 REAR = [
-    dict(name="USB-C", c=16.0, w=12.6, h=7.0, z=-0.6, r=3.0),
+    dict(name="USB-C", c=16.0, w=12.6, h=8.8, z=-2.4, r=1.5),
     dict(name="DC IN", c=42.0, w=11.4, h=11.6),
     dict(name="ETHERNET", c=99.0, w=19.2, h=15.6),
 ]
@@ -65,7 +67,8 @@ VENTS = [dict(x0=44, x1=88, y0=34, y1=66, slot=2.0, pitch=4.0),   # over the CM3
                                                                   # air out; the low side vents are the intake)
 # Base: two 1/4"-20 heat-set inserts underneath, clear of bottom-side parts.
 TRIPOD = [(30.0, 70.0), (85.0, 85.0)]
-TRIPOD_INSERT = dict(d=8.0, depth=6.6)        # 1/4"-20 x 0.25" heat-set insert hole
+TRIPOD_INSERT = dict(d=8.0, depth=5.0)        # 1/4"-20 x 0.2" (5 mm) heat-set insert hole: the boss ends 0.2 mm
+TRIPOD_BOSS = UNDER - 0.2                     # under the board, so 0.8 mm of boss stays above the hole as a stop
 M3_INSERT = dict(d=4.0, depth=6.5)            # M3 heat-set insert hole (e.g. Ruthex M3 x 5.7); an M3 x 10
                                               # from the counterbore ends 5.6 mm above the board, inside it
 M3_CLEAR, M3_HEAD = 3.4, 6.2                  # clearance hole, counterbore for an M3 socket head
@@ -94,6 +97,12 @@ def box(cx, cy, cz, sx, sy, sz):
     return cq.Workplane("XY").box(sx, sy, sz).translate((cx, cy, cz))
 
 
+def rear_cut(o):
+    z0 = Z_BT + o.get("z", 0.0)
+    cut = box(o["c"], -(Y1 - 1.0), z0 + o["h"] / 2, o["w"], WALL * 4, o["h"])
+    return cut.edges("|Y").fillet(o["r"]) if o.get("r") else cut
+
+
 def base():
     b = outer_box(0, Z_BT).cut(inner_box(FLOOR, Z_BT + 1))
     for x, y in HOLES:                          # standoffs, with a through hole and a counterbore underneath
@@ -102,7 +111,7 @@ def base():
         b = b.cut(cq.Workplane("XY").center(*P(x, y)).circle(M3_CLEAR / 2).extrude(Z_BB))
         b = b.cut(cq.Workplane("XY").center(*P(x, y)).circle(M3_HEAD / 2).extrude(3.2))
     for x, y in TRIPOD:                         # 1/4"-20 inserts from below, in bosses
-        boss = cq.Workplane("XY").workplane(offset=FLOOR).center(*P(x, y)).circle(6.5).extrude(UNDER - 1.0)
+        boss = cq.Workplane("XY").workplane(offset=FLOOR).center(*P(x, y)).circle(6.5).extrude(TRIPOD_BOSS)
         b = b.union(boss)
         b = b.cut(cq.Workplane("XY").center(*P(x, y)).circle(TRIPOD_INSERT["d"] / 2)
                   .extrude(TRIPOD_INSERT["depth"]))
@@ -113,6 +122,9 @@ def base():
     # the magjack overhangs the board edge at board-top level, right over the rear wall: 0.4 mm relief under it
     eth = next(o for o in REAR if o["name"] == "ETHERNET")
     b = b.cut(box(eth["c"], -(Y1 - WALL / 2), Z_BT - 0.2, eth["w"], WALL + 2, 0.4 + 0.01))
+    for o in REAR:                              # openings that start below the board top (USB-C) notch the base too
+        if o.get("z", 0.0) < 0:
+            b = b.cut(rear_cut(o))
     # rubber feet recesses (10 mm bumpers)
     for x, y in [(12, 12), (108, 12), (12, 88), (108, 88)]:
         b = b.cut(cq.Workplane("XY").center(*P(x, y)).circle(5.3).extrude(0.6))
@@ -134,11 +146,7 @@ def lid():
         l = l.cut(box(o["c"], -(Y0 + 0.6), Z_BT + 3.1, pw, 1.2 * 2, ph))
     # rear wall
     for o in REAR:
-        z0 = Z_BT + o.get("z", 0.0)
-        cut = box(o["c"], -(Y1 - 1.0), z0 + o["h"] / 2, o["w"], WALL * 4, o["h"])
-        if o.get("r"):
-            cut = cut.edges("|Y").fillet(o["r"])
-        l = l.cut(cut)
+        l = l.cut(rear_cut(o))
     l = l.cut(cq.Workplane("XZ", origin=(0, -Y1 + WALL + 1, 0)).center(BATT_WIRE["x"], Z_BT + BATT_WIRE["z"])
               .circle(BATT_WIRE["d"] / 2).extrude(WALL + 2))
     # left wall: RP-SMA bulkheads (D-flat holes)
@@ -200,6 +208,21 @@ def check(parts):
             if v > 0.5:
                 ok = False
                 print(f"  CLASH {pname} x {label}: {v:.1f} mm^3")
+    # holes are not solids, so the intersections above cannot see them: probe the two the review found
+    usb = next(o for o in REAR if o["name"] == "USB-C")    # a 12 x 6.5 mm plug overmould from the receptacle face out
+    plug = box(usb["c"], -(99.5 + Y1) / 2, Z_BT + 1.6, 12.0, Y1 - 99.5 + 1.0, 6.5)
+    for pname, p in parts.items():
+        v = p.intersect(plug).val().Volume()
+        if v > 0.01:
+            ok = False
+            print(f"  CLASH {pname} x USB-C plug overmould: {v:.1f} mm^3")
+    for x, y in TRIPOD:                                    # the boss above each insert hole must be solid
+        stop = cq.Workplane("XY").workplane(offset=TRIPOD_INSERT["depth"] + 0.05).center(*P(x, y)).circle(2.0) \
+            .extrude(0.5)
+        v, full = parts["base"].intersect(stop).val().Volume(), stop.val().Volume()
+        if v < full - 0.01 or FLOOR + TRIPOD_BOSS > Z_BB:
+            ok = False
+            print(f"  tripod insert at ({x}, {y}): no solid stop between the hole and the board")
     tb = board.val().BoundingBox()
     print(f"  board model extents: x {tb.xmin:.1f}..{tb.xmax:.1f}, y {-tb.ymax:.1f}..{-tb.ymin:.1f}, "
           f"z {tb.zmin:.1f}..{tb.zmax:.1f} (board top at {Z_BT:.1f}, roof underside at {Z_TOP - ROOF:.1f})")

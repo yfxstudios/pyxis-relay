@@ -611,3 +611,14 @@ clears `fab/`, so the MPN map for the PCBWay BOM lives in `gen/lcsc-mpn.json`.
 - `relay.kicad_sch`: root sheet; one `.kicad_sch` per sheet.
 - `relay.kicad_sym` and `relay.pretty/`: project symbols and footprints, also generated.
 - `erc.json`, `build.net`: output of the last `gen/check.sh`.
+
+**Final review fixes (Oct 25, REVIEW_FINAL.md).**
+- **B1:** the M.2 PCIe pairs were swapped (PET is the host's transmit pair). Now PCIE_TX → C501/C502 (0 Ω) →
+  `M2_PET_P/N` → J501 35/37, and PCIE_RX → J501 41/43. Done with a scripted edit at J501 on `routed.kicad_pcb`: RX
+  shortened to 41/43, F.Cu stubs from C501/C502 to 35/37, REFCLK_N moved off that band to a via in pad 49 and B.Cu,
+  PCIE_TX_P's B.Cu run nudged 0.1 mm east. Backup before the change: `backup/2026-10-25-pre-B1swap/`. Netclass
+  PCIE_85R covers `M2_PET_*` (project file and `gen/pcb.py`).
+- **M1:** `../dt/rk3566-relay-carrier.dtso` releases the BSP base tree's sdmmc0, regulators, LEDs and RTC on pins
+  this board reuses.
+- **M2:** case USB-C notch and tripod insert depth (`../case/README.md`).
+- DRC with parity 0/0/0, ERC 0, fab outputs regenerated (BOM and CPL unchanged).

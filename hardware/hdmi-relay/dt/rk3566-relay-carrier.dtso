@@ -3,8 +3,11 @@
  * Device-tree overlay for the HDMI-in relay carrier, rev A, on a Radxa CM3 (RK3566, module V1.32+).
  *
  * Everything the carrier needs from software that the hardware cannot do by itself (REV_A_SPEC.md section 7,
- * kicad/REVIEW_FABLE_3.md M3). Written against the labels of the Radxa CM3 device tree (rk3566-radxa-cm3.dtsi:
- * vccio_acodec, pmu_io_domains, pcie2x1, i2c2, gpio0..gpio4); check them against the BSP you build.
+ * kicad/REVIEW_FABLE_3.md M3). Base tree: Radxa's BSP rk3566-radxa-cm3-io.dtb (radxa/kernel linux-5.10-gen-rkr4.1,
+ * rk3566-radxa-cm3-io.dts + rk3566-radxa-cm3.dtsi), the only kernel with the rk628 driver. The overlay uses that tree's
+ * labels (vccio_acodec, vcc_sd, vcc5v0_usb30, tf_det, vcc_ch482d1/2, gpio_leds, hym8563, ...): an unknown label stops
+ * it applying. Checked 2026-10-25: compiles with dtc 1.8.1 (-@) and applies with fdtoverlay to the rkr4.1 base built
+ * from those sources; check again against the BSP you actually boot.
  *
  * Pins (kicad/gen/module.py):
  *   GPIO1_B2  PCIE_PERST_N    J68-109  VCCIO1   output, active low (reset pull-down holds the card in reset)
@@ -20,6 +23,15 @@
  *   GPIO0_A5  LED_WIFI        J69-75   PMUIO1   high = on (blue, 150R)
  *   GPIO0_D4  TF_DET          (module)          keep low: driven high, the module's Q4 pulls PLUGIN_DET low
  *   I2C2_M1   RK628D I2C      J69-35/36 VCCIO6  SCL GPIO4_B5, SDA GPIO4_B4, 4.7k to 3.3 V on the board
+ *
+ * Taken back from the IO-board base tree (it drives these as its own SD, USB and LED signals; kicad/REVIEW_FINAL.md M1):
+ *   GPIO0_A4/A5  sdmmc0 card detect and vcc_sd enable    -> PLUGIN_DET and LED_WIFI here: sdmmc0 and vcc_sd off
+ *   GPIO3_C2     vcc5v0_usb30 enable, always on (high)   -> RK628D_RESET_N here: regulator off, USB phy on vcc5v0_sys
+ *   GPIO0_D4     tf_det regulator (holds it low)          -> replaced by the hog below
+ *   GPIO3_C6/C7  vcc_ch482d1/2 enables, always on (low)   -> DVP_D0/D1 on the SDI header: off
+ *   GPIO4_A4/B7  pi-led-green (heartbeat), pwr-led-red    -> DVP_D14/DVP_VSYNC on the SDI header: off
+ *   I2C2 0x51    hym8563 RTC (not on this board)          -> off; I2C2 is the RK628D's bus
+ *   GPIO0_A0 (WIFI_DISABLE_N) and GPIO0_D3 are not claimed by the base tree.
  *
  * Not here (board-level facts for whoever writes the camera pipeline):
  *   - CSI: 4 data lanes on CSI0, D0..D3 in order, clock CLK0; no lane swap or polarity swap on the board.
@@ -43,6 +55,49 @@
 	regulator-max-microvolt = <3300000>;
 	regulator-always-on;
 	regulator-boot-on;
+};
+
+/* The IO board's SD slot, USB supply switch, CH482D switches, LEDs and RTC are not on this carrier; its pins are reused */
+&sdmmc0 {
+	status = "disabled";
+};
+
+&vcc_sd {
+	status = "disabled";
+};
+
+&vcc5v0_usb30 {
+	status = "disabled";
+};
+
+&u2phy0_host {
+	phy-supply = <&vcc5v0_sys>;
+};
+
+&tf_det {
+	status = "disabled";
+};
+
+&vcc_ch482d1 {
+	status = "disabled";
+};
+
+&vcc_ch482d2 {
+	status = "disabled";
+};
+
+&gpio_leds {
+	pi-led-green {
+		status = "disabled";
+	};
+
+	pwr-led-red {
+		status = "disabled";
+	};
+};
+
+&hym8563 {
+	status = "disabled";
 };
 
 &pmu_io_domains {
@@ -87,6 +142,7 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pcie20m2_relay &pcie_perst>;
 	reset-gpios = <&gpio1 RK_PB2 GPIO_ACTIVE_HIGH>;
+	/* max-link-speed = <1>; */	/* fall back to Gen1 if the link does not train at Gen2 */
 	status = "okay";
 };
 
@@ -128,7 +184,7 @@
 	};
 };
 
-/* TF_DET (GPIO0_D4) drives the module's Q4, which pulls GPIO0_A4 (our PLUGIN_DET) low: hold it low */
+/* TF_DET (GPIO0_D4) drives the module's Q4, which pulls GPIO0_A4 (our PLUGIN_DET) low: hold it low (tf_det is off above) */
 &gpio0 {
 	tf-det-low-hog {
 		gpio-hog;
@@ -144,6 +200,8 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&i2c2m1_xfer>;
 	clock-frequency = <400000>;
+	#address-cells = <1>;
+	#size-cells = <0>;
 	status = "okay";
 
 	rk628: rk628@50 {
