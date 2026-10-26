@@ -16516,7 +16516,7 @@
 				)
 			)
 		)
-		(property "Value" "DEBUG UART 1V8"
+		(property "Value" "DEBUG UART 3V3"
 			(at 0 7.46 0)
 			(layer "F.Fab")
 			(uuid "104454b6-91a3-452b-88b7-a6791645e546")
@@ -16561,7 +16561,7 @@
 				)
 			)
 		)
-		(property "Note" "1.8 V levels (GPIO0_D0/D1 are in the CM3's 1.8 V PMUIO2): use a 1.8 V adapter"
+		(property "Note" "3.3 V levels: GPIO0_D0/D1 are in PMUIO2, which the V1.322 CM3 feeds from GPIO_VREF (R12/R24 0R), tied to 3.3 V here. Measure TX idle before connecting an adapter"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -77173,7 +77173,7 @@
 	(zone
 		(net "GND")
 		(layer "F.Cu")
-		(uuid "9a07d9dd-385e-426b-b710-8551e0d1aa35")
+		(uuid "35da53f1-7fe1-4081-b7d0-ae3293ccf6d6")
 		(hatch edge 0.5)
 		(connect_pads thru_hole_only
 			(clearance 0.2)
@@ -83611,7 +83611,7 @@
 	(zone
 		(net "GND")
 		(layer "B.Cu")
-		(uuid "bdf84b9f-01bb-44a5-98ad-173ac6a77071")
+		(uuid "29003d28-89d2-45a1-8a54-e0c7a2a9dd00")
 		(hatch edge 0.5)
 		(connect_pads thru_hole_only
 			(clearance 0.2)
@@ -88151,7 +88151,7 @@
 	(zone
 		(net "GND")
 		(layer "In1.Cu")
-		(uuid "a18cf1a2-8f80-4fb8-9c6f-62bd0d57d952")
+		(uuid "c7f5625d-f7c3-4ae2-9477-3397add2a3eb")
 		(hatch edge 0.5)
 		(connect_pads thru_hole_only
 			(clearance 0.2)
@@ -93915,7 +93915,7 @@
 	(zone
 		(net "GND")
 		(layer "In2.Cu")
-		(uuid "39e05a0b-8e5f-4fd8-bbe9-7fbdb444a784")
+		(uuid "4ec38c0c-3e3f-4f2e-af59-0c7580ce5658")
 		(hatch edge 0.5)
 		(connect_pads thru_hole_only
 			(clearance 0.2)

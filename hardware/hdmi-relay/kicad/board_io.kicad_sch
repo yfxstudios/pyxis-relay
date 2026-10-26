@@ -2239,7 +2239,7 @@
 				)
 			)
 		)
-		(property "Value" "DEBUG UART 1V8"
+		(property "Value" "DEBUG UART 3V3"
 			(at 39.37 64.77 0)
 			(effects
 				(font
@@ -2274,7 +2274,7 @@
 				(hide yes)
 			)
 		)
-		(property "Note" "1.8 V levels (GPIO0_D0/D1 are in the CM3's 1.8 V PMUIO2): use a 1.8 V adapter"
+		(property "Note" "3.3 V levels: GPIO0_D0/D1 are in PMUIO2, which the V1.322 CM3 feeds from GPIO_VREF (R12/R24 0R), tied to 3.3 V here. Measure TX idle before connecting an adapter"
 			(at 39.37 59.69 0)
 			(effects
 				(font

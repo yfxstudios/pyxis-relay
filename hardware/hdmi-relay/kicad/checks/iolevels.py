@@ -35,7 +35,8 @@ def bank(g):
         if i < 8:
             return "PMUIO1", 3.3                 # p.7: "Operating Voltage=3.3V Only"
         if i < 27:
-            return "PMUIO2", 1.8                 # p.7: supplied from VCCA1V8_PMU
+            return "PMUIO2 = GPIO_VREF", 3.3     # p.7: VCCA1V8_PMU_1 = R12 (0R) to 1V8_3.3V = R24 (0R) to GPIO_VREF
+                                                 # (R11 to VCCA1V8_PMU is NC); GPIO_VREF tied to SOM_3V3 here
         return "OSC (PMUIO0)", 1.8               # p.7: GPIO0_D3-D6, "1.8V Only"
     if b == 1 and i < 12:
         return "VCCIO1 = ACODEC (DT: 3.3 V)", 3.3   # off until software sets it; this board needs 3.3 V
@@ -53,7 +54,7 @@ RAIL = {"3V3_IO": 3.3, "SOM_3V3": 3.3, "RK628D_3V3": 3.3, "SOM_1V8": 1.8, "5V_SY
         "HDMITX_5V": 5.0, "VBUS_C": 9.0, "VBUS_SW": 9.0, "VIN": 17.0}
 # other parts' logic level on the nets they share with the CM3
 PART_V = {"U201": 3.3, "J501": 3.3}          # RK628D I/O (VCCIO1/2 = 3.3 V); M.2 card sideband (3.3 V)
-MODULE_PULLUP = {"GPIO0_B5", "GPIO0_B6"}     # I2C2_M0: 2.2k to VCCA1V8_PMU on the module (p.7, R9/R10)
+MODULE_PULLUP = {"GPIO0_B5", "GPIO0_B6"}     # I2C2_M0: 2.2k to VCCA1V8_PMU_1 (= GPIO_VREF) on the module (p.7, R9/R10)
 LED_VF = {"white": 2.6, "blue": 2.7, "red": 1.8, "green": 2.0}   # lowest forward voltage at about 1 mA
 SKIP = ("unconnected", "SOM_", "5V", "USB_", "PCIE_TX", "PCIE_RX", "PCIE_REFCLK", "CSI_", "MDI", "HDMITX_D",
         "HDMITX_CLK", "GND")
@@ -110,7 +111,7 @@ def main():
                     if bv and PART_V[r] > bv + 0.3:
                         flags.append(f"OVERVOLTAGE ({r} drives {PART_V[r]} V)")
             if g in MODULE_PULLUP and not nm.startswith("I2C"):
-                flags.append("MODULE PULL-UP (2.2k to 1.8 V on the CM3)")
+                flags.append("MODULE PULL-UP (2.2k to the PMUIO2 rail on the CM3)")
             if bv is None:
                 flags.append("UNKNOWN BANK")
             flagged += bool(flags)

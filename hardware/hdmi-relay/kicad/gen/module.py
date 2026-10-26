@@ -18,14 +18,15 @@ GND = "GND"
 ASSIGN = {
     "J69": {
         3: "MDI3_P", 5: "MDI3_N", 4: "MDI1_P", 6: "MDI1_N", 11: "MDI2_P", 9: "MDI2_N", 12: "MDI0_P", 10: "MDI0_N",
-        # the RK628D's I/O is 3.3 V: its lines stay off GPIO0_B0-C7 (PMUIO2, 1.8 V on the CM3)
+        # the RK628D's I/O is 3.3 V. PMUIO2 (GPIO0_B0-D2) follows GPIO_VREF on the V1.322 module (R12/R24 0R), so it is
+        # 3.3 V here, but its module pull-ups and 1.8 V builds (R11 fitted) keep the RK628D lines off it anyway
         76: "RK628D_PLUGIN_DET",                                     # GPIO0_A4 (PMUIO1, 3.3 V); SDMMC0_DET, an input
         35: "I2C_628_SCL", 36: "I2C_628_SDA",                       # I2C2_M1, GPIO4_B5/B4 (VCCIO6 = GPIO_VREF, 3.3 V)
         37: "SDI_UART_TX",                                           # GPIO4_C5 = UART9_TX_M1 (V1.32: was SARADC)
         93: "RECOVERY_ADC",                                          # SARADC_VIN0: low at boot = Rockusb recovery
-        # GPIO0_B0-D2 (PMUIO2) are 1.8 V on the CM3 and GPIO0_D3-D6 (OSC) are 1.8 V only (CM3 schematic p.7): the
-        # LEDs and every 3.3 V control line use VCCIO5/6/7 or PMUIO1 pins. PD_PG_N stays off the module: GPIO0_B6
-        # carries a 2.2k pull-up to 1.8 V there, which held Q101 on.
+        # GPIO0_D3-D6 (OSC) are 1.8 V only (CM3 schematic p.7); GPIO0_B0-D2 (PMUIO2) follow GPIO_VREF (3.3 V here,
+        # first read as 1.8 V): the LEDs and every 3.3 V control line use VCCIO5/6/7 or PMUIO1 pins. PD_PG_N stays off
+        # the module: GPIO0_B6 carries a 2.2k pull-up there, which held Q101 on.
         34: "LED_STATUS", 75: "LED_WIFI",                            # GPIO4_B1 (VCCIO6), GPIO0_A5 (PMUIO1)
         51: "DEBUG_RX", 55: "DEBUG_TX",                              # UART2_M0, the boot console
         100: "SOM_RESET_N",                                          # PMIC_RESET_KEY
@@ -60,7 +61,7 @@ ASSIGN = {
         4: "SDI_GPIO5", 6: "SDI_GPIO6", 8: "SDI_GPIO7",              # GPIO3_A1/B4/C1 (VCCIO5 = 3.3 V)
         12: "RK628D_INT",                                            # GPIO3_C3 (VCCIO5 = 3.3 V)
         10: "RK628D_RESET_N",                                        # GPIO3_C2 (VCCIO5 = 3.3 V); was SDI_GPIO8
-        95: "RK628D_PWR_EN",                                         # GPIO0_C4 (1.8 V) into an NPN base: fine
+        95: "RK628D_PWR_EN",                                         # GPIO0_C4 (PMUIO2, 3.3 V) into an NPN base: fine
     },
 }
 OFFSET = {"J69": 0, "J68": 100, "J1": 0}

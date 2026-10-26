@@ -38,7 +38,7 @@
  *     After length matching the worst data-to-clock skew is 6.3 mm (about 40 ps, 0.05 UI at 1.2 Gb/s):
  *     any RK628D lane rate up to its 1.2 Gb/s maximum is fine. Watch the CSI CRC/ECC counters at bring-up.
  *   - Bluetooth of the M.2 card is on USB2 HOST2 (J1-63/65); enable that host port.
- *   - Debug UART (UART2_M0, J69-51/55) is 1.8 V.
+ *   - Debug UART (UART2_M0, J69-51/55) is 3.3 V: PMUIO2 follows GPIO_VREF on the V1.322 module.
  */
 
 /dts-v1/;

@@ -90,7 +90,7 @@ def board_io(project):
            "and mounting holes.  The SDI header carries the module's 16-bit DVP camera input (BT.1120 from an SDI\n"
            "receiver such as the GS2971A).  On the CM3 the DVP pins are free: its Ethernet uses GMAC1_M0.", (20, 15), 2)
     s.add("Connector_Generic:Conn_01x03", (40, 60), {"Pin_1": "DEBUG_TX", "Pin_2": "DEBUG_RX", "Pin_3": "GND"},
-          value="DEBUG UART 1V8", ref="J", Note="1.8 V levels (GPIO0_D0/D1 are in the CM3's 1.8 V PMUIO2): use a 1.8 V adapter", footprint="Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical")
+          value="DEBUG UART 3V3", ref="J", Note="3.3 V levels: GPIO0_D0/D1 are in PMUIO2, which the V1.322 CM3 feeds from GPIO_VREF (R12/R24 0R), tied to 3.3 V here. Measure TX idle before connecting an adapter", footprint="Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical")
     # buttons
     s.add("Switch:SW_Push", (100, 60), {"1": "SOM_RESET_N", "2": "GND"}, value="RESET",
           footprint="Button_Switch_SMD:SW_SPST_TL3342")

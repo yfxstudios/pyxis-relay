@@ -75,11 +75,16 @@ ordered and not in the cart. JLCPCB auto-saved it in the account as the project 
 
 ## Before ordering
 
-- **Superseded by the B1 fix (Oct 25, later):** Y6's Gerbers have the M.2 PCIe pairs swapped. Upload the new
+- **In the cart (Oct 25, 23:07): relay-gerbers_Y7, $440.54** ($130.36 boards + $310.18 assembly; subtotal $448.01 with
+  $37.47 DHL and the $30 coupon, before duty). Built from commit d32a7c2's `kicad/fab/`: the M.2 PCIe fix (B1), J301
+  left out of the BOM and CPL (hand-fitted), and J101 turned and offset for JLCPCB's model (checked in the viewer).
+  Same options as the quote. Y6 is deleted. Check out with only Y7 selected; leave P2 unselected.
+
+- **Done (Y7 above):** Y6's Gerbers have the M.2 PCIe pairs swapped. Upload the new
   `kicad/fab/relay-gerbers.zip` as a new order (same options, stackup JLC04161H-3313), with the same BOM and CPL
   (unchanged), repeat the placement-viewer check, then delete Y6.
 
-- **In the cart (Oct 25, 16:45): relay-gerbers_Y6, $440.32.** It replaces Y5, which had the DC jack facing inward. It's
+- **Was in the cart (Oct 25, 16:45; deleted at 23:07): relay-gerbers_Y6, $440.32.** It replaces Y5, which had the DC jack facing inward. It's
   built from the files with:
   - the pin fixes;
   - the ESD links (review B1);
@@ -92,4 +97,4 @@ ordered and not in the cart. JLCPCB auto-saved it in the account as the project 
   It's $1.52 more than the quote above: one more feeder for the 0 Ω part. Product description is Development Board
   (HS 847330); J301 is not placed.
 - **Earlier cart orders deleted:** Y3 (3 assembled, pre-fix files), Y4 (before M3/M4) and Y5 (jack backwards). Check
-  out from the cart with only Y6 selected. The cart also holds the 500-unit quote (P2); leave it unselected.
+  out with only Y7 selected (see the top of this list).

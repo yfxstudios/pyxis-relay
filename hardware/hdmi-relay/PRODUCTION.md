@@ -17,7 +17,7 @@ paid (DDP).
 | 1. Incoming check | Count boards, look for damage and missing parts (photo on a light box), log the JLCPCB lot | 1 min |
 | 2. Hand soldering | Fit the parts JLCPCB can't: the Pulse magjack J301 on rev A (out of stock at JLCPCB). Rev B moves to a stocked jack JLCPCB can fit. | 3 min (rev A only) |
 | 3. Module and Wi-Fi | Thermal pad and heatsink on the CM3, press the CM3 onto J701–J703, four M2.5 screws on 1.5 mm spacers (the DF40 stack height: without them the screws bend the connectors); Wi-Fi card into J501 with an M2 screw; two antenna leads onto the card | 4 min |
-| 4. Flash | 12 V on the DC jack, then hold RECOVERY and plug USB-C to the PC (data only: the board does not run reliably from a PC port's 5 V). Run the flashing script (writes the image, sets the serial number, records the MACs). Several units can flash at once. The debug header J601 is 1.8 V: use a 1.8 V USB-UART adapter. | 1 min attended, 3 min machine |
+| 4. Flash | 12 V on the DC jack, then hold RECOVERY and plug USB-C to the PC (data only: the board does not run reliably from a PC port's 5 V). Run the flashing script (writes the image, sets the serial number, records the MACs). Several units can flash at once. The debug header J601 is 3.3 V: use a 3.3 V USB-UART adapter. | 1 min attended, 3 min machine |
 | 5. Test | Run the test script (below); print the label only on PASS | 5 min, partly machine time |
 | 6. Case and box | Board into the printed base, four screws, antennas into the bulkheads, light pipes, lid, label, box with the quick-start card | 4 min |
 

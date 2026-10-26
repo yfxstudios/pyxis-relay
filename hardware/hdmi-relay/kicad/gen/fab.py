@@ -89,7 +89,7 @@ LCSC_BY = {
     ("HDMI IN", "HDMI_A_Molex_208658-1001_Horizontal"): "C916313",   # Molex 2086581001
     ("HDMI OUT", "HDMI_A_Molex_208658-1001_Horizontal"): "C916313",
     ("M.2 E-key 2230", "TE_M.2_E_2x38-1MP_P0.5mm"): "C2977809",      # TE 2199230-4
-    ("DEBUG UART 1V8", "PinHeader_1x03_P2.54mm_Vertical"): "C2937625",   # PZ254V-11-03P
+    ("DEBUG UART 3V3", "PinHeader_1x03_P2.54mm_Vertical"): "C2937625",   # PZ254V-11-03P
     ("RESET", "SW_SPST_TL3342"): "C2886898",               # TL3342F160QG
     ("RECOVERY", "SW_SPST_TL3342"): "C2886898",
     ("DC 6-17V", "BarrelJack_Horizontal"): "C2961147",     # CUI PJ-002AH: 5 A (PJ-002A is 2.5 A), same layout; 2.0 mm pin

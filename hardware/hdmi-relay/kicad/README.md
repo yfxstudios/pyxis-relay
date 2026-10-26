@@ -626,3 +626,9 @@ clears `fab/`, so the MPN map for the PCBWay BOM lives in `gen/lcsc-mpn.json`.
   this board reuses.
 - **M2:** case USB-C notch and tripod insert depth (`../case/README.md`).
 - DRC with parity 0/0/0, ERC 0, fab outputs regenerated (BOM and CPL unchanged).
+
+**Correction (Oct 26, REVIEW_FINAL_3.md M3).** PMUIO2 (GPIO0_B0–D2) is not 1.8 V on the V1.322 module: its supply,
+VCCA1V8_PMU_1, comes from GPIO_VREF through R12 and R24 (both 0 Ω; R11 to 1.8 V is not fitted), and this carrier ties
+GPIO_VREF to 3.3 V. The sections above that call it 1.8 V were conservative, so no pin is misplaced, but the debug UART
+J601 is 3.3 V: its value is now "DEBUG UART 3V3" and `checks/iolevels.py` maps PMUIO2 to 3.3 V. Measure J601's TX idle
+level on the first board before connecting an adapter.

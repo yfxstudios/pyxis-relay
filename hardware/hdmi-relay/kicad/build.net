@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "/Users/matthew/Library/Application Support/Claude/scratch-workspaces/72e81736-2099-4312-9510-31637dcac54f/f681371f-3057-45f7-8f61-df3cb1c90a80/scratch-2026-10-20-e277c5/hardware/hdmi-relay/kicad/relay.kicad_sch")
-		(date "2026-10-25T21:34:31")
+		(date "2026-10-26T09:28:06")
 		(tool "Eeschema 10.0.7")
 		(sheet
 			(number "1")
@@ -10813,12 +10813,12 @@
 		)
 		(comp
 			(ref "J601")
-			(value "DEBUG UART 1V8")
+			(value "DEBUG UART 3V3")
 			(footprint "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical")
 			(datasheet "~")
 			(fields
 				(field
-					(name "Note") "1.8 V levels (GPIO0_D0/D1 are in the CM3's 1.8 V PMUIO2): use a 1.8 V adapter")
+					(name "Note") "3.3 V levels: GPIO0_D0/D1 are in PMUIO2, which the V1.322 CM3 feeds from GPIO_VREF (R12/R24 0R), tied to 3.3 V here. Measure TX idle before connecting an adapter")
 				(field
 					(name "Footprint") "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical")
 				(field
@@ -10834,7 +10834,7 @@
 			)
 			(property
 				(name "Note")
-				(value "1.8 V levels (GPIO0_D0/D1 are in the CM3's 1.8 V PMUIO2): use a 1.8 V adapter")
+				(value "3.3 V levels: GPIO0_D0/D1 are in PMUIO2, which the V1.322 CM3 feeds from GPIO_VREF (R12/R24 0R), tied to 3.3 V here. Measure TX idle before connecting an adapter")
 			)
 			(property
 				(name "Sheetname")
@@ -18388,7 +18388,7 @@
 		(net
 			(code "44")
 			(name "/M.2 Wi-Fi + Bluetooth/M2_PET_N")
-			(class "Default")
+			(class "PCIE_85R")
 			(node
 				(ref "C502")
 				(pin "2")
@@ -18404,7 +18404,7 @@
 		(net
 			(code "45")
 			(name "/M.2 Wi-Fi + Bluetooth/M2_PET_P")
-			(class "Default")
+			(class "PCIE_85R")
 			(node
 				(ref "C501")
 				(pin "2")

@@ -199,6 +199,13 @@ apart from the two LED resistors.
 - **Re-run:** ERC 0; DRC with parity 0/0/0; case fit check PASS (with the new plug and insert probes);
   `checks/returnpath.py` flags REFCLK_N's new via at 1.26 mm from the nearest GND via (100 MHz clock: accepted).
 
+## Fixed on Oct 26 (REVIEW_FINAL_3.md)
+
+- **M3, PMUIO2 level:** confirmed in the CM3 V1.322 schematic text: ball 1N15 (PMUIO2) is VCCA1V8_PMU_1; R11 (to
+  VCCA1V8_PMU) and R13 are NC, R12 (0 Ω) goes to 1V8_3.3V, and R24 (0 Ω) joins 1V8_3.3V to GPIO_VREF, tied to 3.3 V
+  here. GPIO0_B0–D2 and the UART2 debug header J601 are 3.3 V. J601's value is now "DEBUG UART 3V3"; REV_A_SPEC,
+  PRODUCTION, the overlay comment and `checks/iolevels.py` are corrected. No copper change.
+
 ## Majors from REVIEW_FABLE_3.md (Oct 25)
 
 - **M1:** closed by a part-by-part check in JLCPCB's viewer. No rotation changes were needed beyond U401 and the

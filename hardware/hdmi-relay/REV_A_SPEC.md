@@ -214,10 +214,12 @@ This copies the DshanPi-A1 circuit (schematic pages 31–32), with our changes m
 All of it is in [`kicad/gen/module.py`](kicad/gen/module.py), which fails the build if a pin is assigned twice or
 left out. Pins not listed are ground or no-connect.
 
-**I/O voltage (Oct 25 fix).** On the CM3, GPIO0_B0–D2 (PMUIO2) are 1.8 V and GPIO0_D3–D6 (the oscillator domain,
-PMUIO0) are 1.8 V only (CM3 V1.322 schematic p.7). Everything that meets a 3.3 V part, a 3.3 V pull-up or an LED uses
+**I/O voltage (Oct 25 fix; corrected Oct 26).** On the CM3, GPIO0_D3–D6 (the oscillator domain, PMUIO0) are 1.8 V
+only (CM3 V1.322 schematic p.7). GPIO0_B0–D2 (PMUIO2) follow GPIO_VREF on the V1.322 module (VCCA1V8_PMU_1: R12 0 Ω to
+1V8_3.3V, R24 0 Ω to GPIO_VREF; R11 to 1.8 V not fitted), so they are 3.3 V on this carrier; the Oct 25 fix treated
+them as 1.8 V, which was conservative. Everything that meets a 3.3 V part, a 3.3 V pull-up or an LED uses
 PMUIO1 (GPIO0_A*), VCCIO5, VCCIO6 (GPIO_VREF = 3.3 V here) or VCCIO7. `kicad/checks/iolevels.py` checks every CM3
-pin against its bank. PD_PG_N no longer reaches the module: GPIO0_B6 has a 2.2 kΩ pull-up to 1.8 V on the module,
+pin against its bank. PD_PG_N no longer reaches the module: GPIO0_B6 has a 2.2 kΩ pull-up on the module,
 which held the USB-C VBUS gate (Q101) on.
 
 **Device tree requirements** (all of them in `dt/rk3566-relay-carrier.dtso`, an overlay on Radxa's BSP
@@ -237,7 +239,7 @@ it makes the module pull RK628D PLUGIN_DET low.
 | RK628D RESET_N | J1 10 | GPIO3_C2 (VCCIO5, 3.3 V) |
 | RK628D PLUGIN_DET | J69 76 | GPIO0_A4 (PMUIO1, 3.3 V), SDMMC0_DET by default, an input |
 | RK628D INT | J1 12 | GPIO3_C3 (VCCIO5, 3.3 V) |
-| RK628D PWR_EN | J1 95 | GPIO0_C4 (PMUIO2, 1.8 V): it only drives an NPN base, so 1.8 V is enough |
+| RK628D PWR_EN | J1 95 | GPIO0_C4 (PMUIO2 = GPIO_VREF, 3.3 V): drives an NPN base through 1 kΩ |
 | CEC_GPIO (0 Ω option) | J68 151 | GPIO4_D1 (HDMI_TX_CEC pad, VCCIO7 at 3.3 V; on J68 to keep the trace short) |
 | HDMI TX D0–D2, CLK | J68 182/184, 176/178, 170/172, 188/190 | HDMI_TX |
 | HDMI HPD, DDC SDA / SCL | J68 153, 199 / 200 | Level-shifted on the module |
@@ -251,7 +253,7 @@ it makes the module pull RK628D PLUGIN_DET low.
 | RECOVERY button | J69 93 | SARADC_VIN0 |
 | RESET button | J69 100 | PMIC_RESET_KEY |
 | LED_STATUS, LED_WIFI | J69 34, 75 | GPIO4_B1 (VCCIO6, 3.3 V), GPIO0_A5 (PMUIO1, 3.3 V); each sources its LED through 150 Ω |
-| Debug UART RX / TX | J69 51 / 55 | UART2_M0 (PMUIO2: **1.8 V levels**, use a 1.8 V USB-UART adapter) |
+| Debug UART RX / TX | J69 51 / 55 | UART2_M0 (PMUIO2 = GPIO_VREF: **3.3 V levels**, use a 3.3 V USB-UART adapter; measure TX idle on the first board) |
 | DVP D0–D7 | J69 41, 49, 26, 25, 27, 45, 47, 54 | CIF_D0–D7 |
 | DVP D8–D13 | J1 75, 77, 79, 81, 83, 85 | CIF_D8–D13 |
 | DVP D14, D15, HSYNC, VSYNC, PCLK | J69 21, 91, 89, 95, 97 | CIF_D14, CIF_D15, CIF_HREF, CIF_VSYNC, CIF_CLKIN |
