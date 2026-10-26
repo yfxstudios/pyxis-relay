@@ -16,7 +16,7 @@ paid (DDP).
 |---|---|---|
 | 1. Incoming check | Count boards, look for damage and missing parts (photo on a light box), log the JLCPCB lot | 1 min |
 | 2. Hand soldering | Fit the parts JLCPCB can't: the Pulse magjack J301 on rev A (out of stock at JLCPCB). Rev B moves to a stocked jack JLCPCB can fit. | 3 min (rev A only) |
-| 3. Module and Wi-Fi | Thermal pad and heatsink on the CM3, press the CM3 onto J701–J703, four M2.5 screws; Wi-Fi card into J501 with an M2 screw; two antenna leads onto the card | 4 min |
+| 3. Module and Wi-Fi | Thermal pad and heatsink on the CM3, press the CM3 onto J701–J703, four M2.5 screws on 1.5 mm spacers (the DF40 stack height: without them the screws bend the connectors); Wi-Fi card into J501 with an M2 screw; two antenna leads onto the card | 4 min |
 | 4. Flash | 12 V on the DC jack, then hold RECOVERY and plug USB-C to the PC (data only: the board does not run reliably from a PC port's 5 V). Run the flashing script (writes the image, sets the serial number, records the MACs). Several units can flash at once. The debug header J601 is 1.8 V: use a 1.8 V USB-UART adapter. | 1 min attended, 3 min machine |
 | 5. Test | Run the test script (below); print the label only on PASS | 5 min, partly machine time |
 | 6. Case and box | Board into the printed base, four screws, antennas into the bulkheads, light pipes, lid, label, box with the quick-start card | 4 min |
@@ -36,7 +36,7 @@ parts come from China; "Assembled in USA" is the accurate label.
 
 ## Stages
 
-1. **Rev A bring-up (3 assembled prototypes, ordered Oct 24).** The [DESIGN.md bring-up
+1. **Rev A bring-up (5 assembled prototypes; JLCPCB quote Oct 25, not ordered yet).** The [DESIGN.md bring-up
    checklist](DESIGN.md#prototype-plan): power rails, boot, Ethernet, Wi-Fi AP, HDMI in, HDMI out, Bluetooth,
    CEC, and thermals in the printed case. Fit-check the case on a real board.
 2. **Rev B board.** Fixes from bring-up, plus the cost changes in [COST.md](COST.md#how-to-bring-it-down):
@@ -58,7 +58,7 @@ parts come from China; "Assembled in USA" is the accurate label.
 | Antennas: 2 × dual-band RP-SMA dipoles + 2 × IPEX MHF4/U.FL to RP-SMA bulkhead pigtails, 100 mm | 52 sets | Amazon / DigiKey | Match the card's connector (most RTL8822CE cards are MHF4) |
 | Heatsink 30 × 30 × 6 mm (aluminium) + 1 mm thermal pad for the RK3566 | 52 | Amazon / DigiKey | Lid is vented above it |
 | Pulse JK0654219NL magjack | 55 | DigiKey / Mouser | Rev A only |
-| Screws and inserts: M3 × 6 (case), M2.5 × 4 (module), M2 × 3 + M2 standoff (Wi-Fi card), M3 heat-set inserts, ¼"-20 heat-set inserts | per the [case parts list](case/README.md) | McMaster / Amazon | |
+| Screws and inserts: M3 × 10 (case), M2.5 screws + nuts and 4 × M2.5 × 1.5 mm spacers (module), M2 × 3 + M2 standoff (Wi-Fi card), M3 heat-set inserts, ¼"-20 heat-set inserts | per the [case parts list](case/README.md) | McMaster / Amazon | |
 | Light pipes, 3 mm round, for the PWR / STATUS / WIFI LEDs | 3 per unit | DigiKey | Lid has the holes |
 | Filament (PETG or ASA) | about 6 kg | | About 100 g a case |
 | Boxes, inserts, labels, quick-start cards | 55 | | |

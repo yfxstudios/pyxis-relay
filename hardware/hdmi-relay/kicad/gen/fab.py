@@ -6,6 +6,8 @@
   fab/relay-gerbers.zip  the same, zipped for upload
   fab/relay-bom.csv      BOM in JLCPCB's columns (Comment, Designator, Footprint, LCSC Part #), DNP parts left out
   fab/relay-cpl.csv      pick-and-place in JLCPCB's columns (Designator, Mid X, Mid Y, Layer, Rotation)
+  fab/relay-bom-handfit.csv  parts fitted by hand after assembly (HAND_FIT), in the BOM's columns, kept out of the
+                         JLCPCB BOM and CPL
 
 JLCPCB's assembly preview should be checked for part rotations: their library's zero orientation differs from
 KiCad's for some packages.
@@ -95,6 +97,8 @@ LCSC_BY = {
 }
 # not placed by the assembler: bare pads
 NOT_PLACED = ("MountingHole", "TestPoint")
+# fitted by hand after assembly (PRODUCTION.md): J301, the magjack, has no JLCPCB/LCSC stock (DigiKey/Mouser instead)
+HAND_FIT = {"J301"}
 
 
 NOTES = """Rev A fab notes (also in kicad/README.md)
@@ -141,13 +145,19 @@ def main():
         "--ref-range-delimiter", "", "--exclude-dnp", "-o", raw, SCH)
     # one line per LCSC number: JLCPCB unselects every line of a part that appears on two lines (e.g. "22uF" and
     # "22uF/10V"), which would leave those parts unplaced
-    lines = {}
+    lines, hand = {}, []
     with open(raw) as f:
         for row in csv.DictReader(f):
             fp = row["Footprint"].split(":")[-1]
             if fp.startswith(NOT_PLACED):
                 continue
             lcsc = row["LCSC Part #"] or LCSC_BY.get((row["Comment"], fp), "")
+            refs = row["Designator"].split(",")
+            if set(refs) & HAND_FIT:
+                hand.append([row["Comment"], ",".join(r for r in refs if r in HAND_FIT), fp, lcsc])
+                row["Designator"] = ",".join(r for r in refs if r not in HAND_FIT)
+                if not row["Designator"]:
+                    continue
             key = lcsc or (row["Comment"], fp)
             if key in lines:
                 lines[key][1] += "," + row["Designator"]
@@ -161,6 +171,10 @@ def main():
             line[1] = ",".join(sorted(line[1].split(","), key=lambda r: (r.rstrip("0123456789"), int(r[len(r.rstrip("0123456789")):] or 0))))
             w.writerow(line)
         missing = sum(not line[3] for line in lines.values())
+    with open(os.path.join(FAB, "relay-bom-handfit.csv"), "w", newline="") as g:
+        w = csv.writer(g)
+        w.writerow(["Comment", "Designator", "Footprint", "LCSC Part #"])
+        w.writerows(hand)
 
     # pick-and-place from the board
     pos = os.path.join(FAB, "pos-raw.csv")
@@ -171,7 +185,7 @@ def main():
         w.writerow(["Designator", "Mid X", "Mid Y", "Layer", "Rotation"])
         n = 0
         for row in csv.DictReader(f):
-            if row["Ref"].startswith(("H", "MOUNT", "TP")):
+            if row["Ref"].startswith(("H", "MOUNT", "TP")) or row["Ref"] in HAND_FIT:
                 continue
             w.writerow([row["Ref"], f"{float(row['PosX']):.3f}mm", f"{float(row['PosY']):.3f}mm",
                         "Top" if row["Side"] == "top" else "Bottom", f"{float(row['Rot']):.1f}"])
@@ -180,7 +194,7 @@ def main():
     _centre_cm3(os.path.join(FAB, "relay-cpl.csv"))
     _rotate_for_jlc(os.path.join(FAB, "relay-cpl.csv"))
     print(f"fab/: gerbers + drill ({len(os.listdir(gerb))} files, zipped), BOM ({missing} lines without an LCSC "
-          f"number), CPL ({n} parts)")
+          f"number), CPL ({n} parts); hand-fitted, not in either: {', '.join(sorted(HAND_FIT))}")
 
 
 # Degrees (counter-clockwise, seen from the top) added to KiCad's rotation so JLCPCB's model of the part lines up

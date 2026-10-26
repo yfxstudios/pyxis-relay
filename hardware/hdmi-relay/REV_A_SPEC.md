@@ -70,7 +70,7 @@ From the Radxa CM3 datasheet:
 
 ### Inputs
 
-- **Locking DC jack, 6–17 V.** Covers D-tap, V-mount, NP-F and 12 V supplies. Rated 3 A.
+- **DC jack (5.5 × 2.0 mm, CUI PJ-002AH; not a locking type), 6–17 V.** Covers D-tap, V-mount, NP-F and 12 V supplies. Rated 3 A.
 - **USB-C.** A CH224A asks the charger for **9 V** (6.8 kΩ on CFG1); WCH recommends it over the CH224K for new
   designs, same pinout, VBUS rated 32 V instead of 13.5 V. Its power-good pin goes to a module GPIO, and also turns
   on a P-FET that passes VBUS to the box only once 9 V is agreed. 9 V rather than 12 V because many chargers skip 12 V.
@@ -83,7 +83,7 @@ From the Radxa CM3 datasheet:
 - **Protection:**
   - SMBJ20CA TVS on VIN (D-tap batteries sit up to 16.8 V)
   - 3 A resettable fuse
-  - input bulk capacitor: 47 µF / 35 V aluminium polymer
+  - input bulk capacitor: 47 µF / 35 V aluminium electrolytic (C102, Lelon RVT35V47M6X8, 6.3 × 7.7 mm)
 
 ### Rails
 
@@ -140,7 +140,7 @@ level in the apps, and the software shuts down cleanly below 6.0 V.
 
 This copies the DshanPi-A1 circuit (schematic pages 31–32), with our changes marked.
 
-- **Connector:** full-size HDMI type A, SMD with through-hole shell legs ([LCSC C2902698](https://www.lcsc.com/product-detail/C2902698.html)).
+- **Connector:** full-size HDMI type A, SMD with through-hole shell legs (Molex 208658-1001, [LCSC C916313](https://www.lcsc.com/product-detail/C916313.html); same part for HDMI OUT).
   The case clamps the cable for strain relief; there's no locking connector at this price.
 - **Static protection:**
   - each RCLAMP0524P line has copper straight across its pad pair (pins 6/7/9/10 are NC on this part)
@@ -155,7 +155,8 @@ This copies the DshanPi-A1 circuit (schematic pages 31–32), with our changes m
 - **CEC:** 27 kΩ pull-up to 3.3 V, into the RK628D's HDMI-receiver CEC pin.
   - **Our change:** a second path, through a 0 Ω resistor that isn't fitted, to a module GPIO. That way the module
     can bit-bang CEC if the RK628D driver doesn't expose Blackmagic's vendor messages.
-- **Clock:** its own 24 MHz crystal. The reference marks this "all application scenarios"; the module's clock
+- **Clock:** its own 24 MHz crystal. The reference (DshanPi p.31) allows the crystal when HDMI_TX and GVI_TX are
+  unused, which is the case here (the SoC-clock option is the one it marks for all scenarios); the module's clock
   output isn't guaranteed to be on a pin.
 - **I2C address:** I2C_ADDR strapped low, giving 7-bit 0x50 (0x51 with a strap, as in the reference). This shares
   nothing else on that I2C bus.
@@ -183,10 +184,11 @@ This copies the DshanPi-A1 circuit (schematic pages 31–32), with our changes m
 
 ## 6. Board and layout rules
 
-- **Outline: about 90 × 65 mm**, to fit a common aluminium extrusion profile. Confirm against the chosen profile.
-- **Front panel:** HDMI IN, HDMI OUT, RJ45. **Rear panel:** USB-C, DC IN, 2 × RP-SMA. LEDs on top through light pipes.
-- **Stackup:** 4 layers, JLCPCB's impedance-controlled 1.6 mm stack. L1 signals, L2 solid ground, L3 power,
-  L4 signals.
+- **Outline: 120 × 100 mm**, four M3 holes, in the 3D-printed case (`case/`).
+- **Front panel:** HDMI IN, HDMI OUT. **Rear panel:** USB-C, DC IN, battery lead, RJ45. **Left side:** 2 × RP-SMA.
+  LEDs on top through light pipes.
+- **Stackup:** 4 layers, JLCPCB's impedance-controlled 1.6 mm stack. L1 signals, L2 solid ground, L3 ground
+  pour plus signals, L4 signals and power (JLC04161H-3313).
 - **Impedances:**
 
   | Signals | Impedance |
@@ -204,8 +206,8 @@ This copies the DshanPi-A1 circuit (schematic pages 31–32), with our changes m
   pads, so the CSI run is under 30 mm.
 - **Heat:** a thermal pad from the module's top to the extrusion wall, through a lid boss. Copper pour and vias
   under the RK628D and the bucks.
-- **Assembly:** all SMD on the top side except the RJ45, the DC jack and the shell legs (hand-soldered or
-  wave-soldered). The CM3 plugs in after assembly; Radxa recommends a fixture for fitting and removing it.
+- **Assembly:** SMD on both sides (62 parts on the bottom; JLCPCB two-sided assembly). Through-hole: the DC jack
+  and HDMI shell legs (JLCPCB), the RJ45 magjack J301 (hand-fitted: no JLCPCB stock). The CM3 plugs in after assembly; Radxa recommends a fixture for fitting and removing it.
 
 ## 7. Module signal map (Radxa CM3, module revision V1.32+)
 

@@ -1,4 +1,8 @@
-# Carrier board rev A: KiCad project (schematic draft 1)
+# Carrier board rev A: KiCad project
+
+**Current state (Oct 25):** schematic and board complete, ERC 0, DRC with schematic parity 0/0/0, fab outputs in
+`fab/` (J301 hand-fitted, kept out of the JLCPCB BOM and CPL). The latest review is `REVIEW_FINAL_2.md`; the
+sections below are the design history in date order, so the early ones describe drafts that no longer apply.
 
 Open `relay.kicad_pro` in KiCad 10. **[relay.pdf](relay.pdf)** is the schematic as a PDF, 8 pages.
 
@@ -16,7 +20,7 @@ KiCad's editor from here on, that's fine too: stop using the generator, since a 
 
 | Sheet | File | What's on it |
 |---|---|---|
-| Power | `gen/power.py` | Locking DC jack, NP-F contacts, USB-C with CH224A (PD 9 V), Schottky OR, fuse, TVS, battery sense, two SY8303 (5V_SOM for the module, 5V_SYS), two TPS563201 (3V3_IO, 1V1_628) |
+| Power | `gen/power.py` | DC jack (PJ-002AH), NP-F contacts, USB-C with CH224A (PD 9 V), Schottky OR, fuse, TVS, battery sense, two SY8303 (5V_SOM for the module, 5V_SYS), two TPS563201 (3V3_IO, 1V1_628) |
 | HDMI in (RK628D) | `gen/hdmi_in.py` | HDMI connector, ESD, plug detect, DDC, CEC and HPD; RK628D with its power switch, filtering and decoupling; 24 MHz crystal; CSI-2 x4 out. Copied from the DshanPi-A1 V1.1 schematic, pages 31–32. |
 | HDMI out | `gen/board_io_sheets.py` | HDMI connector from the module's HDMI TX, ESD, 5 V current-limited switch (DDC/HPD level-shifted on the module) |
 | Ethernet | `gen/ethernet.py` | Gigabit jack with magnetics and centre-tap capacitors; the PHY is on the Radxa CM3 |
@@ -24,13 +28,13 @@ KiCad's editor from here on, that's fine too: stop using the generator, since a 
 | Debug, buttons, LEDs, SDI | `gen/board_io_sheets.py` | Debug UART header, RESET and RECOVERY buttons, three LEDs, 2 × 20 SDI add-on header (not fitted), mounting holes |
 | Module: Radxa CM3 | `gen/module.py`, `gen/cm3_pinout.json` | The three DF40 receptacles with Radxa's pin names (module revision V1.32+), every pin assigned or no-connect; recovery pull-up, VBUSDET, decoupling |
 
-**Status:**
-- ERC passes with one warning: the M.2 socket footprint isn't made yet.
+**Status (schematic draft 1, Oct 21; superseded, see the top):**
+- ERC passed with one warning: the M.2 socket footprint wasn't made yet.
 - 191 parts.
 - Every RK628D ball (144) is assigned and checked against the datasheet ball map.
 - Every Radxa CM3 pin (300) is assigned or marked unused; the build fails if one is missed or used twice.
 
-## Before this can become a board
+## Before this could become a board (Oct 21 list, all done since)
 
 1. **Check the module connectors:**
    - Compare our three DF40 receptacles with Radxa's IO-board connector data
