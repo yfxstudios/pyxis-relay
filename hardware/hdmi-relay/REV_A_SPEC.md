@@ -230,7 +230,10 @@ unpowered bank), so the pinctrl must enable the SoC's pull-ups on CLKREQ# (GPIO1
 data-to-clock skew, counting the module's own lengths, is now at most 6.3 mm, about 40 ps (REVIEW_FABLE_2.md M1;
 `kicad/gen/csimatch.py`). That's under 0.05 UI at 1.2 Gb/s, so no lane-rate cap is needed. Still check the CSI
 CRC/ECC counters at bring-up. Keep GPIO0_D4 (TF_DET) low or unused: driven high,
-it makes the module pull RK628D PLUGIN_DET low.
+it makes the module pull RK628D PLUGIN_DET low. The RK628D is described for the BSP's HDMI-RX to CSI-2 V4L2 driver
+(`rockchip,rk628-csi-v4l2`), with the capture graph RK628D → csi2_dphy0 (full mode, 4 lanes) → mipi_csi2 →
+rkcif_mipi_lvds. W_DISABLE1#/2# (GPIO0_A0, GPIO1_A4) are held high (radios on) by GPIO hogs with SoC pull-ups;
+rfkill-gpio is ACPI-only in that kernel.
 
 | Function | CM3 pin(s) | RK3566 function |
 |---|---|---|

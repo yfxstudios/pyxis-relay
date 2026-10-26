@@ -38,12 +38,13 @@ python case/case.py --check && python case/render.py
 `--check` intersects both parts with the board's 3D model, plus blocks for the parts that have no model: the CM3
 module and a 30 × 30 × 6 mm heatsink, the Wi-Fi card, the M.2 socket, the USB-C socket and the fuse. It fails on
 any overlap larger than 0.5 mm³. It also probes what a solid test cannot see: a 12 × 6.5 mm USB-C plug overmould
-from the socket face out, and the solid stop above each tripod insert hole. Today it passes.
+from the socket face out, a 21 × 11 mm HDMI Type-A overmould in front of each HDMI socket, and the solid stop above each tripod insert hole. Today it passes.
 
 ## Layout
 
 - **Front wall:** both HDMI sockets. Their faces are 1.0 mm past the board edge; the wall is pocketed around each
-  opening (22 × 12 mm) so a cable's overmould reaches the socket.
+  opening (22 × 12 mm, reaching 2.9 mm below the board top, so the base wall is notched 3 mm under each pocket)
+  so a cable's overmould reaches the socket.
 - **Rear wall:**
   - USB-C (the opening reaches 2.4 mm below the board top, notching the base wall, so the plug's overmould reaches
     the recessed socket) and DC IN.

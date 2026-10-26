@@ -122,6 +122,11 @@ def base():
     # the magjack overhangs the board edge at board-top level, right over the rear wall: 0.4 mm relief under it
     eth = next(o for o in REAR if o["name"] == "ETHERNET")
     b = b.cut(box(eth["c"], -(Y1 - WALL / 2), Z_BT - 0.2, eth["w"], WALL + 2, 0.4 + 0.01))
+    # front wall: the HDMI pockets (lid) reach 2.9 mm below the board top, but the lid starts at it: notch the base
+    # wall under each pocket, full wall depth, so a Type-A overmould (centred 3.4 mm above the board) reaches the socket
+    for o in FRONT:
+        pw, ph = o["pocket"]
+        b = b.cut(box(o["c"], -(Y0 + WALL / 2), Z_BT - 1.5 + 0.005, pw, WALL + 2, 3.0 + 0.01))
     for o in REAR:                              # openings that start below the board top (USB-C) notch the base too
         if o.get("z", 0.0) < 0:
             b = b.cut(rear_cut(o))
@@ -216,6 +221,13 @@ def check(parts):
         if v > 0.01:
             ok = False
             print(f"  CLASH {pname} x USB-C plug overmould: {v:.1f} mm^3")
+    for o in FRONT:                                        # a 21 x 11 mm HDMI Type-A overmould from the socket face out
+        hdmi = box(o["c"], -(-1.0 + Y0 - 0.5) / 2, Z_BT + 3.4, 21.0, -1.0 - (Y0 - 0.5), 11.0)   # face at y -1.0
+        for pname, p in parts.items():
+            v = p.intersect(hdmi).val().Volume()
+            if v > 0.01:
+                ok = False
+                print(f"  CLASH {pname} x {o['name']} plug overmould: {v:.1f} mm^3")
     for x, y in TRIPOD:                                    # the boss above each insert hole must be solid
         stop = cq.Workplane("XY").workplane(offset=TRIPOD_INSERT["depth"] + 0.05).center(*P(x, y)).circle(2.0) \
             .extrude(0.5)

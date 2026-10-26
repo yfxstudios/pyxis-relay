@@ -199,6 +199,18 @@ apart from the two LED resistors.
 - **Re-run:** ERC 0; DRC with parity 0/0/0; case fit check PASS (with the new plug and insert probes);
   `checks/returnpath.py` flags REFCLK_N's new via at 1.26 mm from the nearest GND via (100 MHz clock: accepted).
 
+## Fixed on Oct 26 (REVIEW_FINAL_4.md)
+
+- **M2, HDMI capture device tree:** the RK628D node now uses `rockchip,rk628-csi-v4l2` (the BSP's HDMI-RX → CSI-2
+  V4L2 driver, not the display-bridge MFD) with the camera-module properties and a 4-lane endpoint, and the overlay
+  enables csi2_dphy_hw, csi2_dphy0, mipi_csi2 and rkcif_mipi_lvds with linked endpoints. Same GPIOs and polarities.
+- **M3, radio enables:** the rfkill-gpio nodes (ACPI-only in this kernel, and wrong polarity) are replaced by GPIO hogs
+  driving W_DISABLE1#/2# high, with SoC pull-ups on both pins until the hogs run.
+- **M4, case HDMI openings:** the base's front wall is notched 3 mm under both HDMI pockets; `case.py --check` now
+  probes a 21 × 11 mm Type-A overmould at each socket (it fails without the notch: 70.6 mm³ per plug).
+- **Re-run:** overlay compiles with dtc and applies with fdtoverlay to the rkr4.1 base (graph phandles checked both
+  ways); case fit check PASS. No board change.
+
 ## Fixed on Oct 26 (REVIEW_FINAL_3.md)
 
 - **M3, PMUIO2 level:** confirmed in the CM3 V1.322 schematic text: ball 1N15 (PMUIO2) is VCCA1V8_PMU_1; R11 (to
