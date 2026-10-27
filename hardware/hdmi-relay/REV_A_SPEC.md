@@ -72,10 +72,10 @@ From the Radxa CM3 datasheet:
 
 - **DC jack (5.5 × 2.0 mm, CUI PJ-002AH; not a locking type), 6–17 V.** Covers D-tap, V-mount, NP-F and 12 V supplies. Rated 3 A.
 - **USB-C.** A CH224A asks the charger for **9 V** (6.8 kΩ on CFG1); WCH recommends it over the CH224K for new
-  designs, same pinout, VBUS rated 32 V instead of 13.5 V. Its power-good pin goes to a module GPIO, and also turns
-  on a P-FET that passes VBUS to the box only once 9 V is agreed. 9 V rather than 12 V because many chargers skip 12 V.
-  **5 V-only chargers aren't supported:** the 5 V buck can't make 5 V from 5 V. A sensing pin tells the software,
-  and the status LED blinks a "charger too weak" code. This saves a buck-boost converter, about $1.50 *est.*;
+  designs, same pinout, VBUS rated 32 V instead of 13.5 V. Its power-good pin turns on a P-FET that passes VBUS to
+  the box only once 9 V is agreed (it no longer reaches the module: REVIEW_INDEPENDENT M3). 9 V rather than 12 V because many chargers skip 12 V.
+  **5 V-only chargers aren't supported:** the 5 V buck can't make 5 V from 5 V. With no 9 V contract the P-FET stays
+  off, so the board simply doesn't power from that charger (no LED code: the software never sees it). This saves a buck-boost converter, about $1.50 *est.*;
   every USB-C PD charger offers 9 V. The USB-C D+/D− also go to the module's USB OTG port for flashing.
 - **Combining the inputs:** one SS54 Schottky diode per input (DC, NP-F, USB-C), so the higher voltage wins, no
   input back-feeds another, and a reversed DC lead is blocked. Cheaper than P-FET ideal diodes; costs about 0.35 V

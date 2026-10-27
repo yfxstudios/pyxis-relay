@@ -15817,7 +15817,7 @@
 				(hide yes)
 			)
 		)
-		(property "Note" "Footprint to match the bought part (LCSC C2902698)"
+		(property "Note" "Molex 208658-1001 (LCSC C916313)"
 			(at 420.37 149.86 0)
 			(effects
 				(font

@@ -18,6 +18,9 @@ the fixes, every check below was run again:
 
 **1. I/O levels: 3.3 V RK628D lines were on 1.8 V CM3 pins.**
 
+*Superseded in part (Oct 26, REVIEW_FINAL_3 M3): PMUIO2 is fed from GPIO_VREF (3.3 V here), not 1.8 V; the moves below
+were conservative and stay. GPIO0_D3–D6 are 1.8 V only, as stated.*
+
 The RK628D runs its I/O at 3.3 V; the CM3's PMUIO2 bank (GPIO0_B0–C7) is 1.8 V. Evidence for 1.8 V:
 - the CM3 schematic feeds PMUIO2 from VCCA1V8_PMU;
 - the CM3 datasheet's I2C table lists GPIO0_B3–B6 as "1.8V";

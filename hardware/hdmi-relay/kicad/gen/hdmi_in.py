@@ -152,7 +152,7 @@ def build(project):
             "+5V": "HDMIRX_5V", "D2S": "GND", "D1S": "GND", "D0S": "GND", "CKS": "GND", "GND": "GND", "SH": "GND"}
     s.add("Connector:HDMI_A", (420, 150), hdmi, value="HDMI IN",
           footprint="Connector_Video:HDMI_A_Molex_208658-1001_Horizontal",
-          Note="Footprint to match the bought part (LCSC C2902698)")
+          Note="Molex 208658-1001 (LCSC C916313)")
     cap(s, (440, 100), "HDMIRX_5V", "GND", "100nF")
     # Lines in connector order (pins 1-12), so each ESD part sits across two neighbouring pairs and the board
     # routes them straight through

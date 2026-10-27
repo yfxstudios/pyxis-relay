@@ -31,6 +31,7 @@
  *   GPIO3_C6/C7  vcc_ch482d1/2 enables, always on (low)   -> DVP_D0/D1 on the SDI header: off
  *   GPIO4_A4/B7  pi-led-green (heartbeat), pwr-led-red    -> DVP_D14/DVP_VSYNC on the SDI header: off
  *   I2C2 0x51    hym8563 RTC (not on this board)          -> off; I2C2 is the RK628D's bus
+ *   SARADC_VIN2  rk817_sound headset key, hp-det GPIO4_C4  -> both open here (random play/pause events): off
  *   GPIO0_A0 (WIFI_DISABLE_N) and GPIO0_D3 are not claimed by the base tree.
  *
  * Board-level facts behind the capture path at the end:
@@ -39,6 +40,15 @@
  *     any RK628D lane rate up to its 1.2 Gb/s maximum is fine. Watch the CSI CRC/ECC counters at bring-up.
  *   - Bluetooth of the M.2 card is on USB2 HOST2 (J1-63/65); enable that host port.
  *   - Debug UART (UART2_M0, J69-51/55) is 3.3 V: PMUIO2 follows GPIO_VREF on the V1.322 module.
+ *
+ * Kernel: the capture path needs CONFIG_VIDEO_RK628_CSI, CONFIG_VIDEO_ROCKCHIP_CIF and CONFIG_PHY_ROCKCHIP_CSI2_DPHY
+ * (all =y in the BSP's rockchip_linux_defconfig); check them in the kernel you boot.
+ *
+ * Before this overlay applies: U-Boot (and the kernel's early boot) use the IO-board tree, where GPIO0_A4 is sdmmc0's
+ * card detect, GPIO0_A5 the vcc_sd enable (active low) and GPIO3_C2 the always-on USB switch enable. Expect, at power-up:
+ * with an HDMI source attached (PLUGIN_DET low) U-Boot sees an SD card and probes SDMMC0 (pins open) for a few
+ * seconds before falling through to eMMC; the blue Wi-Fi LED may light; RK628D_RESET_N is driven high into the
+ * unpowered RK628D (sub-mA through its pad clamp, as on the reference design). None of these needs a fix.
  */
 
 /dts-v1/;
@@ -97,6 +107,10 @@
 };
 
 &hym8563 {
+	status = "disabled";
+};
+
+&rk817_sound {
 	status = "disabled";
 };
 

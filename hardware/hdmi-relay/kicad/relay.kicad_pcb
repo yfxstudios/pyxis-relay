@@ -4437,7 +4437,7 @@
 				)
 			)
 		)
-		(property "Note" "Locking 5.5/2.1 mm jack: pick part with the case"
+		(property "Note" "CUI PJ-002AH, 5.5 x 2.0 mm, 5 A (LCSC C2961147); not a locking type"
 			(at 0 0 180)
 			(layer "F.SilkS")
 			(hide yes)
@@ -20958,7 +20958,7 @@
 				)
 			)
 		)
-		(property "Note" "Footprint to match the bought part (LCSC C2902698)"
+		(property "Note" "Molex 208658-1001 (LCSC C916313)"
 			(at 0 0 0)
 			(layer "F.SilkS")
 			(hide yes)
@@ -77173,7 +77173,7 @@
 	(zone
 		(net "GND")
 		(layer "F.Cu")
-		(uuid "35da53f1-7fe1-4081-b7d0-ae3293ccf6d6")
+		(uuid "d4d852ac-0b2f-4d2d-8ebb-5e45246155d7")
 		(hatch edge 0.5)
 		(connect_pads thru_hole_only
 			(clearance 0.2)
@@ -83611,7 +83611,7 @@
 	(zone
 		(net "GND")
 		(layer "B.Cu")
-		(uuid "29003d28-89d2-45a1-8a54-e0c7a2a9dd00")
+		(uuid "b53d3149-fe87-405b-95b8-3d8825a24b82")
 		(hatch edge 0.5)
 		(connect_pads thru_hole_only
 			(clearance 0.2)
@@ -88151,7 +88151,7 @@
 	(zone
 		(net "GND")
 		(layer "In1.Cu")
-		(uuid "c7f5625d-f7c3-4ae2-9477-3397add2a3eb")
+		(uuid "eef31540-157f-4f26-a667-e414352e6320")
 		(hatch edge 0.5)
 		(connect_pads thru_hole_only
 			(clearance 0.2)
@@ -93915,7 +93915,7 @@
 	(zone
 		(net "GND")
 		(layer "In2.Cu")
-		(uuid "4ec38c0c-3e3f-4f2e-af59-0c7580ce5658")
+		(uuid "0be84074-b7b4-40fe-a988-e60f179d2355")
 		(hatch edge 0.5)
 		(connect_pads thru_hole_only
 			(clearance 0.2)

@@ -17,7 +17,7 @@ ordered and not in the cart. JLCPCB auto-saved it in the account as the project 
 - JLCPCB adds 5 mm edge rails, so the panel is 120 × 110 mm.
 
 **Parts:**
-- 58 of 59 BOM lines are placed by JLCPCB, from JLCPCB/LCSC stock.
+- All 59 lines of the uploaded BOM are placed by JLCPCB, from JLCPCB/LCSC stock (Y7; the quote's 60-line BOM had J301 too).
 - J301, the magjack, isn't placed: it's out of stock at JLCPCB, and it's hand-soldered in California
   (JK0654219NL from DigiKey or Mouser).
 
@@ -78,7 +78,7 @@ ordered and not in the cart. JLCPCB auto-saved it in the account as the project 
 - **In the cart (Oct 25, 23:07): relay-gerbers_Y7, $440.54** ($130.36 boards + $310.18 assembly; subtotal $448.01 with
   $37.47 DHL and the $30 coupon, before duty). Built from commit d32a7c2's `kicad/fab/`: the M.2 PCIe fix (B1), J301
   left out of the BOM and CPL (hand-fitted), and J101 turned and offset for JLCPCB's model (checked in the viewer).
-  Same options as the quote. Y6 is deleted. Check out with only Y7 selected; leave P2 unselected.
+  Same options as the quote. Y6 is deleted. Check out with only Y7 selected. (P2, a 125-board small-batch quote saved earlier, is no longer in the cart.)
 
 - **Done (Y7 above):** Y6's Gerbers have the M.2 PCIe pairs swapped. Upload the new
   `kicad/fab/relay-gerbers.zip` as a new order (same options, stackup JLC04161H-3313), with the same BOM and CPL

@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "/Users/matthew/Library/Application Support/Claude/scratch-workspaces/72e81736-2099-4312-9510-31637dcac54f/f681371f-3057-45f7-8f61-df3cb1c90a80/scratch-2026-10-20-e277c5/hardware/hdmi-relay/kicad/relay.kicad_sch")
-		(date "2026-10-26T09:28:06")
+		(date "2026-10-27T09:39:32")
 		(tool "Eeschema 10.0.7")
 		(sheet
 			(number "1")
@@ -2017,7 +2017,7 @@
 			(datasheet "~")
 			(fields
 				(field
-					(name "Note") "Locking 5.5/2.1 mm jack: pick part with the case")
+					(name "Note") "CUI PJ-002AH, 5.5 x 2.0 mm, 5 A (LCSC C2961147); not a locking type")
 				(field
 					(name "Footprint") "Connector_BarrelJack:BarrelJack_Horizontal")
 				(field
@@ -2033,7 +2033,7 @@
 			)
 			(property
 				(name "Note")
-				(value "Locking 5.5/2.1 mm jack: pick part with the case")
+				(value "CUI PJ-002AH, 5.5 x 2.0 mm, 5 A (LCSC C2961147); not a locking type")
 			)
 			(property
 				(name "Sheetname")
@@ -6320,7 +6320,7 @@
 			(datasheet "~")
 			(fields
 				(field
-					(name "Note") "Footprint to match the bought part (LCSC C2902698)")
+					(name "Note") "Molex 208658-1001 (LCSC C916313)")
 				(field
 					(name "Footprint") "Connector_Video:HDMI_A_Molex_208658-1001_Horizontal")
 				(field
@@ -6336,7 +6336,7 @@
 			)
 			(property
 				(name "Note")
-				(value "Footprint to match the bought part (LCSC C2902698)")
+				(value "Molex 208658-1001 (LCSC C916313)")
 			)
 			(property
 				(name "Sheetname")

@@ -11,7 +11,7 @@ def build(project):
 
     # ---- inputs
     s.add("Connector:Barrel_Jack", (30, 50), {"1": "VDC", "2": "GND"}, value="DC 6-17V",
-          footprint="Connector_BarrelJack:BarrelJack_Horizontal", Note="Locking 5.5/2.1 mm jack: pick part with the case")
+          footprint="Connector_BarrelJack:BarrelJack_Horizontal", Note="CUI PJ-002AH, 5.5 x 2.0 mm, 5 A (LCSC C2961147); not a locking type")
     s.add("Connector_Generic:Conn_01x02", (30, 75), {"1": "VNPF", "2": "GND"}, value="NP-F plate", ref="J",
           footprint="Connector_JST:JST_PH_B2B-PH-K_1x02_P2.00mm_Vertical")
     s.add("Device:D_Schottky", (60, 50), {"K": "VIN_RAW", "A": "VDC"}, value="SS54",

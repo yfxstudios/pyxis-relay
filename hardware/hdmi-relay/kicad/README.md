@@ -1,7 +1,7 @@
 # Carrier board rev A: KiCad project
 
 **Current state (Oct 25):** schematic and board complete, ERC 0, DRC with schematic parity 0/0/0, fab outputs in
-`fab/` (J301 hand-fitted, kept out of the JLCPCB BOM and CPL). The latest review is `REVIEW_FINAL_2.md`; the
+`fab/` (J301 hand-fitted, kept out of the JLCPCB BOM and CPL). The latest review is `REVIEW_FINAL_5.md`; the
 sections below are the design history in date order, so the early ones describe drafts that no longer apply.
 
 Open `relay.kicad_pro` in KiCad 10. **[relay.pdf](relay.pdf)** is the schematic as a PDF, 8 pages.
