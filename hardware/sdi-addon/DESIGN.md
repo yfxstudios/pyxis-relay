@@ -1,9 +1,10 @@
-# SDI add-on board: design (draft 3, Oct 27, 2026)
+# SDI add-on board: design (draft 4, Oct 28, 2026)
 
 A small daughterboard that adds a 3G/HD/SD-SDI input to the HDMI-in relay. It plugs into the relay's J602 header
 and delivers BT.1120 video to the CM3's parallel camera input (DVP), alongside the RK628D's HDMI input on CSI.
 **Status:** schematic drawn (generated, `kicad/gen/`), ERC 0. REVIEW_1's three blockers are settled below
-(stackup, BNC position and wall bay, lid sub-assembly); no layout yet. Receiver facts below are from the GS2971A datasheet Rev. 3 (`datasheets/GS2971A_Datasheet_Rev3.pdf`);
+(stackup, BNC position and wall bay, lid sub-assembly), and its majors and minors are
+answered in the schematic or below (draft 4); no layout yet. Part numbers for the passives are still open. Receiver facts below are from the GS2971A datasheet Rev. 3 (`datasheets/GS2971A_Datasheet_Rev3.pdf`);
 items still marked **verify** are not covered by it.
 
 ## Decisions (Oct 27)
@@ -42,25 +43,37 @@ items still marked **verify** are not covered by it.
 
 ## Schematic (rev A, generated)
 
-`kicad/gen/build.py` writes `kicad/sdi.kicad_sch` (3 sheets, 96 parts, ERC 0 apart from the missing BNC footprint):
-- **Receiver:** U101 GS2971A; the input network, AGC (2 × 470 nF), VBG 1 µF, LF 47 nF, VCO filter, 27 MHz crystal
-  with 15 pF; strap resistors: 20-bit HIGH, IOPROC HIGH, audio HIGH, TIM_861 LOW (H:V:F), SW_EN, STANDBY, SDO_EN,
-  RC_BYP and JTAG/HOST LOW; CS pulled up, RESET pulled down (held in reset until the relay releases it); a green
-  LOCK LED on STAT3; audio, F, STAT4/5, SMPTE_BYPASS, DVB_ASI and XTAL_OUT on test pads; no loop-out (SDO open,
-  SDO_EN low); 10 nF at every supply group.
+`kicad/gen/build.py` writes `kicad/sdi.kicad_sch` (3 sheets, 101 parts, ERC 0):
+- **Receiver:**
+  - U101 GS2971A with the input network, AGC (2 × 470 nF), VBG 1 µF, LF 47 nF and the VCO filter.
+  - **27 MHz crystal:** CL 8 pF with 12 pF caps. `XTAL_CL` in `sheets.py` sets the caps to 2 × CL − 4 pF, so a
+    12 pF crystal gets 20 pF (REVIEW_1 m10).
+  - **Strap resistors:** 20-bit HIGH; IOPROC HIGH; **audio LOW** (no I2S route on rev A, which saves 36 PCLK of
+    latency and about 40 mW; m1); TIM_861 LOW (H:V:F); SW_EN, STANDBY, SDO_EN, RC_BYP and JTAG/HOST LOW.
+  - **Control pins:** CS pulled up; RESET pulled down, so the receiver stays in reset until the relay releases it.
+  - **Status:** a green LOCK LED on STAT3. Audio, F, STAT4/5, SMPTE_BYPASS and DVB_ASI go to test pads, with
+    unfitted 10k pull-up/pull-down footprints on the last two for manual mode (m2).
+  - **XTAL_OUT** is left open, so there is no toggling 27 MHz stub; probe at XTAL2 (m9).
+  - **Unused:** no loop-out (SDO open, SDO_EN low).
+  - **Decoupling:** 10 nF at every supply group.
 - **Power:** U201 SY8089 buck (LCSC C78988; pinout and Vout = 0.6 V × (1 + R1/R2) checked against its datasheet),
-  5V_SYS → 1.2 V: 22 µF in, 2.2 µH, 2 × 22 µF out, 100k/100k with 22 pF feed-forward (the datasheet's typical
+  5V_SYS → 1.2 V: 22 µF in, 2.2 µH (NR3015 class, Isat ≥ 1.5 A so a short on 1.2 V doesn't drive it into hard
+  saturation; m11), 2 × 22 µF out, 100k/100k with 22 pF feed-forward (the datasheet's typical
   circuit); 1V2_A, 3V3 and 3V3_A through 0R (or ferrites) from 1.2 V and the relay's 3V3_IO.
-- **Interface:** J301 2 × 20 2.00 mm SMD socket (bottom side) to the relay's J602; 22 Ω series resistors on DOUT19–12
-  → DVP_D15–8, DOUT9–2 → DVP_D7–0, PCLK, STAT0 → HSYNC, STAT1 → VSYNC; GSPI on SDI_GPIO3–6, RESET on SDI_GPIO7,
-  LOCKED on SDI_GPIO1; 24C02 ID EEPROM on SDI_I2C.
+- **Interface:**
+  - J301, a 2 × 20 2.00 mm SMD socket (bottom side), to the relay's J602.
+  - **33 Ω series resistors** (`SERIES_R`; M3, m8) on DOUT19–12 → DVP_D15–8, DOUT9–2 → DVP_D7–0, PCLK,
+    STAT0 → HSYNC and STAT1 → VSYNC.
+  - **Control:** GSPI on SDI_GPIO3–6, RESET on SDI_GPIO7, LOCKED on SDI_GPIO1.
+  - **ID EEPROM:** 24C02 on SDI_I2C, write-protected through 10k to 3.3 V; close solder jumper JP301 to write it
+    (m7).
 
 ## Requirements
 
 | | Target | Why |
 |---|---|---|
-| Input | One SDI input, 75 Ω, SMPTE 259M (SD), 292M (HD), 424M (3G level A/B) | Broadcast and cinema cameras |
-| Formats | 1080i50/59.94, 1080p23.98–30, 720p50/60; 1080p50/60 at the DVP's limit (below) | Common camera outputs |
+| Input | One SDI input, 75 Ω, SMPTE 259M (SD), 292M (HD), 424M (3G Level A; Level B-DL through the receiver's B→A converter) | Broadcast and cinema cameras |
+| Formats | 1080i50/59.94, 1080p23.98–30, 720p50/60 guaranteed; 1080p50/60 is "test and tune" at the DVP's limit (below) | Common camera outputs |
 | Cable reach | Belden 1694A: about 100 m at 3G, 200 m at HD | Integrated adaptive equalizer |
 | Loop-out | Optional reclocked SDI out | Nice to have; adds a second connector |
 | Audio | Embedded audio de-embedded to I2S (up to 8 ch) | See "Audio" below: no free I2S on the CM3 yet |
@@ -86,7 +99,7 @@ y 31–69 mm (board origin top-left, 120 × 100 mm board), pin 1 at (104, 31). P
 | 32, 38 | not connected | Their CM3 pins went to LED_STATUS and RK628D reset |
 
 The relay's DVP traces are 14–68 mm long and not length-matched: about 0.35 ns of skew, 5 % of a 148.5 MHz period.
-Keep the add-on's own traces short (under 25 mm) and source-terminate them (22–33 Ω at the receiver's outputs).
+Keep the add-on's own traces short (under 25 mm) and source-terminate them (33 Ω at the receiver's outputs).
 
 ## The CM3's DVP input (RK3566 VICAP)
 
@@ -95,11 +108,28 @@ single or dual-edge sampling; DVP and MIPI CSI can run at the same time.
 
 What that means for SDI:
 - **16 bits at 74.25 MHz** (8-bit Y + 8-bit C, BT.1120 SDR): 1080i, 1080p25/30, 720p. Comfortable.
-- **16 bits at 148.5 MHz:** 1080p50/60 (3G level A). Right at the 150 MHz limit: may work, needs testing.
+- **16 bits at 148.5 MHz:** 1080p50/60 (3G). Right at the 150 MHz limit, so it is not a guaranteed format
+  (REVIEW_1 M1):
+  - **Receiver timing:** output delay ≤ 3.7 ns and hold ≥ 1.0 ns after the PCLK rising edge (table 2-4). That leaves
+    3.0 ns of setup and 1.0 ns of hold for rising-edge capture, before the relay's 0.35 ns of DVP skew.
+  - **Unknown:** the RK3566's DVP setup and hold are only in the TRM. Get them before bring-up.
+  - **Tuning:** register 06Ch moves PCLK 0–90° plus 0–1.2 ns in 40 ps steps, and the CIF can sample on either edge.
+    Bring-up sweeps 06Ch at 1080p60 and keeps the centre of the passing window.
+  - **Layout:** PCLK and all 18 data and sync lines to the same length (±2 mm), each under 25 mm.
+  - **Lower rates:** 74.25 MHz and below have more than 9 ns of margin.
+- **3G Level B (M2):** in 20-bit mode a Level B signal arrives as two multiplexed 10-bit streams, not Y and C.
+  - **Level B-DL (1080p50/60):** needs the receiver's Level B→A converter, enabled over GSPI (it is off by default),
+    with the 05Eh reset sequence. GSPI is therefore **required** for the 1080p50/60 claim, not optional.
+  - **H/V/F in B→A mode:** not usable, which is one more reason to use embedded sync.
+  - **Level B-DS (two 1080i streams):** not supported as two streams; at most one stream as 8-bit BT.656 on
+    DVP_D15–8.
 - **10-bit video is truncated to 8 bits per component** (the top 8 of each 10-bit bus): 16 pins are all J602
   carries. Fine for streaming (the encoder is 8-bit anyway).
-- **Sync:** use embedded EAV/SAV timing codes (BT.1120 with embedded sync) or the receiver's H/V outputs on DVP_HSYNC
-  and DVP_VSYNC. Both are supported; embedded sync is the simpler, more robust choice.
+- **Sync: embedded EAV/SAV (BT.1120 with embedded sync) is the designed mode** (REVIEW_1 M4).
+  - **Why not the H/V pins:** as strapped (TIM_861 LOW), STAT0 and STAT1 are H and V *blanking*. CIF_HREF expects a
+    data-enable, which is H inverted. F isn't on J602 at all, so interlaced external-sync capture isn't possible.
+  - **Fallback:** the STAT0/1 wires stay as a fallback. Use the CIF's HREF polarity flip, or reprogram STAT0 to DE
+    and set TIM_861 over GSPI (it is read live).
 
 ## Receiver choice
 
@@ -121,17 +151,23 @@ embedded timing codes), so control is for status and tuning:
 
 | Function | J602 pin |
 |---|---|
-| GSPI SCLK / SDIN / SDOUT / CS | SDI_GPIO3–6 (bit-banged; the CM3 has no SPI on these pins) |
+| GSPI SCLK / SDIN / SDOUT / CS | SDI_GPIO3–6, bit-banged: kernel `spi-gpio` + `spidev`, mode 0, 16-bit words MSB first, ≥ 37.1 ns between words |
 | RESET_N | SDI_GPIO7 |
 | LOCKED / carrier detect (to an interrupt) | SDI_GPIO1 |
 | Board ID EEPROM (24C02, identifies the add-on) | SDI_I2C_SCL / SDA |
-| Spare | SDI_UART_TX / RX |
+| Not used | SDI_UART_TX / RX (the relay's UART9, driven by the CM3: leave unconnected) |
+
+**Hardware SPI option (REVIEW_1 m6), not taken:** the CM3's SPI3_M0 is on J602 too, at pins 27, 28, 34 and 33.
+Re-pinning the receiver there would give a kernel SPI bus, but it costs the I2C ID EEPROM, and GSPI traffic is a few
+register writes at start-up. Kept bit-banged with the EEPROM. If a driver ever needs fast GSPI, swap the four nets in
+`sheets.py` and drop the EEPROM; the receiver's own registers can identify the board instead.
 
 ## Audio
 
 The receiver de-embeds audio to I2S, but rev A has no free I2S into the CM3: I2S1_M1 shares pins with the DVP
 input, which is why the RK628D's HDMI audio also stops at test pads. Options:
-1. Rev A + add-on: bring the receiver's I2S to test pads too (video only for now).
+1. Rev A + add-on: bring the receiver's I2S to test pads too (video only for now), with AUDIO_EN strapped LOW;
+   software can enable audio over GSPI to probe the pads.
 2. Rev B of the relay: route an I2S port (shared by HDMI and SDI audio, selected by software) to the CM3.
 3. A small I2S-to-USB bridge on the add-on into a free USB port: not available on J602 today.
 
@@ -206,7 +242,7 @@ and body top 18.0 mm above the board; shoulder 8.85 mm in front of the centre pi
   there except the hole keep-outs.
 - **Bottom side:** 6.0 mm of height everywhere except over the CM3 module (≤ 1.0 mm) and the socket.
 
-### SDI case variant (plan, `case/case.py --sdi`)
+### SDI case variant (`case/case.py --sdi`)
 
 - **Lid height:** `OVER` 16.8 → **27.0 mm** (body top 25.6 + 1.4 mm). The standard case stays as it is.
 - **Lid posts at (116, 36) and (116, 68):** they end at the add-on top (7.6 mm above the relay board top), not at the
@@ -232,10 +268,9 @@ and body top 18.0 mm above the board; shoulder 8.85 mm in front of the centre pi
      - **M3 × 8** into the standoffs at (116, 36) and (116, 68): 3.6 mm of thread, short of the standoff's
        female depth.
   - **Opening:** lifting the lid pulls the add-on straight off J602, guided by the posts. J602 is never levered.
-- **Fit check:** add to `--check`:
-  - the add-on outline and the BNC body, flange, nut and leg tips;
-  - a BNC plug probe like the HDMI ones;
-  - the slide path (BNC body between the posts, y 43–57 vs. post edges at 39.4 and 64.6).
+- **Fit check (`--sdi --check`):** the add-on outline, the BNC body, flange, thread, nut and leg tips, and the
+  standoffs are checked against the lid, the base and the relay's STEP model. It also checks the slide path (BNC body
+  and flange swept 18.1 mm) and a 15 mm BNC plug probe, and that both posts bear fully on the add-on.
 
 ## Layout rules
 
@@ -254,14 +289,46 @@ and body top 18.0 mm above the board; shoulder 8.85 mm in front of the centre pi
     so the 0.5 mm pads see L3 and stay near 75 Ω (GS2971A 5.2).
   - The BNC footprint has a Ø4.0 rule area on In1/In2/B.Cu round the centre pin.
   - Keep the analog corner (balls A1–G2, VBG/LF, AGC) over an unbroken L2 region with no digital return under it.
-- Parallel outputs: series resistors at the receiver, short traces to the socket, PCLK routed with ground on both
-  sides.
+- **Parallel outputs:**
+  - Series resistors at the receiver; PCLK with ground on both sides.
+  - Match all 19 lines to ±2 mm, each under 25 mm (M1).
+- **Signal return (M3):** J602 has a single ground pin (24) inside the DVP group.
+  - Use the lowest output drive that passes (register 06Dh) with the 33 Ω series resistors.
+  - Pour ground on the add-on's bottom layer, facing the relay's top-layer ground: the 6 mm gap between them is the
+    only other return.
+  - Leave J602 pins 29, 30, 32 and 38 unconnected.
+  - Relay rev B: make 32 and 38 GND and move UART9 off 29/30.
+- **Ground:** one GND net (REVIEW_1 m3). Keep the analog corner (balls A1–A4, B1–B4, C1–D3, E1–E3, F1–G2), the
+  VBG/LF and AGC caps and the input network over plane with no digital return current under it.
+- **BGA:** 0.45 mm NSMD pads with a 0.55 mm mask opening (m4). Confirm JLCPCB's BGA rules at quote time.
+- **ESD (m13):** none on the input, matching Semtech's reference design; the input is 2 kV HBM and AC-coupled. If
+  field units show input damage, the only option that keeps the return loss is a < 0.3 pF diode at the BNC pad.
 
 ## Software
 
-- Device tree: enable the CIF's DVP path (`rkcif_dvp`) with a BT.1120 endpoint (16-bit, embedded sync, pixel clock
-  polarity from the receiver), and an I2C node for the ID EEPROM. GPIO hogs or a small driver for RESET_N and the
-  GSPI bit-bang.
+- **Device tree:**
+  - Enable `rkcif_dvp` (and its `sditf` node) with pinctrl `cif_dvp_clk` + `cif_dvp_bus16`.
+  - BT.1120 16-bit with embedded sync (M4); PCLK edge and the Y/C order as found at bring-up.
+  - `&i2c4` (i2c4m0_xfer) with `eeprom@50` (atmel,24c02).
+  - `spi-gpio` on GPIO4_A6/B0/B2/B3 (SDI_GPIO3–6) for GSPI.
+  - Take GPIO4_A6/A7/B0, GPIO3_A1/B4/C1 and the I2C4_M0 pins back from the Radxa base tree in
+    `rk3566-relay-carrier.dtso`, and confirm nothing else claims GPIO4_C1 (CIF_CLKIN).
+  - Leave UART9 disabled.
+- **Reset contract (M6):** the receiver must stay in reset ≥ 1 ms after **all** supplies are stable.
+  - **Supplies:** 1.2 V comes from the add-on's buck. 3V3_IO rises about 10 ms after 5V_SYS.
+  - **At boot:** the 10k pull-down holds RESET low while GPIO3_C1 is still an input.
+  - **Release:** the driver (`reset-gpios = <&gpio3 RK_PC1 GPIO_ACTIVE_LOW>`) or a hog keeps it low ≥ 20 ms after
+    power, then ≥ 1 ms more, then releases it.
+  - **Re-assert** after a hot re-seat of the add-on or a power cut to it.
+  - **Mode changes after power-up:** register overrides only (the straps are read live, not latched).
+- **GSPI tasks:**
+  - standard detect (VD_STD);
+  - Level B→A conversion and its 05Eh reset sequence (M2);
+  - STAT mux and H_CONFIG (M4);
+  - drive strength 06Dh (M3);
+  - PCLK delay sweep 06Ch (M1);
+  - audio enable.
+- **LOCKED:** GPIO4_A7 as an interrupt to start and stop streaming; the LED mirrors it.
 - A V4L2 subdevice driver for the receiver (none exists for the GS2971A in the BSP; **verify**): enough to report the
   detected standard and lock status. A first version can be user-space (GSPI from GPIOs) with the CIF driver in
   plain BT.1120 mode.
@@ -271,21 +338,29 @@ and body top 18.0 mm above the board; shoulder 8.85 mm in front of the centre pi
 
 1. Connector: decided Oct 27 (full-size 75 Ω BNC, SDI case variant). Stackup, BNC position and mounting: decided
    Oct 27 (REVIEW_1 B1–B3, above).
-2. Formats: 1080p30 and below guaranteed, or design and test for 1080p60 at the DVP's 150 MHz limit.
+2. Formats: decided Oct 28. 1080p30 and below are guaranteed; 1080p50/60 is designed for (matched lengths, GSPI,
+   B→A conversion) but proven only at bring-up (REVIEW_1 M1, M2).
 3. Receiver: GS2971A now (LCSC) or GS3471 (newer, consigned).
 4. Loop-out: yes or no.
-5. Audio: test pads now and an I2S route on relay rev B?
+5. Audio: test pads now (AUDIO_EN LOW, enabled over GSPI when needed) and an I2S route on relay rev B.
+6. Sync: decided Oct 28, embedded (M4). Series resistors 33 Ω (M3, m8). GSPI bit-banged, EEPROM kept (m6, m7).
 
 ## Next steps
 
-1. Choose the J602 header (1.5 mm insulator) and J301 SMD socket (4.3 mm), and the 6.0 mm M3 male-female
-   standoffs; measure the mated stack (REVIEW_1 M5, M7).
-2. LCSC parts for the passives, crystal and 6.2 nH RF inductor (the jlcsearch API refused requests on Oct 27; use
-   the relay's `gen/fab.py` map for the common values).
-3. Settle open decisions 2–5 and REVIEW_1's majors (timing, Level B, J602 return, sync mode, reset contract).
-4. `case.py --sdi`: lid height, short posts, BNC bay and boss, fit checks. Check the bay against a printed lid
-   before layout is final.
-5. Board outline and placement as above, 4-layer layout on 7628 with the 75 Ω input, DRC.
+1. **Parts (REVIEW_1 M7), with LCSC numbers in the generator** (`LCSC=` as the relay does):
+   - the J602 header (1.5 mm insulator), the J301 SMD socket (4.3 mm) and the 6.0 mm M3 male-female standoffs;
+     measure the mated stack;
+   - a 27 MHz 3225 crystal, CL 8 pF (or change `XTAL_CL`), ESR ≤ 50 Ω, ±30 ppm;
+   - a wire-wound 0402 6.2 nH ±5 % (high Q);
+   - a 33 µF 6.3 V X5R 0805;
+   - the 105 Ω and 37.4 Ω 1 % 0402 resistors;
+   - a 2.2 µH NR3015 inductor with Isat ≥ 1.5 A;
+   - confirm BNC7T-J-P-HN-RA-BH1 stock and quantity at Samtec or DigiKey.
+
+   The jlcsearch API was refused again for scripted requests on Oct 28, so look these up by hand.
+2. Print the `case.py --sdi` lid and check the bay, panel and slide-in assembly before the layout is final.
+3. Board outline and placement as above, 4-layer layout on 7628 with the 75 Ω input and matched DVP lines, DRC.
+4. Get the RK3566 VICAP DVP setup/hold from the TRM (M1).
 
 ## Sources
 

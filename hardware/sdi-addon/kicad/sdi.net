@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "/Users/matthew/Library/Application Support/Claude/scratch-workspaces/72e81736-2099-4312-9510-31637dcac54f/f681371f-3057-45f7-8f61-df3cb1c90a80/scratch-2026-10-20-e277c5/hardware/sdi-addon/kicad/sdi.kicad_sch")
-		(date "2026-10-27T21:35:56")
+		(date "2026-10-28T10:26:38")
 		(tool "Eeschema 10.0.7")
 		(sheet
 			(number "1")
@@ -596,12 +596,12 @@
 		)
 		(comp
 			(ref "C108")
-			(value "15pF")
+			(value "12pF")
 			(footprint "Capacitor_SMD:C_0402_1005Metric")
 			(datasheet "~")
 			(fields
 				(field
-					(name "Note") "C0G; 16 pF total with the board")
+					(name "Note") "C0G; 16 pF per side with pin and board capacitance")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
 				(field
@@ -617,7 +617,7 @@
 			)
 			(property
 				(name "Note")
-				(value "C0G; 16 pF total with the board")
+				(value "C0G; 16 pF per side with pin and board capacitance")
 			)
 			(property
 				(name "Sheetname")
@@ -656,12 +656,12 @@
 		)
 		(comp
 			(ref "C109")
-			(value "15pF")
+			(value "12pF")
 			(footprint "Capacitor_SMD:C_0402_1005Metric")
 			(datasheet "~")
 			(fields
 				(field
-					(name "Note") "C0G; 16 pF total with the board")
+					(name "Note") "C0G; 16 pF per side with pin and board capacitance")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
 				(field
@@ -677,7 +677,7 @@
 			)
 			(property
 				(name "Note")
-				(value "C0G; 16 pF total with the board")
+				(value "C0G; 16 pF per side with pin and board capacitance")
 			)
 			(property
 				(name "Sheetname")
@@ -2594,6 +2594,132 @@
 		)
 		(comp
 			(ref "R118")
+			(value "10k")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(datasheet "~")
+			(fields
+				(field
+					(name "Note") "Fit for manual mode (AUTO/MAN = 0)")
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet") "~")
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "R")
+				(description "Resistor")
+			)
+			(property
+				(name "Note")
+				(value "Fit for manual mode (AUTO/MAN = 0)")
+			)
+			(property
+				(name "Sheetname")
+				(value "SDI input and GS2971A receiver")
+			)
+			(property
+				(name "Sheetfile")
+				(value "receiver.kicad_sch")
+			)
+			(property
+				(name "dnp")
+			)
+			(property
+				(name "ki_keywords")
+				(value "R res resistor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "R_*")
+			)
+			(sheetpath
+				(names "/SDI input and GS2971A receiver/")
+				(tstamps "/f1fe5ca1-3c75-5322-b18d-1bbec4dfbfdf/")
+			)
+			(tstamps "594d6d6b-fba3-5873-88ba-442bf33797ee")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R119")
+			(value "10k")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(datasheet "~")
+			(fields
+				(field
+					(name "Note") "Fit for manual mode (AUTO/MAN = 0)")
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet") "~")
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "R")
+				(description "Resistor")
+			)
+			(property
+				(name "Note")
+				(value "Fit for manual mode (AUTO/MAN = 0)")
+			)
+			(property
+				(name "Sheetname")
+				(value "SDI input and GS2971A receiver")
+			)
+			(property
+				(name "Sheetfile")
+				(value "receiver.kicad_sch")
+			)
+			(property
+				(name "dnp")
+			)
+			(property
+				(name "ki_keywords")
+				(value "R res resistor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "R_*")
+			)
+			(sheetpath
+				(names "/SDI input and GS2971A receiver/")
+				(tstamps "/f1fe5ca1-3c75-5322-b18d-1bbec4dfbfdf/")
+			)
+			(tstamps "f1c33f91-0bb0-5818-a648-0b90fa3b463b")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R120")
 			(value "1k")
 			(footprint "Resistor_SMD:R_0402_1005Metric")
 			(datasheet "~")
@@ -2631,7 +2757,7 @@
 				(names "/SDI input and GS2971A receiver/")
 				(tstamps "/f1fe5ca1-3c75-5322-b18d-1bbec4dfbfdf/")
 			)
-			(tstamps "594d6d6b-fba3-5873-88ba-442bf33797ee")
+			(tstamps "27883304-343e-53fb-bd90-2676e9a55c77")
 			(units
 				(unit
 					(name "A")
@@ -2648,7 +2774,7 @@
 		)
 		(comp
 			(ref "TP101")
-			(value "XTAL_OUT")
+			(value "SMPTE_BYPASS")
 			(footprint "TestPoint:TestPoint_Pad_D1.0mm")
 			(datasheet "~")
 			(fields
@@ -2699,7 +2825,7 @@
 		)
 		(comp
 			(ref "TP102")
-			(value "SMPTE_BYPASS")
+			(value "DVB_ASI")
 			(footprint "TestPoint:TestPoint_Pad_D1.0mm")
 			(datasheet "~")
 			(fields
@@ -2750,7 +2876,7 @@
 		)
 		(comp
 			(ref "TP103")
-			(value "DVB_ASI")
+			(value "GS_STAT2")
 			(footprint "TestPoint:TestPoint_Pad_D1.0mm")
 			(datasheet "~")
 			(fields
@@ -2801,7 +2927,7 @@
 		)
 		(comp
 			(ref "TP104")
-			(value "GS_STAT2")
+			(value "GS_STAT4")
 			(footprint "TestPoint:TestPoint_Pad_D1.0mm")
 			(datasheet "~")
 			(fields
@@ -2852,7 +2978,7 @@
 		)
 		(comp
 			(ref "TP105")
-			(value "GS_STAT4")
+			(value "GS_STAT5")
 			(footprint "TestPoint:TestPoint_Pad_D1.0mm")
 			(datasheet "~")
 			(fields
@@ -2903,7 +3029,7 @@
 		)
 		(comp
 			(ref "TP106")
-			(value "GS_STAT5")
+			(value "AOUT_1_2")
 			(footprint "TestPoint:TestPoint_Pad_D1.0mm")
 			(datasheet "~")
 			(fields
@@ -2954,7 +3080,7 @@
 		)
 		(comp
 			(ref "TP107")
-			(value "AOUT_1_2")
+			(value "AOUT_3_4")
 			(footprint "TestPoint:TestPoint_Pad_D1.0mm")
 			(datasheet "~")
 			(fields
@@ -3005,7 +3131,7 @@
 		)
 		(comp
 			(ref "TP108")
-			(value "AOUT_3_4")
+			(value "AOUT_5_6")
 			(footprint "TestPoint:TestPoint_Pad_D1.0mm")
 			(datasheet "~")
 			(fields
@@ -3056,7 +3182,7 @@
 		)
 		(comp
 			(ref "TP109")
-			(value "AOUT_5_6")
+			(value "AOUT_7_8")
 			(footprint "TestPoint:TestPoint_Pad_D1.0mm")
 			(datasheet "~")
 			(fields
@@ -3107,7 +3233,7 @@
 		)
 		(comp
 			(ref "TP110")
-			(value "AOUT_7_8")
+			(value "ACLK")
 			(footprint "TestPoint:TestPoint_Pad_D1.0mm")
 			(datasheet "~")
 			(fields
@@ -3158,7 +3284,7 @@
 		)
 		(comp
 			(ref "TP111")
-			(value "ACLK")
+			(value "WCLK")
 			(footprint "TestPoint:TestPoint_Pad_D1.0mm")
 			(datasheet "~")
 			(fields
@@ -3209,57 +3335,6 @@
 		)
 		(comp
 			(ref "TP112")
-			(value "WCLK")
-			(footprint "TestPoint:TestPoint_Pad_D1.0mm")
-			(datasheet "~")
-			(fields
-				(field
-					(name "Footprint") "TestPoint:TestPoint_Pad_D1.0mm")
-				(field
-					(name "Datasheet") "~")
-				(field
-					(name "Description")
-				)
-			)
-			(libsource
-				(lib "Connector")
-				(part "TestPoint")
-				(description "test point")
-			)
-			(property
-				(name "Sheetname")
-				(value "SDI input and GS2971A receiver")
-			)
-			(property
-				(name "Sheetfile")
-				(value "receiver.kicad_sch")
-			)
-			(property
-				(name "ki_keywords")
-				(value "test point tp")
-			)
-			(property
-				(name "ki_fp_filters")
-				(value "Pin* Test*")
-			)
-			(sheetpath
-				(names "/SDI input and GS2971A receiver/")
-				(tstamps "/f1fe5ca1-3c75-5322-b18d-1bbec4dfbfdf/")
-			)
-			(tstamps "3a192a90-e070-5081-9f1a-7d471e04e939")
-			(units
-				(unit
-					(name "A")
-					(pins
-						(pin
-							(num "1")
-						)
-					)
-				)
-			)
-		)
-		(comp
-			(ref "TP113")
 			(value "AMCLK")
 			(footprint "TestPoint:TestPoint_Pad_D1.0mm")
 			(datasheet "~")
@@ -3297,7 +3372,7 @@
 				(names "/SDI input and GS2971A receiver/")
 				(tstamps "/f1fe5ca1-3c75-5322-b18d-1bbec4dfbfdf/")
 			)
-			(tstamps "7a381f19-4c51-5065-a0f7-aabbc22da1b4")
+			(tstamps "3a192a90-e070-5081-9f1a-7d471e04e939")
 			(units
 				(unit
 					(name "A")
@@ -3656,7 +3731,7 @@
 			(datasheet "~")
 			(fields
 				(field
-					(name "Note") "27 MHz, ESR <= 50 ohm, +-100 ppm total (GS2971A 4.6); CL about 8-10 pF")
+					(name "Note") "27 MHz 3225, CL 8 pF, ESR <= 50 ohm, +-30 ppm tolerance (+-100 ppm total, GS2971A 4.6)")
 				(field
 					(name "Footprint") "Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm")
 				(field
@@ -3672,7 +3747,7 @@
 			)
 			(property
 				(name "Note")
-				(value "27 MHz, ESR <= 50 ohm, +-100 ppm total (GS2971A 4.6); CL about 8-10 pF")
+				(value "27 MHz 3225, CL 8 pF, ESR <= 50 ohm, +-30 ppm tolerance (+-100 ppm total, GS2971A 4.6)")
 			)
 			(property
 				(name "Sheetname")
@@ -4280,7 +4355,7 @@
 			(datasheet "~")
 			(fields
 				(field
-					(name "Note") "2.2 uH, Isat >= 1 A")
+					(name "Note") "2.2 uH, NR3015 class, Isat >= 1.5 A (no hard saturation into the 3.5 A current limit on a short)")
 				(field
 					(name "Footprint") "Inductor_SMD:L_Taiyo-Yuden_NR-30xx")
 				(field
@@ -4296,7 +4371,7 @@
 			)
 			(property
 				(name "Note")
-				(value "2.2 uH, Isat >= 1 A")
+				(value "2.2 uH, NR3015 class, Isat >= 1.5 A (no hard saturation into the 3.5 A current limit on a short)")
 			)
 			(property
 				(name "Sheetname")
@@ -4905,8 +4980,68 @@
 			)
 		)
 		(comp
+			(ref "JP301")
+			(value "WRITE")
+			(footprint "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm")
+			(datasheet "~")
+			(fields
+				(field
+					(name "Note") "Close to write the board ID")
+				(field
+					(name "Footprint") "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm")
+				(field
+					(name "Datasheet") "~")
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Jumper")
+				(part "SolderJumper_2_Open")
+				(description "Solder Jumper, 2-pole, open")
+			)
+			(property
+				(name "Note")
+				(value "Close to write the board ID")
+			)
+			(property
+				(name "Sheetname")
+				(value "Relay interface (J602)")
+			)
+			(property
+				(name "Sheetfile")
+				(value "interface.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "solder jumper SPST")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "SolderJumper*Open*")
+			)
+			(sheetpath
+				(names "/Relay interface (J602)/")
+				(tstamps "/4368889b-8fb1-5650-b786-cdaa32cfa318/")
+			)
+			(tstamps "702b1c10-e8d5-5a9e-a617-172dee59b8b4")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
 			(ref "R301")
-			(value "22R")
+			(value "33R")
 			(footprint "Resistor_SMD:R_0402_1005Metric")
 			(datasheet "~")
 			(fields
@@ -4960,7 +5095,7 @@
 		)
 		(comp
 			(ref "R302")
-			(value "22R")
+			(value "33R")
 			(footprint "Resistor_SMD:R_0402_1005Metric")
 			(datasheet "~")
 			(fields
@@ -5014,7 +5149,7 @@
 		)
 		(comp
 			(ref "R303")
-			(value "22R")
+			(value "33R")
 			(footprint "Resistor_SMD:R_0402_1005Metric")
 			(datasheet "~")
 			(fields
@@ -5068,7 +5203,7 @@
 		)
 		(comp
 			(ref "R304")
-			(value "22R")
+			(value "33R")
 			(footprint "Resistor_SMD:R_0402_1005Metric")
 			(datasheet "~")
 			(fields
@@ -5122,7 +5257,7 @@
 		)
 		(comp
 			(ref "R305")
-			(value "22R")
+			(value "33R")
 			(footprint "Resistor_SMD:R_0402_1005Metric")
 			(datasheet "~")
 			(fields
@@ -5176,7 +5311,7 @@
 		)
 		(comp
 			(ref "R306")
-			(value "22R")
+			(value "33R")
 			(footprint "Resistor_SMD:R_0402_1005Metric")
 			(datasheet "~")
 			(fields
@@ -5230,7 +5365,7 @@
 		)
 		(comp
 			(ref "R307")
-			(value "22R")
+			(value "33R")
 			(footprint "Resistor_SMD:R_0402_1005Metric")
 			(datasheet "~")
 			(fields
@@ -5284,7 +5419,7 @@
 		)
 		(comp
 			(ref "R308")
-			(value "22R")
+			(value "33R")
 			(footprint "Resistor_SMD:R_0402_1005Metric")
 			(datasheet "~")
 			(fields
@@ -5338,7 +5473,7 @@
 		)
 		(comp
 			(ref "R309")
-			(value "22R")
+			(value "33R")
 			(footprint "Resistor_SMD:R_0402_1005Metric")
 			(datasheet "~")
 			(fields
@@ -5392,7 +5527,7 @@
 		)
 		(comp
 			(ref "R310")
-			(value "22R")
+			(value "33R")
 			(footprint "Resistor_SMD:R_0402_1005Metric")
 			(datasheet "~")
 			(fields
@@ -5446,7 +5581,7 @@
 		)
 		(comp
 			(ref "R311")
-			(value "22R")
+			(value "33R")
 			(footprint "Resistor_SMD:R_0402_1005Metric")
 			(datasheet "~")
 			(fields
@@ -5500,7 +5635,7 @@
 		)
 		(comp
 			(ref "R312")
-			(value "22R")
+			(value "33R")
 			(footprint "Resistor_SMD:R_0402_1005Metric")
 			(datasheet "~")
 			(fields
@@ -5554,7 +5689,7 @@
 		)
 		(comp
 			(ref "R313")
-			(value "22R")
+			(value "33R")
 			(footprint "Resistor_SMD:R_0402_1005Metric")
 			(datasheet "~")
 			(fields
@@ -5608,7 +5743,7 @@
 		)
 		(comp
 			(ref "R314")
-			(value "22R")
+			(value "33R")
 			(footprint "Resistor_SMD:R_0402_1005Metric")
 			(datasheet "~")
 			(fields
@@ -5662,7 +5797,7 @@
 		)
 		(comp
 			(ref "R315")
-			(value "22R")
+			(value "33R")
 			(footprint "Resistor_SMD:R_0402_1005Metric")
 			(datasheet "~")
 			(fields
@@ -5716,7 +5851,7 @@
 		)
 		(comp
 			(ref "R316")
-			(value "22R")
+			(value "33R")
 			(footprint "Resistor_SMD:R_0402_1005Metric")
 			(datasheet "~")
 			(fields
@@ -5770,7 +5905,7 @@
 		)
 		(comp
 			(ref "R317")
-			(value "22R")
+			(value "33R")
 			(footprint "Resistor_SMD:R_0402_1005Metric")
 			(datasheet "~")
 			(fields
@@ -5824,7 +5959,7 @@
 		)
 		(comp
 			(ref "R318")
-			(value "22R")
+			(value "33R")
 			(footprint "Resistor_SMD:R_0402_1005Metric")
 			(datasheet "~")
 			(fields
@@ -5878,7 +6013,7 @@
 		)
 		(comp
 			(ref "R319")
-			(value "22R")
+			(value "33R")
 			(footprint "Resistor_SMD:R_0402_1005Metric")
 			(datasheet "~")
 			(fields
@@ -5916,6 +6051,60 @@
 				(tstamps "/4368889b-8fb1-5650-b786-cdaa32cfa318/")
 			)
 			(tstamps "3a8a3f4c-c186-5279-83cb-9d4cc845dbdd")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R320")
+			(value "10k")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(datasheet "~")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet") "~")
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "R")
+				(description "Resistor")
+			)
+			(property
+				(name "Sheetname")
+				(value "Relay interface (J602)")
+			)
+			(property
+				(name "Sheetfile")
+				(value "interface.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "R res resistor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "R_*")
+			)
+			(sheetpath
+				(names "/Relay interface (J602)/")
+				(tstamps "/4368889b-8fb1-5650-b786-cdaa32cfa318/")
+			)
+			(tstamps "bb505c28-8971-5cbc-827a-7c90c379fa48")
 			(units
 				(unit
 					(name "A")
@@ -6495,6 +6684,40 @@
 				(pin
 					(num "2")
 					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "Jumper")
+			(part "SolderJumper_2_Open")
+			(description "Solder Jumper, 2-pole, open")
+			(footprints
+				(fp "SolderJumper*Open*")
+			)
+			(fields
+				(field
+					(name "Reference") "JP")
+				(field
+					(name "Value") "SolderJumper_2_Open")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Solder Jumper, 2-pole, open")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "A")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "B")
 					(type "passive")
 				)
 			)
@@ -7146,6 +7369,10 @@
 			(uri "${KICAD10_SYMBOL_DIR}/Device.kicad_sym")
 		)
 		(library
+			(logical "Jumper")
+			(uri "${KICAD10_SYMBOL_DIR}/Jumper.kicad_sym")
+		)
+		(library
 			(logical "Memory_EEPROM")
 			(uri "${KICAD10_SYMBOL_DIR}/Memory_EEPROM.kicad_sym")
 		)
@@ -7504,6 +7731,28 @@
 		)
 		(net
 			(code "22")
+			(name "/Relay interface (J602)/EEPROM_WP")
+			(class "Default")
+			(node
+				(ref "JP301")
+				(pin "1")
+				(pinfunction "A_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R320")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U301")
+				(pin "7")
+				(pinfunction "WP_7")
+				(pintype "input")
+			)
+		)
+		(net
+			(code "23")
 			(name "/Relay interface (J602)/SDI_I2C_SCL")
 			(class "Default")
 			(node
@@ -7520,7 +7769,7 @@
 			)
 		)
 		(net
-			(code "23")
+			(code "24")
 			(name "/Relay interface (J602)/SDI_I2C_SDA")
 			(class "Default")
 			(node
@@ -7537,11 +7786,11 @@
 			)
 		)
 		(net
-			(code "24")
+			(code "25")
 			(name "/SDI input and GS2971A receiver/ACLK")
 			(class "Default")
 			(node
-				(ref "TP111")
+				(ref "TP110")
 				(pin "1")
 				(pinfunction "1_1")
 				(pintype "passive")
@@ -7554,7 +7803,7 @@
 			)
 		)
 		(net
-			(code "25")
+			(code "26")
 			(name "/SDI input and GS2971A receiver/AGCN")
 			(class "Default")
 			(node
@@ -7575,7 +7824,7 @@
 			)
 		)
 		(net
-			(code "26")
+			(code "27")
 			(name "/SDI input and GS2971A receiver/AGCP")
 			(class "Default")
 			(node
@@ -7591,11 +7840,11 @@
 			)
 		)
 		(net
-			(code "27")
+			(code "28")
 			(name "/SDI input and GS2971A receiver/AMCLK")
 			(class "Default")
 			(node
-				(ref "TP113")
+				(ref "TP112")
 				(pin "1")
 				(pinfunction "1_1")
 				(pintype "passive")
@@ -7608,11 +7857,11 @@
 			)
 		)
 		(net
-			(code "28")
+			(code "29")
 			(name "/SDI input and GS2971A receiver/AOUT_1_2")
 			(class "Default")
 			(node
-				(ref "TP107")
+				(ref "TP106")
 				(pin "1")
 				(pinfunction "1_1")
 				(pintype "passive")
@@ -7625,11 +7874,11 @@
 			)
 		)
 		(net
-			(code "29")
+			(code "30")
 			(name "/SDI input and GS2971A receiver/AOUT_3_4")
 			(class "Default")
 			(node
-				(ref "TP108")
+				(ref "TP107")
 				(pin "1")
 				(pinfunction "1_1")
 				(pintype "passive")
@@ -7642,11 +7891,11 @@
 			)
 		)
 		(net
-			(code "30")
+			(code "31")
 			(name "/SDI input and GS2971A receiver/AOUT_5_6")
 			(class "Default")
 			(node
-				(ref "TP109")
+				(ref "TP108")
 				(pin "1")
 				(pinfunction "1_1")
 				(pintype "passive")
@@ -7659,11 +7908,11 @@
 			)
 		)
 		(net
-			(code "31")
+			(code "32")
 			(name "/SDI input and GS2971A receiver/AOUT_7_8")
 			(class "Default")
 			(node
-				(ref "TP110")
+				(ref "TP109")
 				(pin "1")
 				(pinfunction "1_1")
 				(pintype "passive")
@@ -7676,11 +7925,16 @@
 			)
 		)
 		(net
-			(code "32")
+			(code "33")
 			(name "/SDI input and GS2971A receiver/DVB_ASI")
 			(class "Default")
 			(node
-				(ref "TP103")
+				(ref "R119")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "TP102")
 				(pin "1")
 				(pinfunction "1_1")
 				(pintype "passive")
@@ -7693,7 +7947,7 @@
 			)
 		)
 		(net
-			(code "33")
+			(code "34")
 			(name "/SDI input and GS2971A receiver/GS_20BIT")
 			(class "Default")
 			(node
@@ -7709,12 +7963,12 @@
 			)
 		)
 		(net
-			(code "34")
+			(code "35")
 			(name "/SDI input and GS2971A receiver/GS_AUDIO_EN")
 			(class "Default")
 			(node
 				(ref "R109")
-				(pin "2")
+				(pin "1")
 				(pintype "passive")
 			)
 			(node
@@ -7725,7 +7979,7 @@
 			)
 		)
 		(net
-			(code "35")
+			(code "36")
 			(name "/SDI input and GS2971A receiver/GS_IOPROC")
 			(class "Default")
 			(node
@@ -7741,7 +7995,7 @@
 			)
 		)
 		(net
-			(code "36")
+			(code "37")
 			(name "/SDI input and GS2971A receiver/GS_JTAG_HOST")
 			(class "Default")
 			(node
@@ -7757,7 +8011,7 @@
 			)
 		)
 		(net
-			(code "37")
+			(code "38")
 			(name "/SDI input and GS2971A receiver/GS_RC_BYP")
 			(class "Default")
 			(node
@@ -7773,7 +8027,7 @@
 			)
 		)
 		(net
-			(code "38")
+			(code "39")
 			(name "/SDI input and GS2971A receiver/GS_SDO_EN")
 			(class "Default")
 			(node
@@ -7789,7 +8043,7 @@
 			)
 		)
 		(net
-			(code "39")
+			(code "40")
 			(name "/SDI input and GS2971A receiver/GS_STANDBY")
 			(class "Default")
 			(node
@@ -7805,11 +8059,11 @@
 			)
 		)
 		(net
-			(code "40")
+			(code "41")
 			(name "/SDI input and GS2971A receiver/GS_STAT2")
 			(class "Default")
 			(node
-				(ref "TP104")
+				(ref "TP103")
 				(pin "1")
 				(pinfunction "1_1")
 				(pintype "passive")
@@ -7822,11 +8076,11 @@
 			)
 		)
 		(net
-			(code "41")
+			(code "42")
 			(name "/SDI input and GS2971A receiver/GS_STAT4")
 			(class "Default")
 			(node
-				(ref "TP105")
+				(ref "TP104")
 				(pin "1")
 				(pinfunction "1_1")
 				(pintype "passive")
@@ -7839,11 +8093,11 @@
 			)
 		)
 		(net
-			(code "42")
+			(code "43")
 			(name "/SDI input and GS2971A receiver/GS_STAT5")
 			(class "Default")
 			(node
-				(ref "TP106")
+				(ref "TP105")
 				(pin "1")
 				(pinfunction "1_1")
 				(pintype "passive")
@@ -7856,7 +8110,7 @@
 			)
 		)
 		(net
-			(code "43")
+			(code "44")
 			(name "/SDI input and GS2971A receiver/GS_SW_EN")
 			(class "Default")
 			(node
@@ -7872,7 +8126,7 @@
 			)
 		)
 		(net
-			(code "44")
+			(code "45")
 			(name "/SDI input and GS2971A receiver/GS_TIM_861")
 			(class "Default")
 			(node
@@ -7888,7 +8142,7 @@
 			)
 		)
 		(net
-			(code "45")
+			(code "46")
 			(name "/SDI input and GS2971A receiver/LB_CONT")
 			(class "Default")
 			(node
@@ -7909,7 +8163,7 @@
 			)
 		)
 		(net
-			(code "46")
+			(code "47")
 			(name "/SDI input and GS2971A receiver/LED_LOCK_A")
 			(class "Default")
 			(node
@@ -7919,13 +8173,13 @@
 				(pintype "passive")
 			)
 			(node
-				(ref "R118")
+				(ref "R120")
 				(pin "2")
 				(pintype "passive")
 			)
 		)
 		(net
-			(code "47")
+			(code "48")
 			(name "/SDI input and GS2971A receiver/LF")
 			(class "Default")
 			(node
@@ -7941,7 +8195,7 @@
 			)
 		)
 		(net
-			(code "48")
+			(code "49")
 			(name "/SDI input and GS2971A receiver/SDI_BNC")
 			(class "Default")
 			(node
@@ -7963,7 +8217,7 @@
 			)
 		)
 		(net
-			(code "49")
+			(code "50")
 			(name "/SDI input and GS2971A receiver/SDI_N")
 			(class "Default")
 			(node
@@ -7979,7 +8233,7 @@
 			)
 		)
 		(net
-			(code "50")
+			(code "51")
 			(name "/SDI input and GS2971A receiver/SDI_P")
 			(class "Default")
 			(node
@@ -7995,7 +8249,7 @@
 			)
 		)
 		(net
-			(code "51")
+			(code "52")
 			(name "/SDI input and GS2971A receiver/SDI_REF")
 			(class "Default")
 			(node
@@ -8010,7 +8264,7 @@
 			)
 		)
 		(net
-			(code "52")
+			(code "53")
 			(name "/SDI input and GS2971A receiver/SDI_TERM")
 			(class "Default")
 			(node
@@ -8036,11 +8290,16 @@
 			)
 		)
 		(net
-			(code "53")
+			(code "54")
 			(name "/SDI input and GS2971A receiver/SMPTE_BYPASS")
 			(class "Default")
 			(node
-				(ref "TP102")
+				(ref "R118")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "TP101")
 				(pin "1")
 				(pinfunction "1_1")
 				(pintype "passive")
@@ -8053,7 +8312,7 @@
 			)
 		)
 		(net
-			(code "54")
+			(code "55")
 			(name "/SDI input and GS2971A receiver/VBG")
 			(class "Default")
 			(node
@@ -8069,7 +8328,7 @@
 			)
 		)
 		(net
-			(code "55")
+			(code "56")
 			(name "/SDI input and GS2971A receiver/VCO_VDD")
 			(class "Default")
 			(node
@@ -8090,11 +8349,11 @@
 			)
 		)
 		(net
-			(code "56")
+			(code "57")
 			(name "/SDI input and GS2971A receiver/WCLK")
 			(class "Default")
 			(node
-				(ref "TP112")
+				(ref "TP111")
 				(pin "1")
 				(pinfunction "1_1")
 				(pintype "passive")
@@ -8107,7 +8366,7 @@
 			)
 		)
 		(net
-			(code "57")
+			(code "58")
 			(name "/SDI input and GS2971A receiver/XTAL1")
 			(class "Default")
 			(node
@@ -8129,7 +8388,7 @@
 			)
 		)
 		(net
-			(code "58")
+			(code "59")
 			(name "/SDI input and GS2971A receiver/XTAL2")
 			(class "Default")
 			(node
@@ -8148,23 +8407,6 @@
 				(pin "3")
 				(pinfunction "3_3")
 				(pintype "passive")
-			)
-		)
-		(net
-			(code "59")
-			(name "/SDI input and GS2971A receiver/XTAL_OUT")
-			(class "Default")
-			(node
-				(ref "TP101")
-				(pin "1")
-				(pinfunction "1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "U101")
-				(pin "H6")
-				(pinfunction "XTAL_OUT_H6")
-				(pintype "output")
 			)
 		)
 		(net
@@ -8350,18 +8592,23 @@
 				(pintype "passive")
 			)
 			(node
-				(ref "R109")
+				(ref "R116")
 				(pin "1")
 				(pintype "passive")
 			)
 			(node
-				(ref "R116")
+				(ref "R118")
 				(pin "1")
 				(pintype "passive")
 			)
 			(node
 				(ref "R204")
 				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R320")
+				(pin "1")
 				(pintype "passive")
 			)
 			(node
@@ -8716,6 +8963,12 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "JP301")
+				(pin "2")
+				(pinfunction "B_2")
+				(pintype "passive")
+			)
+			(node
 				(ref "R102")
 				(pin "2")
 				(pintype "passive")
@@ -8727,6 +8980,11 @@
 			)
 			(node
 				(ref "R104")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R109")
 				(pin "2")
 				(pintype "passive")
 			)
@@ -8762,6 +9020,11 @@
 			)
 			(node
 				(ref "R117")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R119")
 				(pin "2")
 				(pintype "passive")
 			)
@@ -8925,12 +9188,6 @@
 				(pin "4")
 				(pinfunction "GND_4")
 				(pintype "power_in")
-			)
-			(node
-				(ref "U301")
-				(pin "7")
-				(pinfunction "WP_7")
-				(pintype "input")
 			)
 			(node
 				(ref "Y101")
@@ -9355,7 +9612,7 @@
 				(pintype "passive")
 			)
 			(node
-				(ref "R118")
+				(ref "R120")
 				(pin "1")
 				(pintype "passive")
 			)
@@ -9489,6 +9746,17 @@
 		)
 		(net
 			(code "103")
+			(name "unconnected-(U101-XTAL_OUT-PadH6)")
+			(class "Default")
+			(node
+				(ref "U101")
+				(pin "H6")
+				(pinfunction "XTAL_OUT_H6")
+				(pintype "output+no_connect")
+			)
+		)
+		(net
+			(code "104")
 			(name "unconnected-(U101-~{SDO}-PadK1)")
 			(class "Default")
 			(node

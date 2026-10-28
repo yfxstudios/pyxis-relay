@@ -1382,7 +1382,7 @@
 				(hide yes)
 			)
 		)
-		(property "Note" "2.2 uH, Isat >= 1 A"
+		(property "Note" "2.2 uH, NR3015 class, Isat >= 1.5 A (no hard saturation into the 3.5 A current limit on a short)"
 			(at 119.38 49.53 0)
 			(effects
 				(font

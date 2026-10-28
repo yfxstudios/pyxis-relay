@@ -4,7 +4,14 @@ Circuit values follow the GS2971A datasheet Rev. 3, figure 5-1 (typical applicat
 """
 from parts import (C0603, C0805, GS2971A, L0402, LED0603, R0402, SY8089, cap, resistor, testpoint)
 
-# receiver outputs that leave the board (through 22R at the receiver) -> J602 net
+# Series resistor on every output that leaves the board (REVIEW_1 M3/m8: 33R with one return pin in the DVP group;
+# the receiver's drive strength, register 06Dh, is the second knob).
+SERIES_R = "33R"
+# Crystal load capacitance (pF): discrete caps = 2 x CL - 4 pF, so each side totals 2 x CL with about 4 pF of pin and
+# board capacitance (GS2971A 4.6 and figure 4-4 note 1: 16 pF total per side for an 8 pF crystal).
+XTAL_CL = 8
+
+# receiver outputs that leave the board (through SERIES_R at the receiver) -> J602 net
 # 20-bit mode: DOUT19:10 = luma (data stream 1), DOUT9:0 = chroma (data stream 2). The DVP takes 16 bits: the top
 # 8 of each (BT.1120 16-bit, 8-bit Y + 8-bit C).
 TO_DVP = {f"DOUT{19 - i}": f"DVP_D{15 - i}" for i in range(8)}
@@ -22,7 +29,7 @@ def receiver(project):
     conn = {
         "C1": "SDI_P", "D1": "SDI_N", "F1": "AGCP", "G1": "AGCN",
         "A1": "VBG", "A2": "LF", "A3": "LB_CONT", "A4": "VCO_VDD",
-        "K6": "XTAL1", "J6": "XTAL2", "H6": "XTAL_OUT",
+        "K6": "XTAL1", "J6": "XTAL2", "H6": None,          # XTAL_OUT: no 27 MHz stub; probe at XTAL2
         "C7": "GS_RESET_N", "D8": "GS_JTAG_HOST", "F7": "GSPI_CS_N", "F8": "GSPI_SCLK", "E8": "GSPI_SDIN",
         "E7": "GSPI_SDOUT",
         "H7": "GS_20BIT", "H8": "GS_IOPROC", "H3": "GS_AUDIO_EN", "H5": "GS_TIM_861", "D7": "GS_SW_EN",
@@ -67,13 +74,14 @@ def receiver(project):
     # 27 MHz reference: crystal, ESR 50R max, +-100 ppm total; 16 pF total per side including the board
     s.add("Device:Crystal_GND24", (60, 245), {"1": "XTAL1", "3": "XTAL2", "2": "GND", "4": "GND"}, value="27MHz",
           ref="Y", footprint="Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm",
-          Note="27 MHz, ESR <= 50 ohm, +-100 ppm total (GS2971A 4.6); CL about 8-10 pF")
-    cap(s, (45, 260), "XTAL1", "GND", "15pF", Note="C0G; 16 pF total with the board")
-    cap(s, (75, 260), "XTAL2", "GND", "15pF", Note="C0G; 16 pF total with the board")
-    testpoint(s, (90, 245), "XTAL_OUT")
+          Note=f"27 MHz 3225, CL {XTAL_CL} pF, ESR <= 50 ohm, +-30 ppm tolerance (+-100 ppm total, GS2971A 4.6)")
+    xc = f"{2 * XTAL_CL - 4}pF"
+    cap(s, (45, 260), "XTAL1", "GND", xc, Note=f"C0G; {2 * XTAL_CL} pF per side with pin and board capacitance")
+    cap(s, (75, 260), "XTAL2", "GND", xc, Note=f"C0G; {2 * XTAL_CL} pF per side with pin and board capacitance")
 
-    # strap pins (all have a GSPI override): 20-bit bus, processing on, audio on, H:V:F timing, normal operation
-    straps = [("GS_20BIT", "3V3"), ("GS_IOPROC", "3V3"), ("GS_AUDIO_EN", "3V3"), ("GS_TIM_861", "GND"),
+    # strap pins (all have a GSPI override, read live, not latched): 20-bit bus, processing on, audio off (no I2S route
+    # on rev A: saves latency and 40 mW, REVIEW_1 m1), H:V:F timing (embedded sync is the designed mode, M4)
+    straps = [("GS_20BIT", "3V3"), ("GS_IOPROC", "3V3"), ("GS_AUDIO_EN", "GND"), ("GS_TIM_861", "GND"),
               ("GS_SW_EN", "GND"), ("GS_STANDBY", "GND"), ("GS_SDO_EN", "GND"), ("GS_RC_BYP", "GND"),
               ("GS_JTAG_HOST", "GND")]
     for i, (net, to) in enumerate(straps):
@@ -81,6 +89,9 @@ def receiver(project):
         resistor(s, (330 + 15 * (i % 5), 60 + 20 * (i // 5)), a, b, "10k")
     resistor(s, (330, 110), "3V3", "GSPI_CS_N", "10k", Note="GSPI deselected until the host drives it")
     resistor(s, (345, 110), "GS_RESET_N", "GND", "10k", Note="Receiver held in reset until the host releases it")
+    # SMPTE_BYPASS and DVB_ASI become inputs if software clears AUTO/MAN (REVIEW_1 m2): defined levels, not fitted
+    resistor(s, (360, 110), "3V3", "SMPTE_BYPASS", "10k", dnp=True, Note="Fit for manual mode (AUTO/MAN = 0)")
+    resistor(s, (375, 110), "DVB_ASI", "GND", "10k", dnp=True, Note="Fit for manual mode (AUTO/MAN = 0)")
     # status and audio to test pads (no free I2S on the relay, DESIGN.md "Audio")
     for i, net in enumerate(["SMPTE_BYPASS", "DVB_ASI", "GS_STAT2", "GS_STAT4", "GS_STAT5", "AOUT_1_2", "AOUT_3_4",
                              "AOUT_5_6", "AOUT_7_8", "ACLK", "WCLK", "AMCLK"]):
@@ -104,7 +115,8 @@ def power(project):
     cap(s, (40, 60), "5V_SYS", "GND", "22uF", footprint=C0805, Note="CIN: SY8089 datasheet")
     s.add(SY8089, (80, 60), {"4": "5V_SYS", "1": "5V_SYS", "3": "SW_1V2", "5": "FB_1V2", "2": "GND"}, ref="U")
     s.add("Device:L", (120, 50), {"1": "SW_1V2", "2": "1V2"}, value="2.2uH", ref="L",
-          footprint="Inductor_SMD:L_Taiyo-Yuden_NR-30xx", Note="2.2 uH, Isat >= 1 A")
+          footprint="Inductor_SMD:L_Taiyo-Yuden_NR-30xx",
+          Note="2.2 uH, NR3015 class, Isat >= 1.5 A (no hard saturation into the 3.5 A current limit on a short)")
     resistor(s, (140, 60), "1V2", "FB_1V2", "100k 1%", Note="Vout = 0.6 V x (1 + 100k/100k) = 1.2 V (SY8089 pin table)")
     cap(s, (125, 70), "1V2", "FB_1V2", "22pF", Note="Feed-forward across R1, as in the SY8089 typical circuit")
     resistor(s, (140, 80), "FB_1V2", "GND", "100k 1%")
@@ -133,7 +145,7 @@ def interface(project):
     from sch import Sheet
     s = Sheet(project, "interface", "Relay interface (J602)", 300)
     s.text("2 x 20, 2.00 mm socket on the underside, mating the relay's J602 (pin numbers as on the relay).\n"
-           "22R series resistors at the receiver on every output that leaves the board.  GSPI is bit-banged on\n"
+           "33R series resistors at the receiver on every output that leaves the board.  GSPI is bit-banged on\n"
            "SDI_GPIO3-6; RESET on SDI_GPIO7; LOCKED to SDI_GPIO1.  The relay has 2.2k pull-ups on SDI_I2C.", (20, 15), 2)
     pins = ["5V_SYS", "5V_SYS", "3V3_IO", "3V3_IO", "GND", "GND"]
     pins += [f"DVP_D{i}" for i in range(16)] + ["DVP_PCLK", "GND", "DVP_HSYNC", "DVP_VSYNC"]
@@ -148,10 +160,14 @@ def interface(project):
     # series terminations, at the receiver
     for i, (src, dst) in enumerate(TO_DVP.items()):
         resistor(s, (80 + 20 * (i // 10), 60 + 15 * (i % 10)), "GS_" + src if src.startswith("DOUT") else
-                 {"PCLK": "GS_PCLK", "STAT0": "GS_STAT0", "STAT1": "GS_STAT1"}[src], dst, "22R")
+                 {"PCLK": "GS_PCLK", "STAT0": "GS_STAT0", "STAT1": "GS_STAT1"}[src], dst, SERIES_R)
     # ID EEPROM: identifies the add-on to the relay software (address 0x50 on I2C4)
     s.add("Memory_EEPROM:24LC02", (330, 70), {"1": "GND", "2": "GND", "3": "GND", "4": "GND", "5": "SDI_I2C_SDA",
-                                              "6": "SDI_I2C_SCL", "7": "GND", "8": "3V3"},
+                                              "6": "SDI_I2C_SCL", "7": "EEPROM_WP", "8": "3V3"},
           ref="U", footprint="Package_SO:SOIC-8_3.9x4.9mm_P1.27mm", Note="24C02 (any maker), board ID")
+    # write-protected unless the jumper is closed for programming (REVIEW_1 m7)
+    resistor(s, (330, 95), "3V3", "EEPROM_WP", "10k")
+    s.add("Jumper:SolderJumper_2_Open", (350, 95), {"1": "EEPROM_WP", "2": "GND"}, value="WRITE", ref="JP",
+          footprint="Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm", Note="Close to write the board ID")
     cap(s, (350, 70), "3V3", "GND", "100nF")
     return s

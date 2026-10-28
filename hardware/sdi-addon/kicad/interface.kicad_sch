@@ -1568,6 +1568,186 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Jumper:SolderJumper_2_Open"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom no)
+			(on_board yes)
+			(in_pos_files yes)
+			(duplicate_pin_numbers_are_jumpers no)
+			(property "Reference" "JP"
+				(at 0 2.032 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "SolderJumper_2_Open"
+				(at 0 -2.54 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 -7.62 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Description" "Solder Jumper, 2-pole, open"
+				(at 0 -5.08 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_keywords" "solder jumper SPST"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "SolderJumper*Open*"
+				(at 0 0 0)
+				(show_name no)
+				(do_not_autoplace no)
+				(hide yes)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(symbol "SolderJumper_2_Open_0_1"
+				(polyline
+					(pts
+						(xy -0.254 1.016)
+						(xy -0.254 -1.016)
+					)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(arc
+					(start -0.254 -1.016)
+					(mid -1.2656 0)
+					(end -0.254 1.016)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type outline)
+					)
+				)
+				(arc
+					(start 0.254 1.016)
+					(mid 1.2656 0)
+					(end 0.254 -1.016)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type outline)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0.254 1.016)
+						(xy 0.254 -1.016)
+					)
+					(stroke
+						(width 0.1524)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "SolderJumper_2_Open_1_1"
+				(pin passive line
+					(at -5.08 0 0)
+					(length 3.81)
+					(name "A"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 5.08 0 180)
+					(length 3.81)
+					(name "B"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "Memory_EEPROM:24LC02"
 			(exclude_from_sim no)
 			(in_bom yes)
@@ -3299,7 +3479,7 @@
 				)
 			)
 		)
-		(property "Value" "22R"
+		(property "Value" "33R"
 			(at 80.01 59.69 0)
 			(effects
 				(font
@@ -3419,7 +3599,7 @@
 				)
 			)
 		)
-		(property "Value" "22R"
+		(property "Value" "33R"
 			(at 80.01 74.93 0)
 			(effects
 				(font
@@ -3539,7 +3719,7 @@
 				)
 			)
 		)
-		(property "Value" "22R"
+		(property "Value" "33R"
 			(at 80.01 90.17 0)
 			(effects
 				(font
@@ -3659,7 +3839,7 @@
 				)
 			)
 		)
-		(property "Value" "22R"
+		(property "Value" "33R"
 			(at 80.01 105.41 0)
 			(effects
 				(font
@@ -3779,7 +3959,7 @@
 				)
 			)
 		)
-		(property "Value" "22R"
+		(property "Value" "33R"
 			(at 80.01 119.38 0)
 			(effects
 				(font
@@ -3899,7 +4079,7 @@
 				)
 			)
 		)
-		(property "Value" "22R"
+		(property "Value" "33R"
 			(at 80.01 134.62 0)
 			(effects
 				(font
@@ -4019,7 +4199,7 @@
 				)
 			)
 		)
-		(property "Value" "22R"
+		(property "Value" "33R"
 			(at 80.01 149.86 0)
 			(effects
 				(font
@@ -4139,7 +4319,7 @@
 				)
 			)
 		)
-		(property "Value" "22R"
+		(property "Value" "33R"
 			(at 80.01 165.1 0)
 			(effects
 				(font
@@ -4259,7 +4439,7 @@
 				)
 			)
 		)
-		(property "Value" "22R"
+		(property "Value" "33R"
 			(at 80.01 180.34 0)
 			(effects
 				(font
@@ -4379,7 +4559,7 @@
 				)
 			)
 		)
-		(property "Value" "22R"
+		(property "Value" "33R"
 			(at 80.01 195.58 0)
 			(effects
 				(font
@@ -4499,7 +4679,7 @@
 				)
 			)
 		)
-		(property "Value" "22R"
+		(property "Value" "33R"
 			(at 100.33 59.69 0)
 			(effects
 				(font
@@ -4619,7 +4799,7 @@
 				)
 			)
 		)
-		(property "Value" "22R"
+		(property "Value" "33R"
 			(at 100.33 74.93 0)
 			(effects
 				(font
@@ -4739,7 +4919,7 @@
 				)
 			)
 		)
-		(property "Value" "22R"
+		(property "Value" "33R"
 			(at 100.33 90.17 0)
 			(effects
 				(font
@@ -4859,7 +5039,7 @@
 				)
 			)
 		)
-		(property "Value" "22R"
+		(property "Value" "33R"
 			(at 100.33 105.41 0)
 			(effects
 				(font
@@ -4979,7 +5159,7 @@
 				)
 			)
 		)
-		(property "Value" "22R"
+		(property "Value" "33R"
 			(at 100.33 119.38 0)
 			(effects
 				(font
@@ -5099,7 +5279,7 @@
 				)
 			)
 		)
-		(property "Value" "22R"
+		(property "Value" "33R"
 			(at 100.33 134.62 0)
 			(effects
 				(font
@@ -5219,7 +5399,7 @@
 				)
 			)
 		)
-		(property "Value" "22R"
+		(property "Value" "33R"
 			(at 100.33 149.86 0)
 			(effects
 				(font
@@ -5339,7 +5519,7 @@
 				)
 			)
 		)
-		(property "Value" "22R"
+		(property "Value" "33R"
 			(at 100.33 165.1 0)
 			(effects
 				(font
@@ -5459,7 +5639,7 @@
 				)
 			)
 		)
-		(property "Value" "22R"
+		(property "Value" "33R"
 			(at 100.33 180.34 0)
 			(effects
 				(font
@@ -6017,71 +6197,15 @@
 		)
 		(uuid "2d6440cc-b14a-5611-9397-b53ec97656e4")
 	)
-	(symbol
-		(lib_id "power:GND")
-		(at 342.9 72.39 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "44884441-3cba-5726-9c07-3969c2c45c0d")
-		(property "Reference" "#PWR310"
-			(at 342.9 72.39 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
+	(label "EEPROM_WP"
+		(at 342.9 72.39 0)
+		(effects
+			(font
+				(size 1.27 1.27)
 			)
+			(justify left bottom)
 		)
-		(property "Value" "GND"
-			(at 342.9 76.2 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Footprint" ""
-			(at 342.9 72.39 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 342.9 72.39 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 342.9 72.39 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "5a313119-a10f-543e-a616-674e9957b790")
-		)
-		(instances
-			(project "sdi"
-				(path "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501/4368889b-8fb1-5650-b786-cdaa32cfa318"
-					(reference "#PWR310")
-					(unit 1)
-				)
-			)
-		)
+		(uuid "da7a2d53-b533-5007-b821-802da8288010")
 	)
 	(wire
 		(pts
@@ -6112,6 +6236,300 @@
 					(size 1.27 1.27)
 				)
 				(hide yes)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R")
+		(at 330.2 95.25 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "bb505c28-8971-5cbc-827a-7c90c379fa48")
+		(property "Reference" "R320"
+			(at 332.74 95.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "10k"
+			(at 330.2 95.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
+			(at 330.2 95.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 330.2 95.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 330.2 95.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "14c6868a-bc55-5816-bf9a-eff730f540ba")
+		)
+		(pin "2"
+			(uuid "1b81f22a-3a73-5440-af34-d5d9f0622e55")
+		)
+		(instances
+			(project "sdi"
+				(path "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501/4368889b-8fb1-5650-b786-cdaa32cfa318"
+					(reference "R320")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 330.2 91.44)
+			(xy 330.2 88.9)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "97be77b7-948e-52ce-8ce7-fa7d0b7a9921")
+	)
+	(global_label "3V3"
+		(shape passive)
+		(at 330.2 88.9 90)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "55aa60dc-9690-57a9-a4e8-43684bc2a131")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 330.2 88.9 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 330.2 99.06)
+			(xy 330.2 101.6)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f9370b56-4551-5f9c-b309-53534ad1ef09")
+	)
+	(label "EEPROM_WP"
+		(at 330.2 101.6 270)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "6df75d71-930f-541e-a6cd-14829b03c1ed")
+	)
+	(symbol
+		(lib_id "Jumper:SolderJumper_2_Open")
+		(at 350.52 95.25 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "702b1c10-e8d5-5a9e-a617-172dee59b8b4")
+		(property "Reference" "JP301"
+			(at 350.52 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "WRITE"
+			(at 350.52 97.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm"
+			(at 350.52 95.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 350.52 95.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 350.52 95.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Note" "Close to write the board ID"
+			(at 350.52 95.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "f84b5d52-d769-560d-8033-9360f3739950")
+		)
+		(pin "2"
+			(uuid "2835de31-0294-5a1f-a25c-ad5bcce38e12")
+		)
+		(instances
+			(project "sdi"
+				(path "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501/4368889b-8fb1-5650-b786-cdaa32cfa318"
+					(reference "JP301")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 345.44 95.25)
+			(xy 342.9 95.25)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "577cfe90-f9d7-5062-83ea-9a67e62dc783")
+	)
+	(label "EEPROM_WP"
+		(at 342.9 95.25 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "c09e8e5c-a3f0-510e-889b-0f724222dfe8")
+	)
+	(wire
+		(pts
+			(xy 355.6 95.25)
+			(xy 358.14 95.25)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "91c33705-4f0a-5d5b-b8eb-d4022c8b67e1")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 358.14 95.25 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "54e7a19a-8275-5194-b3d0-2bd11a7f7dab")
+		(property "Reference" "#PWR310"
+			(at 358.14 95.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 358.14 99.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 358.14 95.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 358.14 95.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 358.14 95.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "8dddc503-178a-5f82-a571-cbf8389f442d")
+		)
+		(instances
+			(project "sdi"
+				(path "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501/4368889b-8fb1-5650-b786-cdaa32cfa318"
+					(reference "#PWR310")
+					(unit 1)
+				)
 			)
 		)
 	)
@@ -6291,7 +6709,7 @@
 			)
 		)
 	)
-	(text "2 x 20, 2.00 mm socket on the underside, mating the relay's J602 (pin numbers as on the relay).\n22R series resistors at the receiver on every output that leaves the board.  GSPI is bit-banged on\nSDI_GPIO3-6; RESET on SDI_GPIO7; LOCKED to SDI_GPIO1.  The relay has 2.2k pull-ups on SDI_I2C."
+	(text "2 x 20, 2.00 mm socket on the underside, mating the relay's J602 (pin numbers as on the relay).\n33R series resistors at the receiver on every output that leaves the board.  GSPI is bit-banged on\nSDI_GPIO3-6; RESET on SDI_GPIO7; LOCKED to SDI_GPIO1.  The relay has 2.2k pull-ups on SDI_I2C."
 		(exclude_from_sim no)
 		(at 20.32 15.24 0)
 		(effects
@@ -6300,7 +6718,7 @@
 			)
 			(justify left top)
 		)
-		(uuid "cde99fac-04b1-5582-a150-7e1b0ea37ffd")
+		(uuid "072f31a8-9951-51d0-a512-31b35b916e88")
 	)
 	(sheet_instances
 		(path "/"

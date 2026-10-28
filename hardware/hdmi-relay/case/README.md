@@ -40,6 +40,17 @@ module and a 30 × 30 × 6 mm heatsink, the Wi-Fi card, the M.2 socket, the USB-
 any overlap larger than 0.5 mm³. It also probes what a solid test cannot see: a 12 × 6.5 mm USB-C plug overmould
 from the socket face out, a 21 × 11 mm HDMI Type-A overmould in front of each HDMI socket, and the solid stop above each tripod insert hole. Today it passes.
 
+`--sdi` builds the SDI add-on variant into `case/out/sdi/`
+(`hardware/sdi-addon/DESIGN.md` "Mechanics"):
+- **Lid:** 27.0 mm above the board instead of 16.8.
+- **Posts at H602/H604:** they stop on the add-on, 7.6 mm above the board.
+- **East wall:** an outward boss (5.85 mm deep) with a bay for the add-on's tab and the BNC flange, and a 3 mm panel
+  with the BNC's D-hole.
+
+`--sdi --check` also checks the add-on, the BNC (body, flange, thread, nut, leg tips) and the standoffs. It checks
+the slide-in path, a 15 mm BNC plug probe, and that both posts bear on the add-on. Today it passes. Deliberate
+faults fail it: a D-hole that is too small, a bay that is too narrow, posts that are too high.
+
 ## Layout
 
 - **Front wall:** both HDMI sockets. Their faces are 1.0 mm past the board edge; the wall is pocketed around each

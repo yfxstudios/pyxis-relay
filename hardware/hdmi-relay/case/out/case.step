@@ -1,7 +1,7 @@
 ISO-10303-21;
 HEADER;
 FILE_DESCRIPTION(('Open CASCADE Model'),'2;1');
-FILE_NAME('Open CASCADE Shape Model','2026-10-26T14:42:23',('Author'),(
+FILE_NAME('Open CASCADE Shape Model','2026-10-28T10:29:55',('Author'),(
     'Open CASCADE'),'Open CASCADE STEP processor 7.9','Open CASCADE 7.9'
   ,'Unknown');
 FILE_SCHEMA(('AUTOMOTIVE_DESIGN { 1 0 10303 214 1 1 1 1 }'));
@@ -15,8 +15,8 @@ DATA;
 #4 = PRODUCT_DEFINITION_SHAPE('','',#5);
 #5 = PRODUCT_DEFINITION('design','',#6,#9);
 #6 = PRODUCT_DEFINITION_FORMATION('','',#7);
-#7 = PRODUCT('2107e9d4-d186-11f1-a673-3394254632ea',
-  '2107e9d4-d186-11f1-a673-3394254632ea','',(#8));
+#7 = PRODUCT('310e7e04-d2f5-11f1-b03a-ff9f175c9f37',
+  '310e7e04-d2f5-11f1-b03a-ff9f175c9f37','',(#8));
 #8 = PRODUCT_CONTEXT('',#2,'mechanical');
 #9 = PRODUCT_DEFINITION_CONTEXT('part definition',#2,'design');
 #10 = SHAPE_REPRESENTATION('',(#11,#15,#19),#23);

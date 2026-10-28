@@ -22,7 +22,7 @@ def bga(name, rows, cols, pitch, body, pad, descr):
         for c in range(cols):
             x, y = round(-off_x + c * pitch, 4), round(-off_y + r * pitch, 4)
             items.append(f'(pad {q(f"{letter}{c + 1}")} smd circle (at {x} {y}) (size {pad} {pad}) '
-                         f'(layers "F.Cu" "F.Paste" "F.Mask"))')
+                         f'(layers "F.Cu" "F.Paste" "F.Mask") (solder_mask_margin 0.05))')
     items.append(")")
     return dump(parse(" ".join(items))) + "\n"
 
@@ -82,7 +82,7 @@ def write(outdir):
     open(os.path.join(lib, name + ".kicad_mod"), "w").write(bga(
         name, 10, 10, 1.0, 11.0, 0.45,
         "Semtech GS2971A LBGA-100, 11 x 11 mm, 1.0 mm pitch, 0.5 mm balls (GS2971A datasheet 7.1). NSMD 0.45 mm "
-        "pads: check against Semtech's land-pattern recommendation and JLCPCB's BGA rules."))
+        "pads, mask opening 0.55 mm: check against Semtech's land-pattern recommendation and JLCPCB's BGA rules."))
     name, text = bnc_samtec_bh1()
     open(os.path.join(lib, name + ".kicad_mod"), "w").write(text)
     open(os.path.join(outdir, "fp-lib-table"), "w").write(
