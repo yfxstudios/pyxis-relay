@@ -42,9 +42,9 @@ def receiver(project):
 
     # SDI input: BNC -> 6.2 nH || 75R -> 75R termination, 1 uF into SDI; SDI-bar 1 uF to 37.4R (figure 5-1)
     s.add("Connector:Conn_Coaxial", (40, 100), {"1": "SDI_BNC", "2": "GND"}, value="SDI IN", ref="J",
-          footprint="sdi:BNC_Amphenol_031-70535-12G_Horizontal",
-          Note="Amphenol RF 031-70535-12G, 75 ohm 12G right-angle PCB jack (DigiKey; hand-fitted). Footprint to draw "
-               "from the Amphenol drawing (alternates: Samtec BNC7T-J-P-HN-RA-BH1, Hirose BNC(75)-PLR-PC-12G-1)")
+          footprint="sdi:BNC_Samtec_BNC7T-J-P-xx-RA-BH1_Horizontal",
+          Note="Samtec BNC7T-J-P-HN-RA-BH1: true 75 ohm, 12G, right-angle bulkhead PCB jack (DigiKey; hand-fitted). "
+               "The thread passes through the case wall (4 mm max) with nut and lock washer")
     s.add("Device:L", (60, 90), {"1": "SDI_BNC", "2": "SDI_TERM"}, value="6.2nH", footprint=L0402,
           Note="Return-loss compensation, high-Q 0402 RF inductor")
     resistor(s, (60, 110), "SDI_BNC", "SDI_TERM", "75R 1%")
@@ -101,13 +101,15 @@ def power(project):
     s = Sheet(project, "power", "Power", 200)
     s.text("1.2 V core from 5V_SYS through a 2 A buck; 1.2 V analog and 3.3 V analog through 0R (or ferrite)\n"
            "filters as in GS2971A figure 5-1.  3.3 V I/O and analog from the relay's 3V3_IO.  About 0.8 W.", (20, 15), 2)
-    cap(s, (40, 60), "5V_SYS", "GND", "10uF", footprint=C0805)
+    cap(s, (40, 60), "5V_SYS", "GND", "22uF", footprint=C0805, Note="CIN: SY8089 datasheet")
     s.add(SY8089, (80, 60), {"4": "5V_SYS", "1": "5V_SYS", "3": "SW_1V2", "5": "FB_1V2", "2": "GND"}, ref="U")
     s.add("Device:L", (120, 50), {"1": "SW_1V2", "2": "1V2"}, value="2.2uH", ref="L",
           footprint="Inductor_SMD:L_Taiyo-Yuden_NR-30xx", Note="2.2 uH, Isat >= 1 A")
-    resistor(s, (140, 60), "1V2", "FB_1V2", "100k 1%", Note="Vout = 0.6 V x (1 + 100k/100k) = 1.2 V")
+    resistor(s, (140, 60), "1V2", "FB_1V2", "100k 1%", Note="Vout = 0.6 V x (1 + 100k/100k) = 1.2 V (SY8089 pin table)")
+    cap(s, (125, 70), "1V2", "FB_1V2", "22pF", Note="Feed-forward across R1, as in the SY8089 typical circuit")
     resistor(s, (140, 80), "FB_1V2", "GND", "100k 1%")
-    cap(s, (155, 60), "1V2", "GND", "22uF", footprint=C0805)
+    cap(s, (155, 60), "1V2", "GND", "22uF", footprint=C0805, Note="COUT 2 x 22 uF: SY8089 datasheet")
+    cap(s, (165, 80), "1V2", "GND", "22uF", footprint=C0805)
     cap(s, (170, 60), "1V2", "GND", "1uF")
     # analog 1.2 V
     resistor(s, (60, 120), "1V2", "1V2_A", "0R", Note="Or a 0402 ferrite (600R at 100 MHz)")

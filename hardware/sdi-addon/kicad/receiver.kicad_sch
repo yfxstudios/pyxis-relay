@@ -6058,7 +6058,7 @@
 				)
 			)
 		)
-		(property "Footprint" "sdi:BNC_Amphenol_031-70535-12G_Horizontal"
+		(property "Footprint" "sdi:BNC_Samtec_BNC7T-J-P-xx-RA-BH1_Horizontal"
 			(at 39.37 100.33 0)
 			(effects
 				(font
@@ -6085,7 +6085,7 @@
 				(hide yes)
 			)
 		)
-		(property "Note" "Amphenol RF 031-70535-12G, 75 ohm 12G right-angle PCB jack (DigiKey; hand-fitted). Footprint to draw from the Amphenol drawing (alternates: Samtec BNC7T-J-P-HN-RA-BH1, Hirose BNC(75)-PLR-PC-12G-1)"
+		(property "Note" "Samtec BNC7T-J-P-HN-RA-BH1: true 75 ohm, 12G, right-angle bulkhead PCB jack (DigiKey; hand-fitted). The thread passes through the case wall (4 mm max) with nut and lock washer"
 			(at 39.37 100.33 0)
 			(effects
 				(font

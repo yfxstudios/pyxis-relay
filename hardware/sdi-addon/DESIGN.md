@@ -8,9 +8,12 @@ items still marked **verify** are not covered by it.
 
 ## Decisions (Oct 27)
 
-- **Connector:** full-size 75 Ω right-angle BNC, Amphenol RF 031-70535-12G (12G-rated PCB jack, DigiKey,
-  hand-fitted like the relay's magjack). Alternates: Samtec BNC7T-J-P-HN-RA-BH1, Hirose BNC(75)-PLR-PC-12G-1. KiCad
-  has no single 75 Ω right-angle BNC footprint (its 031-6575 is a dual isolated BNC): draw it from Amphenol's drawing.
+- **Connector:** full-size 75 Ω right-angle BNC, **Samtec BNC7T-J-P-HN-RA-BH1** (true 75 Ω, 12G, bulkhead: the
+  thread passes through a wall up to 4 mm thick with nut and lock washer; DigiKey; hand-fitted like the relay's
+  magjack). Footprint `sdi:BNC_Samtec_BNC7T-J-P-xx-RA-BH1_Horizontal` drawn from Samtec's print rev J
+  ([suddendocs.samtec.com/prints/bnc7t-j-p-xx-ra-bh1-mkt.pdf](https://suddendocs.samtec.com/prints/bnc7t-j-p-xx-ra-bh1-mkt.pdf);
+  proprietary, so not copied into the repo). Amphenol's site refused the 031-70535-12G drawing. KiCad has no single
+  75 Ω right-angle BNC footprint (its 031-6575 is a dual isolated BNC).
 - **Case:** an SDI variant with a taller lid (see "Mechanics").
 - **Receiver:** GS2971A (LCSC C512366: 168 in stock at $16.86 on Oct 27; JLCPCB can place it).
 
@@ -40,8 +43,9 @@ items still marked **verify** are not covered by it.
   RC_BYP and JTAG/HOST LOW; CS pulled up, RESET pulled down (held in reset until the relay releases it); a green
   LOCK LED on STAT3; audio, F, STAT4/5, SMPTE_BYPASS, DVB_ASI and XTAL_OUT on test pads; no loop-out (SDO open,
   SDO_EN low); 10 nF at every supply group.
-- **Power:** U201 SY8089 buck, 5V_SYS → 1.2 V (100k/100k on FB); 1V2_A, 3V3 and 3V3_A through 0R (or ferrites)
-  from 1.2 V and the relay's 3V3_IO.
+- **Power:** U201 SY8089 buck (LCSC C78988; pinout and Vout = 0.6 V × (1 + R1/R2) checked against its datasheet),
+  5V_SYS → 1.2 V: 22 µF in, 2.2 µH, 2 × 22 µF out, 100k/100k with 22 pF feed-forward (the datasheet's typical
+  circuit); 1V2_A, 3V3 and 3V3_A through 0R (or ferrites) from 1.2 V and the relay's 3V3_IO.
 - **Interface:** J301 2 × 20 2.00 mm socket (bottom side) to the relay's J602; 22 Ω series resistors on DOUT19–12
   → DVP_D15–8, DOUT9–2 → DVP_D7–0, PCLK, STAT0 → HSYNC, STAT1 → VSYNC; GSPI on SDI_GPIO3–6, RESET on SDI_GPIO7,
   LOCKED on SDI_GPIO1; 24C02 ID EEPROM on SDI_I2C.
@@ -144,13 +148,30 @@ J602. Two things shape it:
 - **Height:** the lid gives 16.8 mm above the relay board. With a 2.00 mm socket and header the add-on's top sits
   about 7–9 mm up, leaving 8–10 mm. A full-size right-angle BNC is about 14 mm tall: it **does not fit** this lid.
 
+### Placement (from the BNC drawing)
+
+BNC7T-J-P-xx-RA-BH1: 4 × 2.90 mm legs on a 9.70 mm square around the centre pin; body 11.60 mm square, axis
+11.30 mm and body top 18.0 mm above the board, nut Ø14.3 mm; shoulder 8.85 mm in front of the centre pin.
+
+- **Conflict:** with the shoulder against the inner face of the east wall (board x 120.4), the centre pin sits at
+  x 111.55 and the rear legs at x 106.7, on top of the J602 socket body (x 103–107), which hangs under the add-on.
+- **Fix:** centre pin at about x 113.4, y 50 (rear legs at x 108.5, clear of the socket; body y 44.2–55.8 and nut
+  y 42.9–57.1, clear of the lid posts at y 36 and 68). The shoulder then lands 1.8 mm into the 2.2 mm wall: give the
+  east wall a local outward boss (about 4.0 mm thick, the BNC's panel maximum) with a Ø15 × 1.8 mm counterbore on
+  the inside for the shoulder.
+- **Rejected:** a front-wall BNC (the board would cover the roof light pipes, pinholes and J601) and a south
+  position (the magjack is 15 mm tall there).
+- **Board outline:** about x 94–120, y 29–71 (board coordinates), over the CM3 module's east edge (4.5 mm tall, under
+  the add-on's 6.3 mm stack) and away from its heatsink (x 51–81); notches for the lid posts at (116, 36) and
+  (116, 68); the GS2971A west or north of the BNC.
+
 ### SDI case variant (plan)
 
-- **Lid:** `OVER` from 16.8 to about 25 mm (lid about 8 mm taller), as a `--sdi` option in `case/case.py` so the
-  standard case stays as it is. Final number from the BNC drawing: board top + stack (header + socket, about 6.3 mm)
-  + 1.6 mm board + BNC height + 1 mm.
-- **East wall:** a round opening for the BNC body (about 10 mm, to the drawing) at the BNC's centre height, cut in
-  the lid if it clears the base line, otherwise notched into the base like the USB-C opening.
+- **Lid:** `OVER` from 16.8 to about 27 mm (lid about 10 mm taller), as a `--sdi` option in `case/case.py` so the
+  standard case stays as it is: relay board top + 6.3 mm stack (2.00 mm header + 4.3 mm socket) + 1.6 mm add-on
+  + 18.0 mm BNC body + 1 mm.
+- **East wall:** Samtec's D-shaped panel hole (12.89 × 11.30 mm) at the BNC axis, about 19.2 mm above the relay
+  board top, through the local boss and counterbore described above. Entirely in the lid.
 - **Lid posts:** both posts at board (116, 36) and (116, 68) stay; the add-on has clearance cut-outs for them.
 - **Fit check:** add the add-on's outline and the BNC body to `--check`, with a BNC plug probe like the HDMI ones.
 
@@ -193,8 +214,9 @@ The east (right) wall is free for the connector: antennas are on the west wall, 
 
 ## Next steps
 
-1. Get the Amphenol 031-70535-12G drawing; draw its footprint and fix the case height.
-2. Confirm the SY8089 pinout against its datasheet; pick LCSC parts (crystal, 6.2 nH RF inductor, 1 % resistors).
+1. LCSC parts for the passives, crystal and 6.2 nH RF inductor (the jlcsearch API refused requests on Oct 27; use
+   the relay's `gen/fab.py` map for the common values).
+2. Check the stack height with the actual 2.00 mm header and socket parts.
 3. Settle open decisions 2–5.
 4. Board outline and placement (over the relay's x 95–120, y 25–75 mm, with the lid-post cut-outs), 4-layer layout
    with the 75 Ω input, DRC, then the SDI case variant.
