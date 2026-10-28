@@ -1,9 +1,9 @@
-# SDI add-on board: design (draft 2, Oct 27, 2026)
+# SDI add-on board: design (draft 3, Oct 27, 2026)
 
 A small daughterboard that adds a 3G/HD/SD-SDI input to the HDMI-in relay. It plugs into the relay's J602 header
 and delivers BT.1120 video to the CM3's parallel camera input (DVP), alongside the RK628D's HDMI input on CSI.
-**Status:** schematic drawn (generated, `kicad/gen/`), ERC clean apart from the BNC footprint still to draw. No
-layout yet. Receiver facts below are from the GS2971A datasheet Rev. 3 (`datasheets/GS2971A_Datasheet_Rev3.pdf`);
+**Status:** schematic drawn (generated, `kicad/gen/`), ERC 0. REVIEW_1's three blockers are settled below
+(stackup, BNC position and wall bay, lid sub-assembly); no layout yet. Receiver facts below are from the GS2971A datasheet Rev. 3 (`datasheets/GS2971A_Datasheet_Rev3.pdf`);
 items still marked **verify** are not covered by it.
 
 ## Decisions (Oct 27)
@@ -14,7 +14,12 @@ items still marked **verify** are not covered by it.
   ([suddendocs.samtec.com/prints/bnc7t-j-p-xx-ra-bh1-mkt.pdf](https://suddendocs.samtec.com/prints/bnc7t-j-p-xx-ra-bh1-mkt.pdf);
   proprietary, so not copied into the repo). Amphenol's site refused the 031-70535-12G drawing. KiCad has no single
   75 Ω right-angle BNC footprint (its 031-6575 is a dual isolated BNC).
-- **Case:** an SDI variant with a taller lid (see "Mechanics").
+- **Case:** an SDI variant with a taller lid and a local outward bay for the BNC (see "Mechanics").
+- **Stackup (REVIEW_1 B1):** JLC04161H-7628 for the add-on, not the relay's 3313 (see "Layout rules").
+- **Mounting (REVIEW_1 B3):** the add-on is a lid sub-assembly: BNC nut on the lid's boss plus two M3 × 6 mm
+  male-female standoffs into the lid posts; the lid and add-on go on and come off as one part.
+- **J301:** SMD 2 × 20 2.00 mm socket on the bottom side (not through-hole), so the SDI input never crosses a pin
+  field and the receiver can sit over the socket.
 - **Receiver:** GS2971A (LCSC C512366: 168 in stock at $16.86 on Oct 27; JLCPCB can place it).
 
 ## GS2971A facts used (datasheet Rev. 3)
@@ -46,7 +51,7 @@ items still marked **verify** are not covered by it.
 - **Power:** U201 SY8089 buck (LCSC C78988; pinout and Vout = 0.6 V × (1 + R1/R2) checked against its datasheet),
   5V_SYS → 1.2 V: 22 µF in, 2.2 µH, 2 × 22 µF out, 100k/100k with 22 pF feed-forward (the datasheet's typical
   circuit); 1V2_A, 3V3 and 3V3_A through 0R (or ferrites) from 1.2 V and the relay's 3V3_IO.
-- **Interface:** J301 2 × 20 2.00 mm socket (bottom side) to the relay's J602; 22 Ω series resistors on DOUT19–12
+- **Interface:** J301 2 × 20 2.00 mm SMD socket (bottom side) to the relay's J602; 22 Ω series resistors on DOUT19–12
   → DVP_D15–8, DOUT9–2 → DVP_D7–0, PCLK, STAT0 → HSYNC, STAT1 → VSYNC; GSPI on SDI_GPIO3–6, RESET on SDI_GPIO7,
   LOCKED on SDI_GPIO1; 24C02 ID EEPROM on SDI_I2C.
 
@@ -141,56 +146,114 @@ Recommend 1 now and 2 for rev B.
 
 ## Mechanics
 
-The add-on sits over the empty area east of the CM3 (board x 95–120 mm, y 25–75 mm), on a 2.00 mm socket mating
-J602. Two things shape it:
-- **The case's lid posts** at board (116, 36) and (116, 68) run from the roof to the relay board, 6.8 mm diameter.
-  The add-on needs clearance cut-outs for both (or uses them as its own mounting, with spacers).
-- **Height:** the lid gives 16.8 mm above the relay board. With a 2.00 mm socket and header the add-on's top sits
-  about 7–9 mm up, leaving 8–10 mm. A full-size right-angle BNC is about 14 mm tall: it **does not fit** this lid.
+The add-on sits over the empty area east of the CM3, on a 2.00 mm socket mating J602. What is under it on the relay
+(from `relay.kicad_pcb`, board coordinates): J602 (courtyard x 102.5–107.6, y 29.5–70.6), the lid-post holes H602
+(116, 36) and H604 (116, 68) with 7 mm keep-outs, the CM3 module's east edge (x 93.6, 4.5 mm tall), and the magjack
+J301 from y 71.6 south **but only west of x 108.9** (15.1 mm tall). Nothing else.
+
+### Stack height
+
+- **Standoffs set the gap:** two M3 × 6.0 mm male-female hex standoffs (5.5 mm AF) at H602/H604 between the relay
+  and the add-on. Add-on bottom 6.0 mm, top 7.6 mm above the relay board top.
+- **The connector must be no taller than the standoffs:** mated height (header insulator + socket body) 5.6–6.0 mm,
+  so the socket stops just short of bottoming instead of being crushed. A 1.5 mm-insulator header on the relay
+  plus a 4.3 mm SMD socket gives 5.8 mm. A 2.0 mm insulator (6.3 mm) does **not** fit. Measure the chosen pair.
+- **Heights above the relay board top:** BNC axis 18.9 mm, BNC body top 25.6 mm, BNC leg tips 3.0 mm.
+- **Over the CM3 module (x < 94.1):** 1.5 mm gap above the module, so bottom-side parts there are ≤ 1.0 mm and
+  nothing through-hole.
 
 ### Placement (from the BNC drawing)
 
-BNC7T-J-P-xx-RA-BH1: 4 × 2.90 mm legs on a 9.70 mm square around the centre pin; body 11.60 mm square, axis
-11.30 mm and body top 18.0 mm above the board, nut Ø14.3 mm; shoulder 8.85 mm in front of the centre pin.
+BNC7T-J-P-xx-RA-BH1: 4 × Ø2.90 legs on a 9.70 mm square around the centre pin; body 11.60 mm square; axis 11.30 mm
+and body top 18.0 mm above the board; shoulder 8.85 mm in front of the centre pin; legs 3.00 mm below the board.
 
-- **Conflict:** with the shoulder against the inner face of the east wall (board x 120.4), the centre pin sits at
-  x 111.55 and the rear legs at x 106.7, on top of the J602 socket body (x 103–107), which hangs under the add-on.
-- **Fix:** centre pin at about x 113.4, y 50 (rear legs at x 108.5, clear of the socket; body y 44.2–55.8 and nut
-  y 42.9–57.1, clear of the lid posts at y 36 and 68). The shoulder then lands 1.8 mm into the 2.2 mm wall: give the
-  east wall a local outward boss (about 4.0 mm thick, the BNC's panel maximum) with a Ø15 × 1.8 mm counterbore on
-  the inside for the shoulder.
-- **Rejected:** a front-wall BNC (the board would cover the roof light pipes, pinholes and J601) and a south
-  position (the magjack is 15 mm tall there).
-- **Board outline:** about x 94–120, y 29–71 (board coordinates), over the CM3 module's east edge (4.5 mm tall, under
-  the add-on's 6.3 mm stack) and away from its heatsink (x 51–81); notches for the lid posts at (116, 36) and
-  (116, 68); the GS2971A west or north of the BNC.
+- **Centre pin at board (116.6, 50.0).** Two limits fix it:
+  - **Rear legs (x 111.75):** pads Ø3.8 (footprint), pad edge 109.85, 0.35 mm from the SMD socket's bottom pads
+    (≤ 109.5); hole edge 110.3, 3.3 mm from the socket body.
+  - **No room inside the wall:** from a pin x of 113.7 east, the front leg pads already lie past the lid's inner
+    wall face (120.4). Here they are at x 121.45, hole edge 122.9. REVIEW_1 B2's x ≥ 114.5 has the same problem.
+    So the board goes through the wall into a bay (below).
+- **Board edge:** the add-on reaches x 123.7 locally (a tab, y 42.5–57.5), 0.35 mm beyond the front leg pads
+  (`BNC_EDGE` = 7.1 mm in the footprint, where the courtyard is clipped).
+- **Positions on the add-on:**
 
-### SDI case variant (plan)
+  | Part | x | y |
+  |---|---|---|
+  | BNC body | 110.8–122.4 | 44.2–55.8 |
+  | BNC flange | 122.4–125.45 | 43.05–56.95 |
+  | Shoulder | 125.45 | |
+- **SDI input path:** from the centre pin west between the rear legs (5.5 mm gap) to the input network at about
+  x 104.5–110.5, then the 1 µF coupling to the receiver.
+- **Receiver:** the GS2971A, body about x 93–104, y 44.5–55.5, with balls C1/D1 facing east. It sits on the top
+  side, directly over the SMD socket. The DVP vias drop between the socket pads.
+- **Rejected:** a front-wall BNC (the board would cover the roof light pipes, pinholes and J601), a south position
+  (magjack), and a through-hole J301. Its two pin columns at x 104/106 run y 31–69, so the 75 Ω trace would have to
+  squeeze between DVP pins.
 
-- **Lid:** `OVER` from 16.8 to about 27 mm (lid about 10 mm taller), as a `--sdi` option in `case/case.py` so the
-  standard case stays as it is: relay board top + 6.3 mm stack (2.00 mm header + 4.3 mm socket) + 1.6 mm add-on
-  + 18.0 mm BNC body + 1 mm.
-- **East wall:** Samtec's D-shaped panel hole (12.89 × 11.30 mm) at the BNC axis, about 19.2 mm above the relay
-  board top, through the local boss and counterbore described above. Entirely in the lid.
-- **Lid posts:** both posts at board (116, 36) and (116, 68) stay; the add-on has clearance cut-outs for them.
-- **Fit check:** add the add-on's outline and the BNC body to `--check`, with a BNC plug probe like the HDMI ones.
+### Board outline
 
-Connector choice (decide first):
-| Option | Fits today's lid | Notes |
-|---|---|---|
-| Full-size BNC, right angle, 75 Ω | No: needs a lid about 8 mm taller (SDI variant of the case) | What every SDI camera cable has |
-| HD-BNC or DIN 1.0/2.3, right angle | Yes | Compact broadcast connectors; needs an adapter cable to BNC |
-| Full-size BNC on a short 75 Ω pigtail to a bulkhead in the east wall | Yes, if the bulkhead sits below the lid line | One extra cable; easy |
+| Region | x | y | Why |
+|---|---|---|---|
+| Main | 88.0–120.2 | 29.0–70.5 | 7 mm clear of the CM3 heatsink (x 81); 1.1 mm clear of the magjack (y 71.6) |
+| SE tab | 110.0–120.2 | 70.5–72.0 | Material round the H604 hole; the magjack ends at x 108.9 |
+| East tab | 120.2–123.7 | 42.5–57.5 | Carries the BNC's front legs into the wall bay |
 
-The east (right) wall is free for the connector: antennas are on the west wall, Ethernet and power at the rear.
+- **Mounting holes:**
+  - Ø3.4 (0.3 mm float, so the BNC nut sets x and the standoffs only clamp) at (116, 36) and (116, 68).
+  - Ø7.0 copper keep-out on both sides: the lid post bears on the top, the standoff hex on the bottom.
+- **Top-side keep-out bands, y 32.4–39.6 and 64.4–71.6, full width:** the add-on slides 18–19 mm east across the
+  post ends during assembly (below). Top-side parts in these bands would hit the posts. The bottom side is free
+  there except the hole keep-outs.
+- **Bottom side:** 6.0 mm of height everywhere except over the CM3 module (≤ 1.0 mm) and the socket.
+
+### SDI case variant (plan, `case/case.py --sdi`)
+
+- **Lid height:** `OVER` 16.8 → **27.0 mm** (body top 25.6 + 1.4 mm). The standard case stays as it is.
+- **Lid posts at (116, 36) and (116, 68):** they end at the add-on top (7.6 mm above the relay board top), not at the
+  board. Each keeps its M3 insert at the bottom. Posts at (4, 4) and (4, 96) are unchanged.
+- **BNC bay (east wall), y 41.5–58.5:**
+  - **Pocket:** x 120.0–125.45, from 2.0 mm above the relay board top (below the leg tips at 3.0) up to the roof.
+    It takes the add-on's east tab, the BNC's front legs and its 13.9 mm flange.
+  - **Outward boss:** x 122.6–128.45, y 39.5–60.5, full lid height. Its last 3.0 mm (x 125.45–128.45) is the panel
+    that the shoulder seats on (Samtec allows 4.0 mm max).
+  - **D-hole:** Ø12.89 with flats 11.30 apart, **flats top and bottom**, centred at y 50, 18.9 mm above the relay
+    board top. The nut (Ø14.3) and lock washer sit on the boss face.
+- **Assembly** (REVIEW_1 B3, option a):
+  1. Fit the M3 heat-set inserts in the lid posts, as today.
+  2. Turn the lid upside down. Lay the add-on in, components towards the roof, BNC thread aimed at the D-hole.
+     Slide it east 18–19 mm, across the post ends, until the shoulder seats and the holes line up with the posts.
+  3. Lock washer and nut on the BNC; tighten.
+  4. Screw the two M3 × 6 male-female standoffs, stud up, through the add-on into the post inserts. The 1.6 mm
+     board leaves 4.4 mm of stud in the insert.
+  5. Lower the lid with the add-on onto the base: J301 onto J602, guided by the lid walls. The standoffs land on
+     H602/H604.
+  6. Screw in from under the base:
+     - M3 × 10 into the lid inserts at (4, 4) and (4, 96), as today.
+     - **M3 × 8** into the standoffs at (116, 36) and (116, 68): 3.6 mm of thread, short of the standoff's
+       female depth.
+  - **Opening:** lifting the lid pulls the add-on straight off J602, guided by the posts. J602 is never levered.
+- **Fit check:** add to `--check`:
+  - the add-on outline and the BNC body, flange, nut and leg tips;
+  - a BNC plug probe like the HDMI ones;
+  - the slide path (BNC body between the posts, y 43–57 vs. post edges at 39.4 and 64.6).
 
 ## Layout rules
 
 - 75 Ω single-ended (or 100 Ω differential, per the receiver's input) from the connector through the termination
   and AC coupling into the receiver, as short as possible, with the return-loss network from the datasheet, solid
   ground under it and no vias in the SDI path.
-- 4 layers to match the relay (JLC04161H-3313), so the 75 Ω geometry comes from the same stackup; BGA escape needs
-  them anyway.
+- **Stackup: JLC04161H-7628** (REVIEW_1 B1). The add-on does not need the relay's stackup, and nothing else on it
+  is impedance-controlled.
+  - **L1 to L2:** 0.2104 mm 7628 prepreg, εr about 4.4, 1 oz outer copper.
+  - **75 Ω microstrip:** about 0.14 mm uncoated (Hammerstad; 50 Ω would be 0.36 mm). Solder mask brings it nearer
+    0.13. Take the final width from JLCPCB's impedance calculator before routing. JLCPCB's minimum is 0.09 mm.
+  - **Why not 3313:** a 75 Ω trace there would be about 0.06 mm, which can't be made.
+  - BGA escape still needs 4 layers.
+- **Planes under the SDI path:**
+  - Cut L2 under the 0402 pads of the input network (6.2 nH, 75 Ω, 75 Ω, 1 µF, and the 1 µF/37.4 Ω on SDI-bar),
+    so the 0.5 mm pads see L3 and stay near 75 Ω (GS2971A 5.2).
+  - The BNC footprint has a Ø4.0 rule area on In1/In2/B.Cu round the centre pin.
+  - Keep the analog corner (balls A1–G2, VBG/LF, AGC) over an unbroken L2 region with no digital return under it.
 - Parallel outputs: series resistors at the receiver, short traces to the socket, PCLK routed with ground on both
   sides.
 
@@ -206,7 +269,8 @@ The east (right) wall is free for the connector: antennas are on the west wall, 
 
 ## Open decisions
 
-1. Connector: decided Oct 27 (full-size 75 Ω BNC, SDI case variant).
+1. Connector: decided Oct 27 (full-size 75 Ω BNC, SDI case variant). Stackup, BNC position and mounting: decided
+   Oct 27 (REVIEW_1 B1–B3, above).
 2. Formats: 1080p30 and below guaranteed, or design and test for 1080p60 at the DVP's 150 MHz limit.
 3. Receiver: GS2971A now (LCSC) or GS3471 (newer, consigned).
 4. Loop-out: yes or no.
@@ -214,12 +278,14 @@ The east (right) wall is free for the connector: antennas are on the west wall, 
 
 ## Next steps
 
-1. LCSC parts for the passives, crystal and 6.2 nH RF inductor (the jlcsearch API refused requests on Oct 27; use
+1. Choose the J602 header (1.5 mm insulator) and J301 SMD socket (4.3 mm), and the 6.0 mm M3 male-female
+   standoffs; measure the mated stack (REVIEW_1 M5, M7).
+2. LCSC parts for the passives, crystal and 6.2 nH RF inductor (the jlcsearch API refused requests on Oct 27; use
    the relay's `gen/fab.py` map for the common values).
-2. Check the stack height with the actual 2.00 mm header and socket parts.
-3. Settle open decisions 2–5.
-4. Board outline and placement (over the relay's x 95–120, y 25–75 mm, with the lid-post cut-outs), 4-layer layout
-   with the 75 Ω input, DRC, then the SDI case variant.
+3. Settle open decisions 2–5 and REVIEW_1's majors (timing, Level B, J602 return, sync mode, reset contract).
+4. `case.py --sdi`: lid height, short posts, BNC bay and boss, fit checks. Check the bay against a printed lid
+   before layout is final.
+5. Board outline and placement as above, 4-layer layout on 7628 with the 75 Ω input, DRC.
 
 ## Sources
 

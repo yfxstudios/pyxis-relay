@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "/Users/matthew/Library/Application Support/Claude/scratch-workspaces/72e81736-2099-4312-9510-31637dcac54f/f681371f-3057-45f7-8f61-df3cb1c90a80/scratch-2026-10-20-e277c5/hardware/sdi-addon/kicad/sdi.kicad_sch")
-		(date "2026-10-27T19:31:11")
+		(date "2026-10-27T21:35:56")
 		(tool "Eeschema 10.0.7")
 		(sheet
 			(number "1")
@@ -1527,13 +1527,13 @@
 		(comp
 			(ref "J101")
 			(value "SDI IN")
-			(footprint "Connector_Coaxial:BNC_Amphenol_031-6575_Horizontal")
+			(footprint "sdi:BNC_Samtec_BNC7T-J-P-xx-RA-BH1_Horizontal")
 			(datasheet "~")
 			(fields
 				(field
-					(name "Note") "75 ohm right-angle BNC, Amphenol 031-6575 (3G rated): confirm the part and stock before layout")
+					(name "Note") "Samtec BNC7T-J-P-HN-RA-BH1: true 75 ohm, 12G, right-angle bulkhead PCB jack (DigiKey; hand-fitted). The thread passes through the case wall (4 mm max) with nut and lock washer")
 				(field
-					(name "Footprint") "Connector_Coaxial:BNC_Amphenol_031-6575_Horizontal")
+					(name "Footprint") "sdi:BNC_Samtec_BNC7T-J-P-xx-RA-BH1_Horizontal")
 				(field
 					(name "Datasheet") "~")
 				(field
@@ -1547,7 +1547,7 @@
 			)
 			(property
 				(name "Note")
-				(value "75 ohm right-angle BNC, Amphenol 031-6575 (3G rated): confirm the part and stock before layout")
+				(value "Samtec BNC7T-J-P-HN-RA-BH1: true 75 ohm, 12G, right-angle bulkhead PCB jack (DigiKey; hand-fitted). The thread passes through the case wall (4 mm max) with nut and lock washer")
 			)
 			(property
 				(name "Sheetname")
@@ -3717,10 +3717,12 @@
 		)
 		(comp
 			(ref "C201")
-			(value "10uF")
+			(value "22uF")
 			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(datasheet "~")
 			(fields
+				(field
+					(name "Note") "CIN: SY8089 datasheet")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
@@ -3733,6 +3735,10 @@
 				(lib "Device")
 				(part "C")
 				(description "Unpolarized capacitor")
+			)
+			(property
+				(name "Note")
+				(value "CIN: SY8089 datasheet")
 			)
 			(property
 				(name "Sheetname")
@@ -3771,12 +3777,14 @@
 		)
 		(comp
 			(ref "C202")
-			(value "22uF")
-			(footprint "Capacitor_SMD:C_0805_2012Metric")
+			(value "22pF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
 			(datasheet "~")
 			(fields
 				(field
-					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
+					(name "Note") "Feed-forward across R1, as in the SY8089 typical circuit")
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
 				(field
 					(name "Datasheet") "~")
 				(field
@@ -3787,6 +3795,10 @@
 				(lib "Device")
 				(part "C")
 				(description "Unpolarized capacitor")
+			)
+			(property
+				(name "Note")
+				(value "Feed-forward across R1, as in the SY8089 typical circuit")
 			)
 			(property
 				(name "Sheetname")
@@ -3825,12 +3837,14 @@
 		)
 		(comp
 			(ref "C203")
-			(value "1uF")
-			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(value "22uF")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(datasheet "~")
 			(fields
 				(field
-					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+					(name "Note") "COUT 2 x 22 uF: SY8089 datasheet")
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
 					(name "Datasheet") "~")
 				(field
@@ -3841,6 +3855,10 @@
 				(lib "Device")
 				(part "C")
 				(description "Unpolarized capacitor")
+			)
+			(property
+				(name "Note")
+				(value "COUT 2 x 22 uF: SY8089 datasheet")
 			)
 			(property
 				(name "Sheetname")
@@ -3879,12 +3897,12 @@
 		)
 		(comp
 			(ref "C204")
-			(value "1uF")
-			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(value "22uF")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(datasheet "~")
 			(fields
 				(field
-					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
 					(name "Datasheet") "~")
 				(field
@@ -3933,12 +3951,12 @@
 		)
 		(comp
 			(ref "C205")
-			(value "10uF")
-			(footprint "Capacitor_SMD:C_0805_2012Metric")
+			(value "1uF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
 			(datasheet "~")
 			(fields
 				(field
-					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
 				(field
 					(name "Datasheet") "~")
 				(field
@@ -4041,12 +4059,12 @@
 		)
 		(comp
 			(ref "C207")
-			(value "1uF")
-			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(value "10uF")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(datasheet "~")
 			(fields
 				(field
-					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
 					(name "Datasheet") "~")
 				(field
@@ -4095,6 +4113,114 @@
 		)
 		(comp
 			(ref "C208")
+			(value "1uF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(datasheet "~")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet") "~")
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "C")
+				(description "Unpolarized capacitor")
+			)
+			(property
+				(name "Sheetname")
+				(value "Power")
+			)
+			(property
+				(name "Sheetfile")
+				(value "power.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "cap capacitor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "C_*")
+			)
+			(sheetpath
+				(names "/Power/")
+				(tstamps "/51293089-f6d3-5fc0-a82b-9557220b2d2c/")
+			)
+			(tstamps "9d68ae23-6d78-5937-80d7-db9ae4cd02c3")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C209")
+			(value "1uF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(datasheet "~")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet") "~")
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "Device")
+				(part "C")
+				(description "Unpolarized capacitor")
+			)
+			(property
+				(name "Sheetname")
+				(value "Power")
+			)
+			(property
+				(name "Sheetfile")
+				(value "power.kicad_sch")
+			)
+			(property
+				(name "ki_keywords")
+				(value "cap capacitor")
+			)
+			(property
+				(name "ki_fp_filters")
+				(value "C_*")
+			)
+			(sheetpath
+				(names "/Power/")
+				(tstamps "/51293089-f6d3-5fc0-a82b-9557220b2d2c/")
+			)
+			(tstamps "95376dfc-59aa-5eb4-9853-705ecce41da9")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C210")
 			(value "10uF")
 			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(datasheet "~")
@@ -4132,7 +4258,7 @@
 				(names "/Power/")
 				(tstamps "/51293089-f6d3-5fc0-a82b-9557220b2d2c/")
 			)
-			(tstamps "9d68ae23-6d78-5937-80d7-db9ae4cd02c3")
+			(tstamps "fcd60c19-e5a6-5d80-9c8c-834c594f33da")
 			(units
 				(unit
 					(name "A")
@@ -4214,7 +4340,7 @@
 			(datasheet "~")
 			(fields
 				(field
-					(name "Note") "Vout = 0.6 V x (1 + 100k/100k) = 1.2 V")
+					(name "Note") "Vout = 0.6 V x (1 + 100k/100k) = 1.2 V (SY8089 pin table)")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
 				(field
@@ -4230,7 +4356,7 @@
 			)
 			(property
 				(name "Note")
-				(value "Vout = 0.6 V x (1 + 100k/100k) = 1.2 V")
+				(value "Vout = 0.6 V x (1 + 100k/100k) = 1.2 V (SY8089 pin table)")
 			)
 			(property
 				(name "Sheetname")
@@ -4607,13 +4733,13 @@
 		(comp
 			(ref "J301")
 			(value "To relay J602")
-			(footprint "Connector_PinSocket_2.00mm:PinSocket_2x20_P2.00mm_Vertical")
+			(footprint "Connector_PinSocket_2.00mm:PinSocket_2x20_P2.00mm_Vertical_SMD")
 			(datasheet "~")
 			(fields
 				(field
-					(name "Note") "Fit on the bottom side; mates the relay's 2 x 20 2.00 mm header J602")
+					(name "Note") "SMD, bottom side; mates the relay's 2 x 20 2.00 mm header J602. Mated height 5.6-6.0 mm (1.5 mm header insulator + 4.3 mm socket) to match the 6.0 mm M3 standoffs")
 				(field
-					(name "Footprint") "Connector_PinSocket_2.00mm:PinSocket_2x20_P2.00mm_Vertical")
+					(name "Footprint") "Connector_PinSocket_2.00mm:PinSocket_2x20_P2.00mm_Vertical_SMD")
 				(field
 					(name "Datasheet") "~")
 				(field
@@ -4627,7 +4753,7 @@
 			)
 			(property
 				(name "Note")
-				(value "Fit on the bottom side; mates the relay's 2 x 20 2.00 mm header J602")
+				(value "SMD, bottom side; mates the relay's 2 x 20 2.00 mm header J602. Mated height 5.6-6.0 mm (1.5 mm header insulator + 4.3 mm socket) to match the 6.0 mm M3 standoffs")
 			)
 			(property
 				(name "Sheetname")
@@ -7034,6 +7160,11 @@
 			(name "/Power/FB_1V2")
 			(class "Default")
 			(node
+				(ref "C202")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
 				(ref "R201")
 				(pin "2")
 				(pintype "passive")
@@ -8071,6 +8202,16 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "C204")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C205")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
 				(ref "L201")
 				(pin "2")
 				(pinfunction "2_2")
@@ -8131,7 +8272,7 @@
 				(pintype "passive")
 			)
 			(node
-				(ref "C204")
+				(ref "C206")
 				(pin "1")
 				(pintype "passive")
 			)
@@ -8189,7 +8330,7 @@
 				(pintype "passive")
 			)
 			(node
-				(ref "C206")
+				(ref "C208")
 				(pin "1")
 				(pintype "passive")
 			)
@@ -8274,12 +8415,12 @@
 				(pintype "passive")
 			)
 			(node
-				(ref "C207")
+				(ref "C209")
 				(pin "1")
 				(pintype "passive")
 			)
 			(node
-				(ref "C208")
+				(ref "C210")
 				(pin "1")
 				(pintype "passive")
 			)
@@ -8317,7 +8458,7 @@
 			(name "3V3_IO")
 			(class "Default")
 			(node
-				(ref "C205")
+				(ref "C207")
 				(pin "1")
 				(pintype "passive")
 			)
@@ -8488,11 +8629,6 @@
 				(pintype "passive")
 			)
 			(node
-				(ref "C202")
-				(pin "2")
-				(pintype "passive")
-			)
-			(node
 				(ref "C203")
 				(pin "2")
 				(pintype "passive")
@@ -8519,6 +8655,16 @@
 			)
 			(node
 				(ref "C208")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C209")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C210")
 				(pin "2")
 				(pintype "passive")
 			)

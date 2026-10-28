@@ -142,8 +142,9 @@ def interface(project):
     pins += ["GND", "GND"]
     assert len(pins) == 40
     s.add("Connector_Generic:Conn_02x20_Odd_Even", (220, 140), {str(i + 1): n for i, n in enumerate(pins)},
-          value="To relay J602", ref="J", footprint="Connector_PinSocket_2.00mm:PinSocket_2x20_P2.00mm_Vertical",
-          Note="Fit on the bottom side; mates the relay's 2 x 20 2.00 mm header J602")
+          value="To relay J602", ref="J", footprint="Connector_PinSocket_2.00mm:PinSocket_2x20_P2.00mm_Vertical_SMD",
+          Note="SMD, bottom side; mates the relay's 2 x 20 2.00 mm header J602. Mated height 5.6-6.0 mm (1.5 mm header "
+               "insulator + 4.3 mm socket) to match the 6.0 mm M3 standoffs")
     # series terminations, at the receiver
     for i, (src, dst) in enumerate(TO_DVP.items()):
         resistor(s, (80 + 20 * (i // 10), 60 + 15 * (i % 10)), "GS_" + src if src.startswith("DOUT") else

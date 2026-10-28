@@ -1955,7 +1955,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Connector_PinSocket_2.00mm:PinSocket_2x20_P2.00mm_Vertical"
+		(property "Footprint" "Connector_PinSocket_2.00mm:PinSocket_2x20_P2.00mm_Vertical_SMD"
 			(at 219.71 139.7 0)
 			(effects
 				(font
@@ -1982,7 +1982,7 @@
 				(hide yes)
 			)
 		)
-		(property "Note" "Fit on the bottom side; mates the relay's 2 x 20 2.00 mm header J602"
+		(property "Note" "SMD, bottom side; mates the relay's 2 x 20 2.00 mm header J602. Mated height 5.6-6.0 mm (1.5 mm header insulator + 4.3 mm socket) to match the 6.0 mm M3 standoffs"
 			(at 219.71 139.7 0)
 			(effects
 				(font

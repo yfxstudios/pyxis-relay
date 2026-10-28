@@ -63,8 +63,28 @@
 		)
 		(layer "F.Fab")
 	)
-	(fp_text user "inner wall face"
+	(fp_text user "shoulder: seats on the lid boss panel"
 		(at 9.6 -7.9 90)
+		(layer "F.Fab")
+		(effects
+			(font
+				(size 0.6 0.6)
+				(thickness 0.08)
+			)
+			(justify left)
+		)
+	)
+	(fp_line
+		(start 7.1 -7.6)
+		(end 7.1 7.6)
+		(stroke
+			(width 0.1)
+			(type dash)
+		)
+		(layer "F.Fab")
+	)
+	(fp_text user "board edge"
+		(at 6.5 -7.9 90)
 		(layer "F.Fab")
 		(effects
 			(font
@@ -103,7 +123,7 @@
 	)
 	(fp_rect
 		(start -6.3 -7.45)
-		(end 27.3 7.45)
+		(end 7.1 7.45)
 		(stroke
 			(width 0.05)
 			(type solid)
@@ -119,26 +139,69 @@
 	)
 	(pad "2" thru_hole circle
 		(at -4.85 -4.85)
-		(size 4.2 4.2)
+		(size 3.8 3.8)
 		(drill 2.9)
 		(layers "*.Cu" "*.Mask")
 	)
 	(pad "2" thru_hole circle
 		(at 4.85 -4.85)
-		(size 4.2 4.2)
+		(size 3.8 3.8)
 		(drill 2.9)
 		(layers "*.Cu" "*.Mask")
 	)
 	(pad "2" thru_hole circle
 		(at -4.85 4.85)
-		(size 4.2 4.2)
+		(size 3.8 3.8)
 		(drill 2.9)
 		(layers "*.Cu" "*.Mask")
 	)
 	(pad "2" thru_hole circle
 		(at 4.85 4.85)
-		(size 4.2 4.2)
+		(size 3.8 3.8)
 		(drill 2.9)
 		(layers "*.Cu" "*.Mask")
+	)
+	(zone
+		(net 0)
+		(net_name "")
+		(layers "In1.Cu" "In2.Cu" "B.Cu")
+		(name "SDI pin anti-pad")
+		(hatch edge 0.5)
+		(connect_pads
+			(clearance 0)
+		)
+		(min_thickness 0.25)
+		(filled_areas_thickness no)
+		(keepout
+			(tracks not_allowed)
+			(vias not_allowed)
+			(pads allowed)
+			(copperpour not_allowed)
+			(footprints allowed)
+		)
+		(fill
+			(thermal_gap 0.5)
+			(thermal_bridge_width 0.5)
+		)
+		(polygon
+			(pts
+				(xy 2.0 0.0)
+				(xy 1.848 0.765)
+				(xy 1.414 1.414)
+				(xy 0.765 1.848)
+				(xy 0.0 2.0)
+				(xy -0.765 1.848)
+				(xy -1.414 1.414)
+				(xy -1.848 0.765)
+				(xy -2.0 0.0)
+				(xy -1.848 -0.765)
+				(xy -1.414 -1.414)
+				(xy -0.765 -1.848)
+				(xy -0.0 -2.0)
+				(xy 0.765 -1.848)
+				(xy 1.414 -1.414)
+				(xy 1.848 -0.765)
+			)
+		)
 	)
 )
