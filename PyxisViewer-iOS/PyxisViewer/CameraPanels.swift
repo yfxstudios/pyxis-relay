@@ -6,6 +6,7 @@ import SwiftUI
 struct QuickPanelView: View {
     @ObservedObject var cam: Camera
     @ObservedObject var luts: MonitorLUTs
+    @ObservedObject var overlays: Overlays
     let panel: QuickPanel
     let close: () -> Void
 
@@ -16,6 +17,8 @@ struct QuickPanelView: View {
                 SettingPickerView(cam: cam, panel: panel)
             case .lut:
                 LUTChooser(cam: cam, luts: luts, close: close)
+            case .guides:
+                OverlayChooser(overlays: overlays, recorded: Show.recordedAspect(cam), close: close)
             case .power, .media, .record:
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {

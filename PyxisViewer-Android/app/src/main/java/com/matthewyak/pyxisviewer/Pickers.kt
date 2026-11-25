@@ -238,11 +238,12 @@ fun currentFormatEntry(v: Map<String, JsonElement>): JsonElement? {
 // ---- the quick panels ----
 
 @Composable
-fun QuickPanelView(cam: Camera, luts: MonitorLuts, panel: QuickPanel, close: () -> Unit) {
+fun QuickPanelView(cam: Camera, luts: MonitorLuts, overlays: Overlays, panel: QuickPanel, close: () -> Unit) {
     DockedPanel {
         when (panel) {
             QuickPanel.ISO, QuickPanel.SHUTTER, QuickPanel.WB, QuickPanel.TINT, QuickPanel.FPS, QuickPanel.IRIS -> SettingPickerFor(cam, panel)
             QuickPanel.LUT -> LutChooser(cam, luts, close)
+            QuickPanel.GUIDES -> OverlayChooser(overlays, cam.watch()["/system/format"]["resolutionDescriptor"]["aspectRatio"].str, close)
             else -> Column(Modifier.widthIn(max = 640.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(when (panel) { QuickPanel.POWER -> "POWER"; QuickPanel.MEDIA -> "MEDIA"; else -> "RECORD" },

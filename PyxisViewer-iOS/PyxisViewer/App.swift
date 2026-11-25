@@ -21,6 +21,7 @@ struct RootView: View {
     @StateObject private var cam = Camera()
     @StateObject private var luts = MonitorLUTs()
     @StateObject private var capture = Capture()
+    @StateObject private var overlays = Overlays()
     @AppStorage("relayHost") private var relayHost = ""
     @AppStorage("ssid") private var ssid = ""
     @AppStorage("swipeHintShown") private var swipeHintShown = false
@@ -38,6 +39,13 @@ struct RootView: View {
     @State private var showAFRail = false
     @State private var railHide: Task<Void, Never>?
     @State private var pendingLink: JoinLink?  // for "Join again"
+    // zoom (pinch, or ⌘= ⌘- on the Mac): scale about the screen centre, then pan; Fill zooms to the frame guide
+    @State private var zoom: CGFloat = 1
+    @State private var pan: CGSize = .zero
+    @State private var pinchBase: (scale: CGFloat, pan: CGSize)?
+    @State private var dragBase: CGSize?
+    @State private var pinchEnded = Date.distantPast
+    @State private var screen: CGRect = .zero
 
     private var content: some View {
         ZStack {
@@ -111,15 +119,21 @@ struct RootView: View {
             ZStack {
                 // the picture fills the whole screen; taps are mapped onto it for focus
                 GeometryReader { full in
-                    let video = AVMakeRect(aspectRatio: player.videoSize == .zero ? CGSize(width: 16, height: 9) : player.videoSize,
-                                           insideRect: CGRect(origin: .zero, size: full.size))
+                    let l = layout(in: full.size)
+                    let video = l.shown(l.video)  // where the picture is now, zoom included
                     ZStack {
                         VideoLayerView(layer: player.layer)
+                            .scaleEffect(l.scale).offset(l.pan)
+                        GuidesOverlay(overlays: overlays, layout: l)
                         FocusOverlay(cam: cam, video: video, tap: focusTap, result: focusResult, showAreas: chrome && AF.supported(cam))
                     }
+                    .clipped()
                     .contentShape(Rectangle())
                     .onTapGesture(coordinateSpace: .local) { p in tapVideo(at: p, video: video) }
-                    .gesture(swipe)
+                    .gesture(swipe(l))
+                    .simultaneousGesture(pinch(l))
+                    .onAppear { screen = l.bounds }
+                    .onChange(of: full.size) { _, s in screen = CGRect(origin: .zero, size: s) }
                 }
                 .ignoresSafeArea()
                 // swipe in from the right edge: the autofocus mode rail
@@ -162,6 +176,7 @@ struct RootView: View {
         VStack(spacing: 0) {
             TopBar(cam: cam, compact: portrait, panel: $panel) { panel = nil; showMenu = true }
             if !cam.isConnected { cameraLinkChip.padding(.top, 8) }
+            if zoomed { zoomChip.padding(.top, 8) }
             if let since = capture.recordingSince { LocalRecordingPill(since: since).padding(.top, 8) }
             Spacer(minLength: 0)
             if let joinError {
@@ -170,7 +185,7 @@ struct RootView: View {
             }
             // A selected setting's picker takes the bottom bar's place, as on the camera.
             if let p = panel {
-                QuickPanelView(cam: cam, luts: luts, panel: p) { withAnimation(.easeOut(duration: 0.15)) { panel = nil } }
+                QuickPanelView(cam: cam, luts: luts, overlays: overlays, panel: p) { withAnimation(.easeOut(duration: 0.15)) { panel = nil } }
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             } else {
                 if portrait {
@@ -178,10 +193,27 @@ struct RootView: View {
                         .padding(.trailing, 8).padding(.bottom, 2)
                         .shadow(color: HUDStyle.shadow, radius: 2, x: 0, y: 1)
                 }
-                BottomBar(cam: cam, luts: luts, capture: capture, compact: portrait, panel: $panel)
+                BottomBar(cam: cam, luts: luts, capture: capture, overlays: overlays, compact: portrait, panel: $panel)
             }
         }
         .animation(.easeOut(duration: 0.15), value: panel)
+    }
+
+    /// While zoomed: how far, and a tap back to the whole picture.
+    private var zoomChip: some View {
+        Button { resetZoom() } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "plus.magnifyingglass").font(.caption.weight(.semibold))
+                Text(overlays.fill ? "Fill \(overlays.enabled && overlays.guide != .off ? overlays.guide.rawValue : "frame")"
+                                   : String(format: "%.1f×", zoom))
+                    .font(.caption.weight(.semibold)).monospacedDigit()
+                Image(systemName: "xmark").font(.caption2.weight(.bold))
+            }
+            .padding(.horizontal, 12).padding(.vertical, 6)
+            .background(.black.opacity(0.7), in: Capsule())
+            .foregroundStyle(.white)
+        }
+        .accessibilityLabel("Zoomed in. Show the whole picture")
     }
 
     private var cameraLinkChip: some View {
@@ -237,18 +269,92 @@ struct RootView: View {
         .allowsHitTesting(false)
     }
 
+    // MARK: zoom
+
+    /// The picture's place on screen: the stream, the part the camera records, and the zoom.
+    private func layout(in size: CGSize) -> PictureLayout {
+        let bounds = CGRect(origin: .zero, size: size)
+        let video = AVMakeRect(aspectRatio: player.videoSize == .zero ? CGSize(width: 16, height: 9) : player.videoSize,
+                               insideRect: bounds)
+        var l = PictureLayout(video: video, recordedRatio: Show.recordedRatio(cam), bounds: bounds)
+        if overlays.fill {
+            (l.scale, l.pan) = l.filling(overlays.enabled ? overlays.guide.rect(in: l.recorded) : l.recorded)
+        } else {
+            l.scale = zoom
+            l.pan = pan
+        }
+        return l
+    }
+
+    private var zoomed: Bool { overlays.fill || zoom > 1.001 }
+
+    /// Pinch (or a trackpad pinch): zoom about the fingers, 1× to 8×. Leaves Fill.
+    private func pinch(_ l: PictureLayout) -> some Gesture {
+        MagnifyGesture()
+            .onChanged { g in
+                if pinchBase == nil {
+                    if overlays.fill { zoom = l.scale; pan = l.pan; overlays.fill = false }
+                    pinchBase = (zoom, pan)
+                }
+                guard let base = pinchBase else { return }
+                let s = min(8, max(1, base.scale * g.magnification))
+                // keep the point under the fingers where it is
+                let c = CGPoint(x: l.bounds.midX, y: l.bounds.midY), q = g.startLocation
+                let u = CGPoint(x: (q.x - c.x - base.pan.width) / base.scale, y: (q.y - c.y - base.pan.height) / base.scale)
+                zoom = s
+                pan = l.clamped(CGSize(width: q.x - c.x - u.x * s, height: q.y - c.y - u.y * s), scale: s)
+            }
+            .onEnded { _ in
+                pinchBase = nil
+                pinchEnded = Date()
+                if zoom < 1.05 { resetZoom() }
+            }
+    }
+
+    private func resetZoom() {
+        withAnimation(.easeOut(duration: 0.2)) {
+            zoom = 1
+            pan = .zero
+            overlays.fill = false
+        }
+    }
+
+    /// ⌘= / ⌘- on the Mac: steps of 1.5×, about the centre.
+    private func stepZoom(_ factor: CGFloat) {
+        if overlays.fill {
+            let l = layout(in: screen.size)
+            zoom = l.scale; pan = l.pan; overlays.fill = false
+        }
+        let s = min(8, max(1, zoom * factor))
+        let l = layout(in: screen.size)
+        pan = l.clamped(CGSize(width: pan.width * s / zoom, height: pan.height * s / zoom), scale: s)
+        zoom = s
+        if zoom < 1.05 { resetZoom() }
+    }
+
     // MARK: gestures
 
     /// Swipe up or down on the picture: hide or bring back every control (clean feed).
     /// Up or down: controls away (clean feed) and back. Right to left: the autofocus mode rail
     /// (left to right closes it); handy with a mouse, where an edge swipe isn't.
-    private var swipe: some Gesture {
-        DragGesture(minimumDistance: 24).onEnded { g in
-            let dx = g.translation.width, dy = g.translation.height
-            if abs(dy) > 50, abs(dy) > abs(dx) * 1.3 { setChrome(!chrome); return }
-            guard abs(dx) > 60, abs(dx) > abs(dy) * 1.3 else { return }
-            if dx < 0 { if AF.supported(cam) { openAFRail() } } else if showAFRail { closeAFRail() }
-        }
+    /// Zoomed in (not Fill), a drag moves the picture instead.
+    private func swipe(_ l: PictureLayout) -> some Gesture {
+        DragGesture(minimumDistance: 24)
+            .onChanged { g in
+                guard !overlays.fill, zoom > 1.001, pinchBase == nil else { return }
+                if dragBase == nil { dragBase = pan }
+                let b = dragBase ?? .zero
+                pan = l.clamped(CGSize(width: b.width + g.translation.width, height: b.height + g.translation.height), scale: zoom)
+            }
+            .onEnded { g in
+                if dragBase != nil { dragBase = nil; return }
+                // a pinch's fingers move too: not a swipe
+                guard pinchBase == nil, Date().timeIntervalSince(pinchEnded) > 0.4 else { return }
+                let dx = g.translation.width, dy = g.translation.height
+                if abs(dy) > 50, abs(dy) > abs(dx) * 1.3 { setChrome(!chrome); return }
+                guard abs(dx) > 60, abs(dx) > abs(dy) * 1.3 else { return }
+                if dx < 0 { if AF.supported(cam) { openAFRail() } } else if showAFRail { closeAFRail() }
+            }
     }
 
     /// The Mac's menu-bar commands (see ViewerCommands).
@@ -258,6 +364,12 @@ struct RootView: View {
             case .cameraMenu?: panel = nil; showMenu = true
             case .cleanFeed?: setChrome(!chrome)
             case .monitorLUT?: luts.setEnabled(!luts.enabled)
+            case .zoomIn?: stepZoom(1.5)
+            case .zoomOut?: stepZoom(1 / 1.5)
+            case .actualSize?: resetZoom()
+            case .guides?:
+                if !chrome { setChrome(true) }
+                withAnimation(.easeOut(duration: 0.15)) { panel = panel == .guides ? nil : .guides }
             case .grabFrame?: capture.grabFrame()
             case .localRecording?: capture.toggleRecording()
             case .focusMode(let m)?: if AF.supported(cam) { AF.setMode(cam, m) }
@@ -326,6 +438,7 @@ struct RootView: View {
         guard joining == nil, !relayHost.isEmpty, phase != .background else { return }
         player.lutBox = luts.box
         player.frameTap = capture.tap
+        player.overlayBox = overlays.box
         capture.cameraName = { [cam] in cam.v("/system/product")["productName"].string }
         player.play(relayHost: relayHost)
         cam.start(relay: relayHost)

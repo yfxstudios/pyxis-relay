@@ -8,7 +8,7 @@ The Android version of the iPhone app (`../PyxisViewer-iOS`), with the same feat
 - **Live picture.** RTSP from the relay (`rtsp://<relay>:8554/live/pyxis`), hardware H.264/H.265 decode in low-latency mode, frames shown as soon as they're decoded.
 - **Camera control** laid out like the camera's touchscreen:
   - Top bar: FPS, shutter, iris, ISO, WB, tint, timecode and battery.
-  - Bottom bar: record, media slots and LUT.
+  - Bottom bar: record, media slots, LUT and GUIDES.
   - Tap a setting for the docked picker. Presets are marked BASE, and the ISO slider snaps to the camera's ISOs.
   - The menu (top-left) has everything else: Record, Monitor (including the Stream output), Audio, Color, Lens, Slate, Presets & camera LUTs, Setup, Livestream and Connection.
 - **Autofocus** (when the lens supports it), same as the iPhone app:
@@ -25,6 +25,11 @@ The Android version of the iPhone app (`../PyxisViewer-iOS`), with the same feat
   - Import your own `.cube` files.
   - Tap LUT to toggle; hold to choose.
   - The camera isn't changed.
+- **Guides and overlays,** same as the iPhone app: tap GUIDES for the panel.
+  - Frame guides (2.39, 2.00, 1.85, 16:9, 4:3, 1:1, 4:5, 9:16) inside the area the camera records (6:5, 3:2...), with adjustable darkening outside, thirds, 90% safe area and a centre cross. Fill zooms the guide to the screen.
+  - Pinch to zoom (1x to 8x); drag to look around while zoomed; tap the zoom badge for the whole picture.
+  - False color, zebras (70–100%) and focus peaking, made in the video shader from the camera's picture (before the monitor LUT).
+  - On this phone only: frame grabs and recordings don't include them.
 - **Wi-Fi.** Android only keeps the app's join while the app runs, so it rejoins PYXIS-Stream by itself when it opens and the relay isn't reachable. There's no prompt after the first time.
 - **Secure Login.** Optional. The username and password are kept encrypted (Android Keystore) and sent only over HTTPS.
 
@@ -49,7 +54,8 @@ Android 10 or newer.
 | File | What it does |
 |---|---|
 | `Rtsp.kt` | RTSP client (RTP over TCP) and H.264/H.265 depacketizer |
-| `Player.kt` | MediaCodec decoder and the OpenGL video view with the 3D LUT |
+| `Player.kt` | MediaCodec decoder and the OpenGL video view with the 3D LUT, false color, zebras and peaking |
+| `Overlays.kt` | Frame guides and lines, overlay settings, the guides panel |
 | `Camera.kt` | Blackmagic camera REST and WebSocket API, timecode clock, encrypted login store |
 | `Hud.kt`, `Pickers.kt`, `Menu.kt` | Camera-style controls, docked pickers, full menu |
 | `Capture.kt` | Frame grabs and local recordings (encoder, MP4, gallery) |

@@ -57,10 +57,19 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.util.concurrent.TimeUnit
+import kotlin.math.roundToInt
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
-import kotlin.math.roundToInt
 
 // The full camera menu: every control the camera's API offers that this camera supports
 // (anything it answers "not supported" for is left out), grouped like the camera's own menus.
@@ -104,6 +113,8 @@ fun CameraMenu(cam: Camera, luts: MonitorLuts, relayHost: String, setRelay: (Str
                     }
                     Group { NavRow("Monitor LUTs") { stack += "Monitor LUTs" } }
                     Footer("LUTs applied in this app to the picture you watch. The camera isn't changed.")
+                    Group { NavRow("HDMI output") { stack += "HDMI output" } }
+                    Footer("Frame guide on the screen plugged into the relay.")
                     Group { NavRow("Connection") { stack += "Connection" } }
                 }
                 "Record" -> RecordMenu(cam, v)
@@ -117,6 +128,7 @@ fun CameraMenu(cam: Camera, luts: MonitorLuts, relayHost: String, setRelay: (Str
                 "Livestream" -> StreamMenu(cam, v)
                 "Monitor LUTs" -> MonitorLutMenu(cam, luts, v)
                 "Connection" -> ConnectionMenu(cam, relayHost, setRelay, ssid, rejoin)
+                "HDMI output" -> RelayHdmiMenu(relayHost)
             }
             Spacer(Modifier.heightIn(min = 24.dp))
         }
@@ -583,6 +595,61 @@ private fun StreamMenu(cam: Camera, v: Map<String, JsonElement>) {
         if (profiles.isNotEmpty()) PickerRow("Quality", profiles, a["quality"].str) { cam.put("/livestreams/0/activePlatform", json("quality" to it)) }
         a["server"].str?.let { InfoRow("Server", it) }
     }
+}
+
+/**
+ * The frame guide on the relay's own HDMI output (a screen plugged into the relay), set through
+ * http://<relay>/cgi-bin/pyxis-hdmi. The relay shows a change within a second, without
+ * interrupting the stream.
+ */
+@Composable
+private fun RelayHdmiMenu(relayHost: String) {
+    var status by remember { mutableStateOf<String?>("Asking the relay…") }  // null: ready
+    var guide by remember { mutableStateOf("off") }
+    var shade by remember { mutableStateOf(60.0) }
+    var fill by remember { mutableStateOf(false) }
+    var attempt by remember { mutableStateOf(0) }
+    val scope = rememberCoroutineScope()
+    var saving by remember { mutableStateOf<Job?>(null) }
+    val http = remember { OkHttpClient.Builder().connectTimeout(3, TimeUnit.SECONDS).readTimeout(3, TimeUnit.SECONDS).build() }
+    fun call(query: String = "", post: Boolean = false): JsonElement? = runCatching {
+        val b = Request.Builder().url("http://$relayHost/cgi-bin/pyxis-hdmi$query")
+        if (post) b.post(ByteArray(0).toRequestBody())
+        http.newCall(b.build()).execute().use { r ->
+            if (r.code == 404) JsonPrimitive("old") else Json.parseToJsonElement(r.body?.string() ?: "")
+        }
+    }.getOrNull()
+    LaunchedEffect(attempt) {
+        status = "Asking the relay…"
+        val j = withContext(Dispatchers.IO) { call() }
+        status = when {
+            j == null -> "Couldn't reach the relay at $relayHost."
+            j is JsonPrimitive -> "This relay's software is older: update it to set the HDMI frame guide from here."
+            j["installed"].bool != true -> "This relay has no HDMI player installed."
+            else -> { guide = j["guide"].str ?: "off"; shade = j["shade"].double ?: 60.0; fill = j["fill"].bool == true; null }
+        }
+    }
+    /** Sends the settings a moment after the last change (the slider sends many). */
+    fun save() {
+        saving?.cancel()
+        val q = "?guide=${guide.replace(":", "%3A")}&shade=${shade.roundToInt()}&fill=${if (fill) 1 else 0}"
+        saving = scope.launch {
+            delay(300)
+            val j = withContext(Dispatchers.IO) { call(q, post = true) }
+            if (j == null || j["ok"].bool != true) status = j?.get("error")?.str ?: "Couldn't reach the relay at $relayHost."
+        }
+    }
+    status?.let { s ->
+        Group { Text(s, color = Dim, fontSize = 15.sp, modifier = Modifier.padding(16.dp)) }
+        if (!s.startsWith("Asking")) Group { ButtonRow("Try again") { attempt++ } }
+        return
+    }
+    Group("Frame guide") {
+        PickerRow("Frame", listOf("off") + FrameGuide.entries.drop(1).map { it.label }, guide, { if (it == "off") "None" else it }) { guide = it; save() }
+        if (guide != "off") SliderRow("Outside", shade, 0.0..100.0, { "${it.roundToInt()}% dark" }) { shade = (it / 5).roundToInt() * 5.0; save() }
+        ToggleRow("Fill the screen", fill) { fill = it; save() }
+    }
+    Footer("On the screen plugged into the relay's HDMI port. The frame sits inside the area the camera records (in 6:5 or 3:2 the stream has black bars), and Fill zooms the frame to the screen. The change shows within a second.")
 }
 
 @Composable

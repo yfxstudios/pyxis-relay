@@ -179,7 +179,8 @@ extension View {
 
 /// Menu-bar commands (Mac), delivered to the viewer.
 enum ViewerCommand {
-    case cameraMenu, cleanFeed, monitorLUT, grabFrame, localRecording
+    case cameraMenu, cleanFeed, monitorLUT, guides, grabFrame, localRecording
+    case zoomIn, zoomOut, actualSize
     case focusMode(AFMode)
 }
 
@@ -198,6 +199,10 @@ struct ViewerCommands: Commands {
         CommandGroup(before: .toolbar) {
             Button("Show or Hide Controls (Clean Feed)") { send(.cleanFeed) }.keyboardShortcut("k")
             Button("Monitor LUT On or Off") { send(.monitorLUT) }.keyboardShortcut("l")
+            Button("Guides and Overlays…") { send(.guides) }.keyboardShortcut("g")
+            Button("Zoom In") { send(.zoomIn) }.keyboardShortcut("=")
+            Button("Zoom Out") { send(.zoomOut) }.keyboardShortcut("-")
+            Button("Actual Size") { send(.actualSize) }.keyboardShortcut("0")
             Divider()
             Button("Capture Frame") { send(.grabFrame) }.keyboardShortcut("s")
             Button("Start or Stop Recording on This Mac") { send(.localRecording) }.keyboardShortcut("r")

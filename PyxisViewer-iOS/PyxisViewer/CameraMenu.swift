@@ -34,6 +34,9 @@ struct CameraMenu: View {
                     NavigationLink { MonitorLUTMenu(cam: cam, luts: luts) } label: { Label("Monitor LUTs", systemImage: "camera.filters") }
                 } footer: { Text("LUTs applied in this app to the picture you watch. The camera isn't changed.") }
                 Section {
+                    NavigationLink { RelayHDMIMenu(relayHost: relayHost) } label: { Label("HDMI Output", systemImage: "tv") }
+                } footer: { Text("Frame guide on the screen plugged into the relay.") }
+                Section {
                     NavigationLink {
                         ConnectionMenu(cam: cam, relayHost: $relayHost, ssid: ssid, rejoin: rejoin)
                     } label: { Label("Connection", systemImage: "network") }

@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CenterFocusWeak
 import androidx.compose.material.icons.filled.Power
 import androidx.compose.material.icons.filled.StopCircle
+import androidx.compose.material.icons.outlined.GridOn
 import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.outlined.RadioButtonChecked
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -70,7 +71,7 @@ object HudStyle {
     val label = text(10.sp, FontWeight.SemiBold, Color.White.copy(alpha = 0.75f))
 }
 
-enum class QuickPanel { FPS, SHUTTER, IRIS, ISO, WB, TINT, POWER, MEDIA, RECORD, LUT }
+enum class QuickPanel { FPS, SHUTTER, IRIS, ISO, WB, TINT, POWER, MEDIA, RECORD, LUT, GUIDES }
 
 /** Watches the camera's values (recomposes when they change). */
 @Composable
@@ -213,7 +214,7 @@ fun Battery(v: Map<String, JsonElement>) {
 // ---- bottom bar ----
 
 @Composable
-fun BottomBar(cam: Camera, luts: MonitorLuts, capture: Capture, compact: Boolean, panel: QuickPanel?, setPanel: (QuickPanel?) -> Unit) {
+fun BottomBar(cam: Camera, luts: MonitorLuts, capture: Capture, overlays: Overlays, compact: Boolean, panel: QuickPanel?, setPanel: (QuickPanel?) -> Unit) {
     Column(Modifier.fillMaxWidth()) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = if (compact) 10.dp else 8.dp),
             horizontalArrangement = Arrangement.spacedBy(if (compact) 14.dp else 26.dp, Alignment.CenterHorizontally),
@@ -221,6 +222,7 @@ fun BottomBar(cam: Camera, luts: MonitorLuts, capture: Capture, compact: Boolean
             RecordButton(cam)
             MediaSlots(cam, if (compact) 50.dp else 78.dp) { setPanel(if (panel == QuickPanel.MEDIA) null else QuickPanel.MEDIA) }
             LutButton(luts, showName = !compact) { setPanel(QuickPanel.LUT) }
+            GuidesButton(overlays) { setPanel(QuickPanel.GUIDES) }
             if (!compact) CaptureButtons(capture)  // portrait: above the bar (no room in it)
         }
     }
@@ -315,6 +317,14 @@ fun CaptureButtons(capture: Capture) {
             haptic.performHapticFeedback(HapticFeedbackType.LongPress); capture.toggleRecording()
         }
     }
+}
+
+/** Opens the guides panel. Blue while any guides or overlays are showing. */
+@Composable
+private fun GuidesButton(overlays: Overlays, open: () -> Unit) {
+    val active = overlays.state.collectAsState().value.active
+    CaptureItem(Icons.Outlined.GridOn, "GUIDES", if (active) HudStyle.accent else Color.White,
+        if (active) "Guides and overlays, on" else "Guides and overlays", open)
 }
 
 @Composable
