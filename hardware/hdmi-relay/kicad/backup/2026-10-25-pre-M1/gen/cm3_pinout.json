@@ -1,0 +1,1209 @@
+{
+ "source": "Radxa CM3 datasheet rev 1.2, Appendix C (pages 56-62), which shows module revision V1.3, updated to module revision V1.32+ (shipping: V1.322) from Radxa's radxa_cm3_v1300_to_1320_pinout.xlsx change history: J69-37, J69-93, J1-14, J1-26, J1-34. J69 = pins 1-100, J68 = pins 101-200 (pad = pin - 100), J1 = pins 1-100.",
+ "J69": {
+  "1": {
+   "name": "GND",
+   "alt": ""
+  },
+  "2": {
+   "name": "GND",
+   "alt": ""
+  },
+  "3": {
+   "name": "PHY1_MDI3+",
+   "alt": ""
+  },
+  "4": {
+   "name": "PHY1_MDI1+",
+   "alt": ""
+  },
+  "5": {
+   "name": "PHY1_MDI3-",
+   "alt": ""
+  },
+  "6": {
+   "name": "PHY1_MDI1-",
+   "alt": ""
+  },
+  "7": {
+   "name": "GND",
+   "alt": ""
+  },
+  "8": {
+   "name": "GND",
+   "alt": ""
+  },
+  "9": {
+   "name": "PHY1_MDI2-",
+   "alt": ""
+  },
+  "10": {
+   "name": "PHY1_MDI0-",
+   "alt": ""
+  },
+  "11": {
+   "name": "PHY1_MDI2+",
+   "alt": ""
+  },
+  "12": {
+   "name": "PHY1_MDI0+",
+   "alt": ""
+  },
+  "13": {
+   "name": "GND",
+   "alt": ""
+  },
+  "14": {
+   "name": "GND",
+   "alt": ""
+  },
+  "15": {
+   "name": "PHY1_LED2_Y",
+   "alt": ""
+  },
+  "16": {
+   "name": "NC",
+   "alt": ""
+  },
+  "17": {
+   "name": "PHY1_LED1_G",
+   "alt": ""
+  },
+  "18": {
+   "name": "NC",
+   "alt": ""
+  },
+  "19": {
+   "name": "PHY1_LED0_Y1",
+   "alt": ""
+  },
+  "20": {
+   "name": "EEPROM_NWP",
+   "alt": ""
+  },
+  "21": {
+   "name": "PI_NLED_ACTIVITY",
+   "alt": "GPIO4_A4 CIF_D14 EBC_SDDO14 GMAC1_TXD0_M1 UART9_TX_M2 I2S2_LRCK_TX_M1"
+  },
+  "22": {
+   "name": "GND",
+   "alt": ""
+  },
+  "23": {
+   "name": "GND",
+   "alt": ""
+  },
+  "24": {
+   "name": "PWM3_IR",
+   "alt": "GPIO0_C2 PWM3_IR EDP_HPDIN_M1 MCU_JTAG_TMS"
+  },
+  "25": {
+   "name": "I2S1_SDO0_M1",
+   "alt": "GPIO3_D1 CIF_D3 EBC_SDDO3 SDMMC2_D3_M0 I2S1_SDO0_M1 VOP_BT656_D3_M1"
+  },
+  "26": {
+   "name": "I2S1_LRCK_TX_M1",
+   "alt": "GPIO3_D0 CIF_D2 EBC_SDDO2 SDMMC2_D2_M0 I2S1_LRCK_TX_M1 VOP_BT656_D2_M1"
+  },
+  "27": {
+   "name": "I2S1_SDI0_M1",
+   "alt": "GPIO3_D2 CIF_D4 EBC_SDDO4 SDMMC2_CMD_M0 I2S1_SDI0_M1 VOP_BT656_D4_M1"
+  },
+  "28": {
+   "name": "SPI0_CSO_MO",
+   "alt": "GPIO0_C6 PWM7_IR SPI0_CS0_M0"
+  },
+  "29": {
+   "name": "I2S1_LRCK_RX_M1",
+   "alt": "GPIO4_A7 CAM_CLKOUT0 EBC_SDCE1 GMAC1_RXD0_M1 SPI3_CS1_M0 I2S1_LRCK_RX_M1"
+  },
+  "30": {
+   "name": "SPI0_MISO_MO",
+   "alt": "GPIO0_C5 PWM6 SPI0_MISO_M0"
+  },
+  "31": {
+   "name": "PWM11",
+   "alt": "GPIO4_C0 CIF_CLKOUT EBC_GDCLK PWM11_IR_M1"
+  },
+  "32": {
+   "name": "GND",
+   "alt": ""
+  },
+  "33": {
+   "name": "GND",
+   "alt": ""
+  },
+  "34": {
+   "name": "I2S1_SDO2_M1",
+   "alt": "GPIO4_B1 ISP_PRELIGHT_TRIG EBC_SDCE3 GMAC1_RXDV_CRS_M1 I2S1_SDO2_M1"
+  },
+  "35": {
+   "name": "I2C2_SCL_M1",
+   "alt": "GPIO4_B5 I2C2_SCL_M1 EBC_SDSHR  I2S1_SDO3_M1"
+  },
+  "36": {
+   "name": "I2C2_SDA_M1",
+   "alt": "GPIO4_B4 I2C2_SDA_M1 EBC_GDSP  ISP_FLASH_TRIGIN VOP_BT656_CLK_M1"
+  },
+  "37": {
+   "name": "4G_DISABLE",
+   "alt": "GPIO4_C5 PWM12_M1 SPI3_MISO_M1 SATA1_ACT_LED UART9_TX_M1 I2S3_SDO_M1"
+  },
+  "38": {
+   "name": "SPI3_CLK_M0",
+   "alt": "GPIO4_B3 I2C4_SCL_M0 EBC_GDOE ETH1_REFCLKO_25M_M1SPI3_CLK_M0  I2S2_SDO_M1"
+  },
+  "39": {
+   "name": "SPI3_CSO_M0",
+   "alt": "GPIO4_A6 ISP_FLASHTRIGOUT EBC_SDCE0 GMAC1_TXEN_M1 SPI3_CS0_M0 I2S1_SCLK_RX_M1"
+  },
+  "40": {
+   "name": "SPI3_MISO_M0",
+   "alt": "GPIO4_B0 CAM_CLKOUT1 EBC_SDCE2 GMAC1_RXD1_M1 SPI3_MISO_M0 I2S1_SDO1_M1"
+  },
+  "41": {
+   "name": "I2S1_MCLK_M1",
+   "alt": "GPIO3_C6 CIF_D0 EBC_SDDO0 SDMMC2_D0_M0 I2S1_MCLK_M1 VOP_BT656_D0_M1"
+  },
+  "42": {
+   "name": "GND",
+   "alt": ""
+  },
+  "43": {
+   "name": "GND",
+   "alt": ""
+  },
+  "44": {
+   "name": "SPI3_MOSI_M0",
+   "alt": "GPIO4_B2 I2C4_SDA_M0 EBC_VCOM GMAC1_RXER_M1 SPI3_MOSI_M0 I2S2_SDI_M1"
+  },
+  "45": {
+   "name": "I2S1_SDI1_M1",
+   "alt": "GPIO3_D3 CIF_D5 EBC_SDDO5 SDMMC2_CLK_M0 I2S1_SDI1_M1 VOP_BT656_D5_M1"
+  },
+  "46": {
+   "name": "PMW4",
+   "alt": "GPIO0_C3 PWM4 VOP_PWM_M0 MCU_JTAG_TRSTn"
+  },
+  "47": {
+   "name": "I2S1_SDI2_M1",
+   "alt": "GPIO3_D4 CIF_D6 EBC_SDDO6 SDMMC2_DET_M0 I2S1_SDI2_M1 VOP_BT656_D6_M1"
+  },
+  "48": {
+   "name": "PMW0_M0",
+   "alt": "GPIO0_B7 PWM0_M0 CPUAVS"
+  },
+  "49": {
+   "name": "I2S1_SCLK_TX_M1",
+   "alt": "GPIO3_C7 CIF_D1 EBC_SDDO1 SDMMC2_D1_M0 I2S1_SCLK_TX_M1 VOP_BT656_D1_M1"
+  },
+  "50": {
+   "name": "PMW0_M1",
+   "alt": "GPIO0_C7 HDMITX_CEC_M1 PWM0_M1 UART0_CTSn"
+  },
+  "51": {
+   "name": "UART2_RX",
+   "alt": "GPIO0_D0 UART2_RX_M0"
+  },
+  "52": {
+   "name": "GND",
+   "alt": ""
+  },
+  "53": {
+   "name": "GND",
+   "alt": ""
+  },
+  "54": {
+   "name": "I2S1_SDI3_M1",
+   "alt": "GPIO3_D5 CIF_D7 EBC_SDDO7 SDMMC2_PWREN_M0 I2S1_SDI3_M1 VOP_BT656_D7_M1"
+  },
+  "55": {
+   "name": "UART2_TX",
+   "alt": "GPIO0_D1 UART2_TX_M0"
+  },
+  "56": {
+   "name": "I2C2_SCL_MO",
+   "alt": "GPIO0_B5 I2C2_SCL_M0 SPI0_CLK_M0 PCIE20_WAKEn_M0 PWM1_M1"
+  },
+  "57": {
+   "name": "SDMMC0_CLK",
+   "alt": "GPIO2_A2 SDMMC0_CLK TEST_CLKOUT UART5_TX_M0"
+  },
+  "58": {
+   "name": "I2C2_SDA_MO",
+   "alt": "GPIO0_B6 I2C2_SDA_M0 SPI0_MOSI_M0 PCIE20_PERSTn_M0 PWM2_M1"
+  },
+  "59": {
+   "name": "GND",
+   "alt": ""
+  },
+  "60": {
+   "name": "GND",
+   "alt": ""
+  },
+  "61": {
+   "name": "SDMMC0_D3",
+   "alt": "GPIO2_A0 SDMMC0_D3 ARM_JTAG_TMS UART5_RTSn_M0"
+  },
+  "62": {
+   "name": "SDMMC0_CMD",
+   "alt": "GPIO2_A1 SDMMC0_CMD PWM10_M1 UART5_RX_M0"
+  },
+  "63": {
+   "name": "SDMMC0_D0",
+   "alt": "GPIO1_D5 SDMMC0_D0 UART2_TX_M1 UART6_TX_M1 PWM8_M1"
+  },
+  "64": {
+   "name": "NC",
+   "alt": ""
+  },
+  "65": {
+   "name": "GND",
+   "alt": ""
+  },
+  "66": {
+   "name": "GND",
+   "alt": ""
+  },
+  "67": {
+   "name": "SDMMC0_D1",
+   "alt": "GPIO1_D6 SDMMC0_D1 UART2_RX_M1 UART6_RX_M1 PWM9_M1"
+  },
+  "68": {
+   "name": "NC",
+   "alt": ""
+  },
+  "69": {
+   "name": "SDMMC0_D2",
+   "alt": "GPIO1_D7 SDMMC0_D2 ARM_JTAG_TCK UART5_CTSn_M0"
+  },
+  "70": {
+   "name": "NC",
+   "alt": ""
+  },
+  "71": {
+   "name": "GND",
+   "alt": ""
+  },
+  "72": {
+   "name": "NC",
+   "alt": ""
+  },
+  "73": {
+   "name": "NC",
+   "alt": ""
+  },
+  "74": {
+   "name": "GND",
+   "alt": ""
+  },
+  "75": {
+   "name": "SDMMC_PWREN",
+   "alt": "GPIO0_A5 SDMMC0_PWREN SATA_MP_SWITCH PCIE20_CLKREQn_M0"
+  },
+  "76": {
+   "name": "SDMMC0_DET_L",
+   "alt": "GPIO0_A4 SDMMC0_DET SATA_CP_DET"
+  },
+  "77": {
+   "name": "+5V_INPUT",
+   "alt": ""
+  },
+  "78": {
+   "name": "GPIO_VREF",
+   "alt": ""
+  },
+  "79": {
+   "name": "+5V_INPUT",
+   "alt": ""
+  },
+  "80": {
+   "name": "I2C0_SCL_PMIC",
+   "alt": "GPIO0_B1 I2C0_SCL"
+  },
+  "81": {
+   "name": "+5V_INPUT",
+   "alt": ""
+  },
+  "82": {
+   "name": "I2C0_SDA_PMIC",
+   "alt": "GPIO0_B2 I2C0_SDA"
+  },
+  "83": {
+   "name": "+5V_INPUT",
+   "alt": ""
+  },
+  "84": {
+   "name": "+3V3",
+   "alt": ""
+  },
+  "85": {
+   "name": "+5V_INPUT",
+   "alt": ""
+  },
+  "86": {
+   "name": "+3V3",
+   "alt": ""
+  },
+  "87": {
+   "name": "+5V_INPUT",
+   "alt": ""
+  },
+  "88": {
+   "name": "+1V8",
+   "alt": ""
+  },
+  "89": {
+   "name": "WL_NDIS",
+   "alt": "GPIO4_B6 CIF_HREF EBC_SDLE GMAC1_MDC_M1 UART1_RTSn_M1 I2S2_MCLK_M1"
+  },
+  "90": {
+   "name": "+1V8",
+   "alt": ""
+  },
+  "91": {
+   "name": "BT_NDIS",
+   "alt": "GPIO4_A5 CIF_D15 EBC_SDDO15 GMAC1_TXD1_M1 UART9_RX_M2 I2S2_LRCK_RX_M1"
+  },
+  "92": {
+   "name": "PMIC_SLEEP_H",
+   "alt": "GPIO0_A2 PMIC_SLEEP TSADC_SHUT_M1"
+  },
+  "93": {
+   "name": "SARADC_VIN0_KEY/RECOVERY",
+   "alt": "SARADC_VIN0"
+  },
+  "94": {
+   "name": "NC",
+   "alt": ""
+  },
+  "95": {
+   "name": "NPWR_LED",
+   "alt": "GPIO4_B7 CIF_VSYNC EBC_SDOE GMAC1_MDIO_M1 I2S2_SCLK_TX_M1"
+  },
+  "96": {
+   "name": "NC",
+   "alt": ""
+  },
+  "97": {
+   "name": "CAM_GPIO",
+   "alt": "GPIO4_C1 CIF_CLKIN EBC_SDCLK GMAC1_MCLK_M1 UART1_CTSn_M1 I2S2_SCLK_RX_M1"
+  },
+  "98": {
+   "name": "GND",
+   "alt": ""
+  },
+  "99": {
+   "name": "PWRON_KEY",
+   "alt": ""
+  },
+  "100": {
+   "name": "PMIC_RESET_KEY",
+   "alt": ""
+  }
+ },
+ "J68": {
+  "101": {
+   "name": "USB_OTG0_ID",
+   "alt": "USB_OTG0_ID"
+  },
+  "102": {
+   "name": "PCIE20_CLKREQN_M2",
+   "alt": "GPIO1_B0 I2S1_SDO1_M0 I2S1_SDI3_M0 PDM_SDI3_M0 PCIE20_CLKREQn_M2"
+  },
+  "103": {
+   "name": "USB_OTG0_DM",
+   "alt": "USB_OTG0_DM"
+  },
+  "104": {
+   "name": "NC",
+   "alt": ""
+  },
+  "105": {
+   "name": "USB_OTG0_DP",
+   "alt": "USB_OTG0_DP"
+  },
+  "106": {
+   "name": "NC",
+   "alt": ""
+  },
+  "107": {
+   "name": "GND",
+   "alt": ""
+  },
+  "108": {
+   "name": "GND",
+   "alt": ""
+  },
+  "109": {
+   "name": "PCIE_NRST",
+   "alt": "GPIO1_B2 I2S1_SDO3_M0 I2S1_SDI1_M0 PDM_SDI1_M0 PCIE20_PERSTn_M2"
+  },
+  "110": {
+   "name": "PCIE20_REFCLKP",
+   "alt": "PCIE20_REFCLKP"
+  },
+  "111": {
+   "name": "NC",
+   "alt": ""
+  },
+  "112": {
+   "name": "PCIE20_REFCLKN",
+   "alt": "PCIE20_REFCLKN"
+  },
+  "113": {
+   "name": "GND",
+   "alt": ""
+  },
+  "114": {
+   "name": "GND",
+   "alt": ""
+  },
+  "115": {
+   "name": "MIPI_CSI_RX_D0N",
+   "alt": "MIPI_CSI_RX_D0N"
+  },
+  "116": {
+   "name": "PCIE20_RXP",
+   "alt": "PCIE20_RXP SATA2_RXP"
+  },
+  "117": {
+   "name": "MIPI_CSI_RX_D0P",
+   "alt": "MIPI_CSI_RX_D0P"
+  },
+  "118": {
+   "name": "PCIE20_RXN",
+   "alt": "PCIE20_RXN SATA2_RXN"
+  },
+  "119": {
+   "name": "GND",
+   "alt": ""
+  },
+  "120": {
+   "name": "GND",
+   "alt": ""
+  },
+  "121": {
+   "name": "MIPI_CSI_RX_D1N",
+   "alt": "MIPI_CSI_RX_D1N"
+  },
+  "122": {
+   "name": "PCIE20_TXP",
+   "alt": "PCIE20_TXP SATA2_TXP"
+  },
+  "123": {
+   "name": "MIPI_CSI_RX_D1P",
+   "alt": "MIPI_CSI_RX_D1P"
+  },
+  "124": {
+   "name": "PCIE20_TXN",
+   "alt": "PCIE20_TXN SATA2_TXN"
+  },
+  "125": {
+   "name": "GND",
+   "alt": ""
+  },
+  "126": {
+   "name": "GND",
+   "alt": ""
+  },
+  "127": {
+   "name": "MIPI_CSI_RX_CLK0N",
+   "alt": "MIPI_CSI_RX_CLK0N"
+  },
+  "128": {
+   "name": "MIPI_CSI_RX_D2N",
+   "alt": "MIPI_CSI_RX_D2N"
+  },
+  "129": {
+   "name": "MIPI_CSI_RX_CLK0P",
+   "alt": "MIPI_CSI_RX_CLK0P"
+  },
+  "130": {
+   "name": "MIPI_CSI_RX_D2P",
+   "alt": "MIPI_CSI_RX_D2P"
+  },
+  "131": {
+   "name": "GND",
+   "alt": ""
+  },
+  "132": {
+   "name": "GND",
+   "alt": ""
+  },
+  "133": {
+   "name": "NC",
+   "alt": ""
+  },
+  "134": {
+   "name": "MIPI_CSI_RX_D3N",
+   "alt": "MIPI_CSI_RX_D3N"
+  },
+  "135": {
+   "name": "NC",
+   "alt": ""
+  },
+  "136": {
+   "name": "MIPI_CSI_RX_D3P",
+   "alt": "MIPI_CSI_RX_D3P"
+  },
+  "137": {
+   "name": "GND",
+   "alt": ""
+  },
+  "138": {
+   "name": "GND",
+   "alt": ""
+  },
+  "139": {
+   "name": "NC",
+   "alt": ""
+  },
+  "140": {
+   "name": "MIPI_CSI_RX_CLK1N",
+   "alt": "MIPI_CSI_RX_CLK1N"
+  },
+  "141": {
+   "name": "NC",
+   "alt": ""
+  },
+  "142": {
+   "name": "MIPI_CSI_RX_CLK1P",
+   "alt": "MIPI_CSI_RX_CLK1P"
+  },
+  "143": {
+   "name": "NC",
+   "alt": ""
+  },
+  "144": {
+   "name": "GND",
+   "alt": ""
+  },
+  "145": {
+   "name": "NC",
+   "alt": ""
+  },
+  "146": {
+   "name": "NC",
+   "alt": ""
+  },
+  "147": {
+   "name": "NC",
+   "alt": ""
+  },
+  "148": {
+   "name": "NC",
+   "alt": ""
+  },
+  "149": {
+   "name": "NC",
+   "alt": ""
+  },
+  "150": {
+   "name": "GND",
+   "alt": ""
+  },
+  "151": {
+   "name": "HDMI_TX_CEC_PORT",
+   "alt": "GPIO4_D1 HDMITX_CEC_M0 SPI3_CS1_M1"
+  },
+  "152": {
+   "name": "NC",
+   "alt": ""
+  },
+  "153": {
+   "name": "HDMI_TX_HPD_PORT",
+   "alt": "HDMI_TX_HPDIN"
+  },
+  "154": {
+   "name": "NC",
+   "alt": ""
+  },
+  "155": {
+   "name": "GND",
+   "alt": ""
+  },
+  "156": {
+   "name": "GND",
+   "alt": ""
+  },
+  "157": {
+   "name": "MIPI_DSI_TX0_D0N",
+   "alt": "MIPI_DSI_TX0_D0N LVDS_TX0_D0N"
+  },
+  "158": {
+   "name": "NC",
+   "alt": ""
+  },
+  "159": {
+   "name": "MIPI_DSI_TX0_D0P",
+   "alt": "MIPI_DSI_TX0_D0P LVDS_TX0_D0P"
+  },
+  "160": {
+   "name": "NC",
+   "alt": ""
+  },
+  "161": {
+   "name": "GND",
+   "alt": ""
+  },
+  "162": {
+   "name": "GND",
+   "alt": ""
+  },
+  "163": {
+   "name": "MIPI_DSI_TX0_D1N",
+   "alt": "MIPI_DSI_TX0_D1N LVDS_TX0_D1N"
+  },
+  "164": {
+   "name": "NC",
+   "alt": ""
+  },
+  "165": {
+   "name": "MIPI_DSI_TX0_D1P",
+   "alt": "MIPI_DSI_TX0_D1P LVDS_TX0_D1P"
+  },
+  "166": {
+   "name": "NC",
+   "alt": ""
+  },
+  "167": {
+   "name": "GND",
+   "alt": ""
+  },
+  "168": {
+   "name": "GND",
+   "alt": ""
+  },
+  "169": {
+   "name": "MIPI_DSI_TX0_CLKN",
+   "alt": "MIPI_DSI_TX0_CLKN LVDS_TX0_CLKN"
+  },
+  "170": {
+   "name": "HDMI_TX2P_PORT",
+   "alt": "HDMI_TX_D2P"
+  },
+  "171": {
+   "name": "MIPI_DSI_TX0_CLKP",
+   "alt": "MIPI_DSI_TX0_CLKP LVDS_TX0_CLKP"
+  },
+  "172": {
+   "name": "HDMI_TX2N_PORT",
+   "alt": "HDMI_TX_D2N"
+  },
+  "173": {
+   "name": "GND",
+   "alt": ""
+  },
+  "174": {
+   "name": "GND",
+   "alt": ""
+  },
+  "175": {
+   "name": "MIPI_DSI_TX1_D0N",
+   "alt": "MIPI_DSI_TX1_D0N"
+  },
+  "176": {
+   "name": "HDMI_TX1P_PORT",
+   "alt": "HDMI_TX_D1P"
+  },
+  "177": {
+   "name": "MIPI_DSI_TX1_D0P",
+   "alt": "MIPI_DSI_TX1_D0P"
+  },
+  "178": {
+   "name": "HDMI_TX1N_PORT",
+   "alt": "HDMI_TX_D1N"
+  },
+  "179": {
+   "name": "GND",
+   "alt": ""
+  },
+  "180": {
+   "name": "GND",
+   "alt": ""
+  },
+  "181": {
+   "name": "MIPI_DSI_TX1_D1N",
+   "alt": "MIPI_DSI_TX1_D1N"
+  },
+  "182": {
+   "name": "HDMI_TX0P_PORT",
+   "alt": "HDMI_TX_D0P"
+  },
+  "183": {
+   "name": "MIPI_DSI_TX1_D1P",
+   "alt": "MIPI_DSI_TX1_D1P"
+  },
+  "184": {
+   "name": "HDMI_TX0N_PORT",
+   "alt": "HDMI_TX_D0N"
+  },
+  "185": {
+   "name": "GND",
+   "alt": ""
+  },
+  "186": {
+   "name": "GND",
+   "alt": ""
+  },
+  "187": {
+   "name": "MIPI_DSI_TX1_CLKN",
+   "alt": "MIPI_DSI_TX1_CLKN"
+  },
+  "188": {
+   "name": "HDMI_TXCLKP_PORT",
+   "alt": "HDMI_TX_CLKP"
+  },
+  "189": {
+   "name": "MIPI_DSI_TX1_CLKP",
+   "alt": "MIPI_DSI_TX1_CLKP"
+  },
+  "190": {
+   "name": "HDMI_TXCLKN_PORT",
+   "alt": "HDMI_TX_CLKN"
+  },
+  "191": {
+   "name": "GND",
+   "alt": ""
+  },
+  "192": {
+   "name": "GND",
+   "alt": ""
+  },
+  "193": {
+   "name": "MIPI_DSI_TX1_D2N",
+   "alt": "MIPI_DSI_TX1_D2N"
+  },
+  "194": {
+   "name": "MIPI_DSI_TX1_D3N",
+   "alt": "MIPI_DSI_TX1_D3N"
+  },
+  "195": {
+   "name": "MIPI_DSI_TX1_D2P",
+   "alt": "MIPI_DSI_TX1_D2P"
+  },
+  "196": {
+   "name": "MIPI_DSI_TX1_D3P",
+   "alt": "MIPI_DSI_TX1_D3P"
+  },
+  "197": {
+   "name": "GND",
+   "alt": ""
+  },
+  "198": {
+   "name": "GND",
+   "alt": ""
+  },
+  "199": {
+   "name": "HDMI_TXDDC_SDA_PORT",
+   "alt": "GPIO4_D0 HDMITX_SDA I2C5_SDA_M1"
+  },
+  "200": {
+   "name": "HDMI_TXDDC_SCL_PORT",
+   "alt": "GPIO4_C7 HDMITX_SCL I2C5_SCL_M1"
+  }
+ },
+ "J1": {
+  "1": {
+   "name": "GND",
+   "alt": ""
+  },
+  "2": {
+   "name": "GND",
+   "alt": ""
+  },
+  "3": {
+   "name": "MIPI_DSI_TX0_D2N",
+   "alt": "MIPI_DSI_TX0_D2N LVDS_TX0_D2N"
+  },
+  "4": {
+   "name": "GPIO3_A1",
+   "alt": "GPIO3_A1 VOP_BT1120_D0 SPI1_CS0_M1 SDMMC2_D0_M1"
+  },
+  "5": {
+   "name": "MIPI_DSI_TX0_D2P",
+   "alt": "MIPI_DSI_TX0_D2P LVDS_TX0_D2P"
+  },
+  "6": {
+   "name": "GPIO3_B4",
+   "alt": "GPIO3_B4 VOP_BT1120_D10 GMAC1_RXER_M0I2C5_SDA_M0  PDM_SDI1_M2"
+  },
+  "7": {
+   "name": "GND",
+   "alt": ""
+  },
+  "8": {
+   "name": "GPIO3_C1",
+   "alt": "GPIO3_C1 VOP_BT1120_D13 SPI1_MOSI_M1 PCIE20_PERSTn_M1 I2S1_SDO2_M2"
+  },
+  "9": {
+   "name": "MIPI_DSI_TX0_D3N",
+   "alt": "MIPI_DSI_TX0_D3N LVDS_TX0_D3N"
+  },
+  "10": {
+   "name": "GPIO3_C2",
+   "alt": "GPIO3_C2 VOP_BT1120_D14 SPI1_MISO_M1 UART5_TX_M1 I2S1_SDO3_M2"
+  },
+  "11": {
+   "name": "MIPI_DSI_TX0_D3P",
+   "alt": "MIPI_DSI_TX0_D3P LVDS_TX0_D3P"
+  },
+  "12": {
+   "name": "GPIO3_C3",
+   "alt": "GPIO3_C3 VOP_BT1120_D15 SPI1_CLK_M1 UART5_RX_M1 I2S1_SCLK_RX_M2"
+  },
+  "13": {
+   "name": "GND",
+   "alt": ""
+  },
+  "14": {
+   "name": "SARADC_IN3",
+   "alt": "SARADC_VIN3"
+  },
+  "15": {
+   "name": "EDP_TX_D0P",
+   "alt": "EDP_TX_D0P"
+  },
+  "16": {
+   "name": "NC",
+   "alt": ""
+  },
+  "17": {
+   "name": "EDP_TX_D0N",
+   "alt": "EDP_TX_D0N"
+  },
+  "18": {
+   "name": "GPIO_D5",
+   "alt": "GPIO0_D5"
+  },
+  "19": {
+   "name": "GND",
+   "alt": ""
+  },
+  "20": {
+   "name": "GPIO_D6",
+   "alt": "GPIO0_D6"
+  },
+  "21": {
+   "name": "EDP_TX_D1P",
+   "alt": "EDP_TX_D1P"
+  },
+  "22": {
+   "name": "GND",
+   "alt": ""
+  },
+  "23": {
+   "name": "EDP_TX_D1N",
+   "alt": "EDP_TX_D1N"
+  },
+  "24": {
+   "name": "GPIO2_C6",
+   "alt": "GPIO2_C6 CLK32K_OUT1 UART8_RX_M0 SPI1_CS1_M0"
+  },
+  "25": {
+   "name": "GND",
+   "alt": ""
+  },
+  "26": {
+   "name": "NC",
+   "alt": ""
+  },
+  "27": {
+   "name": "EDP_TX_D2P",
+   "alt": "EDP_TX_D2P"
+  },
+  "28": {
+   "name": "SARADC_VIN1_HW_ID",
+   "alt": "SARADC_VIN1"
+  },
+  "29": {
+   "name": "EDP_TX_D2N",
+   "alt": "EDP_TX_D2N"
+  },
+  "30": {
+   "name": "SARADC_VIN2_HP_HOOK",
+   "alt": ""
+  },
+  "31": {
+   "name": "GND",
+   "alt": ""
+  },
+  "32": {
+   "name": "GND",
+   "alt": ""
+  },
+  "33": {
+   "name": "EDP_TX_D3P",
+   "alt": "EDP_TX_D3P"
+  },
+  "34": {
+   "name": "PCIE_PWREN_H",
+   "alt": "GPIO0_D3"
+  },
+  "35": {
+   "name": "EDP_TX_D3N",
+   "alt": "EDP_TX_D3N"
+  },
+  "36": {
+   "name": "HP_DET_L",
+   "alt": "GPIO4_C6 PWM13_M1 SPI3_CS0_M1 SATA0_ACT_LED UART9_RX_M1 I2S3_SDI_M1"
+  },
+  "37": {
+   "name": "GND",
+   "alt": ""
+  },
+  "38": {
+   "name": "PDM_SDI2_M0_ADC",
+   "alt": "GPIO1_B1 I2S1_SDO2_M0 I2S1_SDI2_M0 PDM_SDI2_M0 PCIE20_WAKEn_M2"
+  },
+  "39": {
+   "name": "EDP_TX_AUXP",
+   "alt": "EDP_TX_AUXP"
+  },
+  "40": {
+   "name": "PDM_CLK1_M0",
+   "alt": "GPIO1_A4 I2S1_SCLK_RX_M0 UART4_RX_M0 PDM_CLK1_M0 SPDIF_TX_M0"
+  },
+  "41": {
+   "name": "EDP_TX_AUXN",
+   "alt": "EDP_TX_AUXN"
+  },
+  "42": {
+   "name": "GND",
+   "alt": ""
+  },
+  "43": {
+   "name": "GND",
+   "alt": ""
+  },
+  "44": {
+   "name": "I2C3_SCL_ACODEC",
+   "alt": "GPIO1_A1 I2C3_SCL_M0 UART3_TX_M0  AUDIOPWM_LOUT_N"
+  },
+  "45": {
+   "name": "USB3_HOST1_DP",
+   "alt": "USB_HOST1_DP"
+  },
+  "46": {
+   "name": "I2C3_SDA_ACODEC",
+   "alt": "GPIO1_A0 I2C3_SDA_M0 UART3_RX_M0  AUDIOPWM_LOUT_P"
+  },
+  "47": {
+   "name": "USB3_HOST1_DM",
+   "alt": "USB_HOST1_DM"
+  },
+  "48": {
+   "name": "GND",
+   "alt": ""
+  },
+  "49": {
+   "name": "GND",
+   "alt": ""
+  },
+  "50": {
+   "name": "HPL_OUT",
+   "alt": ""
+  },
+  "51": {
+   "name": "USB3_HOST1_SSTXP",
+   "alt": "USB3_HOST1_SSTXPSATA1_TXP"
+  },
+  "52": {
+   "name": "HP_SNS",
+   "alt": ""
+  },
+  "53": {
+   "name": "USB3_HOST1_SSTXN",
+   "alt": "USB3_HOST1_SSTXNSATA1_TXN"
+  },
+  "54": {
+   "name": "HPR_OUT",
+   "alt": ""
+  },
+  "55": {
+   "name": "GND",
+   "alt": ""
+  },
+  "56": {
+   "name": "GND",
+   "alt": ""
+  },
+  "57": {
+   "name": "USB3_HOST1_SSRXP",
+   "alt": "USB3_HOST1_SSRXPSATA1_RXP"
+  },
+  "58": {
+   "name": "SPKN_OUT",
+   "alt": ""
+  },
+  "59": {
+   "name": "USB3_HOST1_SSRXN",
+   "alt": "USB3_HOST1_SSRXNSATA1_RXN"
+  },
+  "60": {
+   "name": "SPKP_OUT",
+   "alt": ""
+  },
+  "61": {
+   "name": "GND",
+   "alt": ""
+  },
+  "62": {
+   "name": "GND",
+   "alt": ""
+  },
+  "63": {
+   "name": "USB2_HOST2_DP",
+   "alt": "USB_HOST2_DP"
+  },
+  "64": {
+   "name": "MIC1_IN",
+   "alt": ""
+  },
+  "65": {
+   "name": "USB2_HOST2_DM",
+   "alt": "USB_HOST2_DM"
+  },
+  "66": {
+   "name": "MIC2_IN",
+   "alt": ""
+  },
+  "67": {
+   "name": "GND",
+   "alt": ""
+  },
+  "68": {
+   "name": "GND",
+   "alt": ""
+  },
+  "69": {
+   "name": "USB2_HOST3_DP",
+   "alt": "USB_HOST3_DP"
+  },
+  "70": {
+   "name": "SPDIF_TX_M2",
+   "alt": "GPIO4_C4 EDP_HPDIN_M0 SPDIF_TX_M2 SATA2_ACT_LED I2S3_LRCK_M1"
+  },
+  "71": {
+   "name": "USB2_HOST3_DM",
+   "alt": "USB_HOST3_DM"
+  },
+  "72": {
+   "name": "GND",
+   "alt": ""
+  },
+  "73": {
+   "name": "GND",
+   "alt": ""
+  },
+  "74": {
+   "name": "WIFI_PWREN",
+   "alt": "GPIO0_A0 REFCLK_OUT"
+  },
+  "75": {
+   "name": "PDM_CLK0_M1",
+   "alt": "GPIO3_D6 CIF_D8 EBC_SDDO8 GMAC1_TXD2_M1 UART1_TX_M1 PDM_CLK0_M1"
+  },
+  "76": {
+   "name": "GND",
+   "alt": ""
+  },
+  "77": {
+   "name": "PDM_SDIO_M1",
+   "alt": "GPIO3_D7 CIF_D9 EBC_SDDO9 GMAC1_TXD3_M1 UART1_RX_M1 PDM_SDI0_M1"
+  },
+  "78": {
+   "name": "VCC_BAT-",
+   "alt": ""
+  },
+  "79": {
+   "name": "PDM_CLK1_M1",
+   "alt": "GPIO4_A0 CIF_D10 EBC_SDDO10 GMAC1_TXCLK_M1 PDM_CLK1_M1"
+  },
+  "80": {
+   "name": "VCC_BAT-",
+   "alt": ""
+  },
+  "81": {
+   "name": "PDM_SDI1_M1",
+   "alt": "GPIO4_A1 CIF_D11 EBC_SDDO11 GMAC1_RXD2_M1 PDM_SDI1_M1"
+  },
+  "82": {
+   "name": "VCC_BAT-",
+   "alt": ""
+  },
+  "83": {
+   "name": "PDM_SDI2_M1",
+   "alt": "GPIO4_A2 CIF_D12 EBC_SDDO12 GMAC1_RXD3_M1 UART7_TX_M2 PDM_SDI2_M1"
+  },
+  "84": {
+   "name": "VCC_BAT+",
+   "alt": ""
+  },
+  "85": {
+   "name": "PDM_SDI3_M1",
+   "alt": "GPIO4_A3 CIF_D13 EBC_SDDO13 GMAC1_RXCLK_M1 UART7_RX_M2 PDM_SDI3_M1"
+  },
+  "86": {
+   "name": "VCC_BAT+",
+   "alt": ""
+  },
+  "87": {
+   "name": "GPIO_B3",
+   "alt": "GPIO0_B3 I2C1_SCL  MCU_JTAG_TDO"
+  },
+  "88": {
+   "name": "VCC_BAT+",
+   "alt": ""
+  },
+  "89": {
+   "name": "GPIO_B4",
+   "alt": "GPIO0_B4 I2C1_SDA  PCIE20_BUTTONRSTnMCU_JTAG_TCK"
+  },
+  "90": {
+   "name": "TS",
+   "alt": ""
+  },
+  "91": {
+   "name": "NC",
+   "alt": ""
+  },
+  "92": {
+   "name": "VCC_SD",
+   "alt": ""
+  },
+  "93": {
+   "name": "GPIO_C1",
+   "alt": "GPIO0_C1 PWM2_M0 NPUAVS UART0_TX MCU_JTAG_TDI"
+  },
+  "94": {
+   "name": "USB_5V_IN",
+   "alt": ""
+  },
+  "95": {
+   "name": "GPIO_C4",
+   "alt": "GPIO0_C4 PWM5 SPI0_CS1_M0 UART0_RTSn"
+  },
+  "96": {
+   "name": "USB_5V_IN",
+   "alt": ""
+  },
+  "97": {
+   "name": "USB_OTG0_VBUSDET",
+   "alt": "USB_OTG0_VBUSDET"
+  },
+  "98": {
+   "name": "USB_5V_IN",
+   "alt": ""
+  },
+  "99": {
+   "name": "GND",
+   "alt": ""
+  },
+  "100": {
+   "name": "GND",
+   "alt": ""
+  }
+ }
+}

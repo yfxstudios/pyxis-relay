@@ -1,0 +1,331 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Device-tree overlay for the HDMI-in relay carrier, rev A, on a Radxa CM3 (RK3566, module V1.32+).
+ *
+ * Everything the carrier needs from software that the hardware cannot do by itself (REV_A_SPEC.md section 7,
+ * kicad/REVIEW_FABLE_3.md M3). Base tree: Radxa's BSP rk3566-radxa-cm3-io.dtb (radxa/kernel linux-5.10-gen-rkr4.1,
+ * rk3566-radxa-cm3-io.dts + rk3566-radxa-cm3.dtsi), the only kernel with the rk628 driver. The overlay uses that tree's
+ * labels (vccio_acodec, vcc_sd, vcc5v0_usb30, tf_det, vcc_ch482d1/2, gpio_leds, hym8563, ...): an unknown label stops
+ * it applying. Checked 2026-10-25: compiles with dtc 1.8.1 (-@) and applies with fdtoverlay to the rkr4.1 base built
+ * from those sources; check again against the BSP you actually boot.
+ *
+ * Pins (kicad/gen/module.py):
+ *   GPIO1_B2  PCIE_PERST_N    J68-109  VCCIO1   output, active low (reset pull-down holds the card in reset)
+ *   GPIO1_B0  PCIE_CLKREQ_N   J68-102  VCCIO1   PCIE20_CLKREQn_M2 (function 4), needs the SoC pull-up
+ *   GPIO1_B1  PCIE_WAKE_N     J1-38    VCCIO1   PCIE20_WAKEn_M2 (function 4), needs the SoC pull-up
+ *   GPIO1_A4  BT_DISABLE_N    J1-40    VCCIO1   W_DISABLE2#: low = Bluetooth off; hogged high (on)
+ *   GPIO0_A0  WIFI_DISABLE_N  J1-74    PMUIO1   W_DISABLE1#: low = Wi-Fi off (10k pull-up); hogged high (on)
+ *   GPIO3_C2  RK628D_RESET_N  J1-10    VCCIO5   active low
+ *   GPIO3_C3  RK628D_INT      J1-12    VCCIO5   input; leave the RK628D's INT an input until reset is released
+ *   GPIO0_C4  RK628D_PWR_EN   J1-95    PMUIO2   high = RK628D powered (NPN -> P-FET), 100k pull-down = off
+ *   GPIO0_A4  RK628D_PLUGIN_DET J69-76 PMUIO1   low = HDMI source connected (10k pull-up on the board)
+ *   GPIO4_B1  LED_STATUS      J69-34   VCCIO6   high = on (white, 150R)
+ *   GPIO0_A5  LED_WIFI        J69-75   PMUIO1   high = on (blue, 150R)
+ *   GPIO0_D4  TF_DET          (module)          keep low: driven high, the module's Q4 pulls PLUGIN_DET low
+ *   I2C2_M1   RK628D I2C      J69-35/36 VCCIO6  SCL GPIO4_B5, SDA GPIO4_B4, 4.7k to 3.3 V on the board
+ *
+ * Taken back from the IO-board base tree (it drives these as its own SD, USB and LED signals; kicad/REVIEW_FINAL.md M1):
+ *   GPIO0_A4/A5  sdmmc0 card detect and vcc_sd enable    -> PLUGIN_DET and LED_WIFI here: sdmmc0 and vcc_sd off
+ *   GPIO3_C2     vcc5v0_usb30 enable, always on (high)   -> RK628D_RESET_N here: regulator off, USB phy on vcc5v0_sys
+ *   GPIO0_D4     tf_det regulator (holds it low)          -> replaced by the hog below
+ *   GPIO3_C6/C7  vcc_ch482d1/2 enables, always on (low)   -> DVP_D0/D1 on the SDI header: off
+ *   GPIO4_A4/B7  pi-led-green (heartbeat), pwr-led-red    -> DVP_D14/DVP_VSYNC on the SDI header: off
+ *   I2C2 0x51    hym8563 RTC (not on this board)          -> off; I2C2 is the RK628D's bus
+ *   SARADC_VIN2  rk817_sound headset key, hp-det GPIO4_C4  -> both open here (random play/pause events): off
+ *   GPIO0_A0 (WIFI_DISABLE_N) and GPIO0_D3 are not claimed by the base tree.
+ *
+ * Board-level facts behind the capture path at the end:
+ *   - CSI: 4 data lanes on CSI0, D0..D3 in order, clock CLK0; no lane swap or polarity swap on the board.
+ *     After length matching the worst data-to-clock skew is 6.3 mm (about 40 ps, 0.05 UI at 1.2 Gb/s):
+ *     any RK628D lane rate up to its 1.2 Gb/s maximum is fine. Watch the CSI CRC/ECC counters at bring-up.
+ *   - Bluetooth of the M.2 card is on USB2 HOST2 (J1-63/65); enable that host port.
+ *   - Debug UART (UART2_M0, J69-51/55) is 3.3 V: PMUIO2 follows GPIO_VREF on the V1.322 module.
+ *
+ * Kernel: the capture path needs CONFIG_VIDEO_RK628_CSI, CONFIG_VIDEO_ROCKCHIP_CIF and CONFIG_PHY_ROCKCHIP_CSI2_DPHY
+ * (all =y in the BSP's rockchip_linux_defconfig); check them in the kernel you boot.
+ *
+ * Before this overlay applies: U-Boot (and the kernel's early boot) use the IO-board tree, where GPIO0_A4 is sdmmc0's
+ * card detect, GPIO0_A5 the vcc_sd enable (active low) and GPIO3_C2 the always-on USB switch enable. Expect, at power-up:
+ * with an HDMI source attached (PLUGIN_DET low) U-Boot sees an SD card and probes SDMMC0 (pins open) for a few
+ * seconds before falling through to eMMC; the blue Wi-Fi LED may light; RK628D_RESET_N is driven high into the
+ * unpowered RK628D (sub-mA through its pad clamp, as on the reference design). None of these needs a fix.
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/pinctrl/rockchip.h>
+
+/* VCCIO1 = VCCIO_ACODEC (RK817/RK809 LDO4) carries PERST#, CLKREQ#, WAKE# and BT_DISABLE#. It is off at power-up;
+ * without it on at 3.3 V the SoC cannot drive or read those pins and Wi-Fi/Bluetooth never come up. */
+&vccio_acodec {
+	regulator-min-microvolt = <3300000>;
+	regulator-max-microvolt = <3300000>;
+	regulator-always-on;
+	regulator-boot-on;
+};
+
+/* The IO board's SD slot, USB supply switch, CH482D switches, LEDs and RTC are not on this carrier; its pins are reused */
+&sdmmc0 {
+	status = "disabled";
+};
+
+&vcc_sd {
+	status = "disabled";
+};
+
+&vcc5v0_usb30 {
+	status = "disabled";
+};
+
+&u2phy0_host {
+	phy-supply = <&vcc5v0_sys>;
+};
+
+&tf_det {
+	status = "disabled";
+};
+
+&vcc_ch482d1 {
+	status = "disabled";
+};
+
+&vcc_ch482d2 {
+	status = "disabled";
+};
+
+&gpio_leds {
+	pi-led-green {
+		status = "disabled";
+	};
+
+	pwr-led-red {
+		status = "disabled";
+	};
+};
+
+&hym8563 {
+	status = "disabled";
+};
+
+&rk817_sound {
+	status = "disabled";
+};
+
+&pmu_io_domains {
+	vccio1-supply = <&vccio_acodec>;
+	status = "okay";
+};
+
+&pinctrl {
+	relay {
+		/* the board has no pull-ups on these any more (they back-fed the unpowered bank): the SoC's own */
+		pcie20m2_relay: pcie20m2-relay-pins {
+			rockchip,pins =
+				<1 RK_PB0 4 &pcfg_pull_up>,	/* PCIE20_CLKREQn_M2 */
+				<1 RK_PB1 4 &pcfg_pull_up>;	/* PCIE20_WAKEn_M2 */
+		};
+		pcie_perst: pcie-perst-pin {
+			rockchip,pins = <1 RK_PB2 RK_FUNC_GPIO &pcfg_pull_down>;
+		};
+		/* W_DISABLE1#/2#: held high (radios on) by the hogs below; the pull-up covers the time before they run */
+		m2_disable: m2-disable-pins {
+			rockchip,pins =
+				<1 RK_PA4 RK_FUNC_GPIO &pcfg_pull_up>,	/* BT_DISABLE_N (R505 not fitted) */
+				<0 RK_PA0 RK_FUNC_GPIO &pcfg_pull_up>;	/* WIFI_DISABLE_N (R504 10k as well) */
+		};
+		rk628_pins: rk628-pins {
+			rockchip,pins =
+				<3 RK_PC2 RK_FUNC_GPIO &pcfg_pull_none>,	/* RESET_N */
+				<3 RK_PC3 RK_FUNC_GPIO &pcfg_pull_down>,	/* INT */
+				<0 RK_PC4 RK_FUNC_GPIO &pcfg_pull_none>,	/* PWR_EN */
+				<0 RK_PA4 RK_FUNC_GPIO &pcfg_pull_none>;	/* PLUGIN_DET */
+		};
+		led_pins: led-pins {
+			rockchip,pins =
+				<4 RK_PB1 RK_FUNC_GPIO &pcfg_pull_none>,
+				<0 RK_PA5 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+};
+
+/* M.2 E-key card (RTL8822CE class): PCIe 2.0 x1, card powered from the always-on 3V3_IO rail */
+&pcie2x1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pcie20m2_relay &pcie_perst>;
+	reset-gpios = <&gpio1 RK_PB2 GPIO_ACTIVE_HIGH>;
+	/* max-link-speed = <1>; */	/* fall back to Gen1 if the link does not train at Gen2 */
+	status = "okay";
+};
+
+&{/} {
+	relay-leds {
+		compatible = "gpio-leds";
+		pinctrl-names = "default";
+		pinctrl-0 = <&led_pins>;
+
+		led-status {
+			label = "relay:white:status";
+			gpios = <&gpio4 RK_PB1 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+		};
+
+		led-wifi {
+			label = "relay:blue:wifi";
+			gpios = <&gpio0 RK_PA5 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "phy0tx";
+		};
+	};
+};
+
+/* TF_DET (GPIO0_D4) drives the module's Q4, which pulls GPIO0_A4 (our PLUGIN_DET) low: hold it low (tf_det is off above) */
+&gpio0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&m2_disable>;
+
+	tf-det-low-hog {
+		gpio-hog;
+		gpios = <RK_PD4 GPIO_ACTIVE_HIGH>;
+		output-low;
+		line-name = "tf-det-held-low";
+	};
+
+	/* W_DISABLE1# high = Wi-Fi on. Not rfkill-gpio: that driver is ACPI-only in this kernel (and wants the opposite
+	 * polarity). Turn the radios off in software (rfkill on the card's own drivers) instead. */
+	wifi-enable-hog {
+		gpio-hog;
+		gpios = <RK_PA0 GPIO_ACTIVE_HIGH>;
+		output-high;
+		line-name = "m2-w-disable1-n";
+	};
+};
+
+/* W_DISABLE2# high = Bluetooth on. GPIO1_A4 is in VCCIO1 (VCCIO_ACODEC, 3.3 V always on above). */
+&gpio1 {
+	bt-enable-hog {
+		gpio-hog;
+		gpios = <RK_PA4 GPIO_ACTIVE_HIGH>;
+		output-high;
+		line-name = "m2-w-disable2-n";
+	};
+};
+
+/* RK628D on I2C2_M1, as the BSP's HDMI-RX -> MIPI CSI-2 V4L2 subdevice (drivers/media/i2c/rk628/rk628_csi_v4l2.c,
+ * CONFIG_VIDEO_RK628_CSI; binding Documentation/devicetree/bindings/media/i2c/rk628-csi-v4l2.txt). Not
+ * "rockchip,rk628": that is the display-bridge MFD. The driver needs the camera-module properties and the endpoint;
+ * the capture path is RK628D -> csi2_dphy0 (full mode, 4 lanes) -> mipi_csi2 -> rkcif_mipi_lvds (/dev/video*). */
+&i2c2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c2m1_xfer>;
+	clock-frequency = <400000>;
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+
+	rk628_csi: rk628-csi@50 {
+		compatible = "rockchip,rk628-csi-v4l2";
+		reg = <0x50>;	/* RK628D_I2C_ADDR (ball C7) strapped low through 10k (kicad/gen/hdmi_in.py): 0x50 */
+		pinctrl-names = "default";
+		pinctrl-0 = <&rk628_pins>;
+		interrupt-parent = <&gpio3>;
+		interrupts = <RK_PC3 IRQ_TYPE_LEVEL_HIGH>;
+		reset-gpios = <&gpio3 RK_PC2 GPIO_ACTIVE_LOW>;
+		enable-gpios = <&gpio0 RK_PC4 GPIO_ACTIVE_HIGH>;
+		plugin-det-gpios = <&gpio0 RK_PA4 GPIO_ACTIVE_LOW>;
+
+		rockchip,camera-module-index = <0>;
+		rockchip,camera-module-facing = "back";
+		rockchip,camera-module-name = "RK628-CSI";
+		rockchip,camera-module-lens-name = "NC";
+		status = "okay";
+
+		port {
+			hdmiin_out0: endpoint {
+				remote-endpoint = <&mipi_in_hdmiin>;
+				data-lanes = <1 2 3 4>;
+			};
+		};
+	};
+};
+
+&csi2_dphy_hw {
+	status = "okay";
+};
+
+&csi2_dphy0 {
+	status = "okay";
+
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			mipi_in_hdmiin: endpoint@1 {
+				reg = <1>;
+				remote-endpoint = <&hdmiin_out0>;
+				data-lanes = <1 2 3 4>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			csidphy_out: endpoint@0 {
+				reg = <0>;
+				remote-endpoint = <&mipi_csi2_input>;
+			};
+		};
+	};
+};
+
+&mipi_csi2 {
+	status = "okay";
+
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			mipi_csi2_input: endpoint@1 {
+				reg = <1>;
+				remote-endpoint = <&csidphy_out>;
+				data-lanes = <1 2 3 4>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			mipi_csi2_output: endpoint@0 {
+				reg = <0>;
+				remote-endpoint = <&cif_mipi_in>;
+				data-lanes = <1 2 3 4>;
+			};
+		};
+	};
+};
+
+&rkcif_mipi_lvds {
+	status = "okay";
+
+	port {
+		cif_mipi_in: endpoint {
+			remote-endpoint = <&mipi_csi2_output>;
+			data-lanes = <1 2 3 4>;
+		};
+	};
+};

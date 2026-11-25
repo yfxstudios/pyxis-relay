@@ -1,0 +1,52 @@
+{
+    "$schema": "https://schemas.kicad.org/erc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-10-28T10:26:38",
+    "ignored_checks": [
+        {
+            "description": "Global label only appears once in the schematic",
+            "key": "single_global_label"
+        },
+        {
+            "description": "Four connection points are joined together",
+            "key": "four_way_junction"
+        },
+        {
+            "description": "SPICE model issue",
+            "key": "simulation_model_issue"
+        },
+        {
+            "description": "Assigned footprint doesn't match footprint filters",
+            "key": "footprint_filter"
+        }
+    ],
+    "included_severities": [
+        "error",
+        "warning",
+        "exclusion"
+    ],
+    "kicad_version": "10.0.7",
+    "sheets": [
+        {
+            "path": "/",
+            "uuid_path": "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501",
+            "violations": []
+        },
+        {
+            "path": "/SDI input and GS2971A receiver/",
+            "uuid_path": "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501/f1fe5ca1-3c75-5322-b18d-1bbec4dfbfdf",
+            "violations": []
+        },
+        {
+            "path": "/Power/",
+            "uuid_path": "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501/51293089-f6d3-5fc0-a82b-9557220b2d2c",
+            "violations": []
+        },
+        {
+            "path": "/Relay interface (J602)/",
+            "uuid_path": "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501/4368889b-8fb1-5650-b786-cdaa32cfa318",
+            "violations": []
+        }
+    ],
+    "source": "sdi.kicad_sch"
+}

@@ -1,0 +1,6 @@
+Rev A fab notes (also in kicad/README.md)
+- 4 layers, 1.6 mm, stackup JLCPCB JLC04161H-3313 (0.0994 mm 3313 prepreg under L1 and L4). Select it at ordering:
+  the trace widths below are designed for it, and on the default 7628 stack the 100 ohm pairs come out at ~120 ohm.
+- Differential pairs on L1/L4 (width/gap, mm): 100 ohm 0.10/0.10 (HDMI, CSI, Ethernet), 90 ohm 0.12/0.10 (USB),
+  85 ohm 0.14/0.10 (PCIe).
+- ENIG. Vias 0.15 mm drill minimum, epoxy-filled and capped (via-in-pad on several parts).

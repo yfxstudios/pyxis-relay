@@ -1,0 +1,146 @@
+(kicad_sch
+	(version 20251024)
+	(generator "sdi_gen")
+	(generator_version "10.0")
+	(uuid "a6c0cf0a-cda2-5d66-a70f-4109d9a3b501")
+	(paper "A4")
+	(title_block
+		(title "HDMI-in relay: SDI add-on, rev A")
+		(date "2026-10-27")
+		(rev "A")
+		(company "HDMI-in relay: SDI add-on")
+	)
+	(lib_symbols)
+	(sheet
+		(at 30 40)
+		(size 55 20)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "f1fe5ca1-3c75-5322-b18d-1bbec4dfbfdf")
+		(property "Sheetname" "SDI input and GS2971A receiver"
+			(at 30 39.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "receiver.kicad_sch"
+			(at 30 60.6 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "sdi"
+				(path "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 100 40)
+		(size 55 20)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "51293089-f6d3-5fc0-a82b-9557220b2d2c")
+		(property "Sheetname" "Power"
+			(at 100 39.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "power.kicad_sch"
+			(at 100 60.6 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "sdi"
+				(path "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501"
+					(page "3")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 170 40)
+		(size 55 20)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "4368889b-8fb1-5650-b786-cdaa32cfa318")
+		(property "Sheetname" "Relay interface (J602)"
+			(at 170 39.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "interface.kicad_sch"
+			(at 170 60.6 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "sdi"
+				(path "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501"
+					(page "4")
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+	(embedded_fonts no)
+)

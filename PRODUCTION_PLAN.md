@@ -223,6 +223,85 @@ These shape everything after them:
 - Launch: announce to Blackmagic user communities, forums and YouTube reviewers, with demo units for two
   or three reviewers.
 
+### 7. HDMI input: the next relay hardware (researched Oct 22, 2026)
+
+> **Updated for cost:** the design now uses an RK3568 (today's processor) with an RK628D HDMI bridge and a
+> 1080p60 stream, instead of the RK3588 below. It also covers camera control over Bluetooth, HDMI (CEC) and SDI.
+> See [hardware/hdmi-relay/DESIGN.md](hardware/hdmi-relay/DESIGN.md).
+
+**Why.** Today only Blackmagic cameras that stream over Ethernet work. An HDMI input lets any camera with HDMI
+feed the relay: Sony, Canon, Panasonic, and Blackmagic Pocket cameras. It should also cut latency, because the
+relay encodes the picture itself, tuned for speed, instead of relaying the camera's RTMP stream.
+
+**What changes in the product:**
+- **Viewing works with any HDMI camera.** Camera control stays Blackmagic-only and still needs Ethernet. For
+  other cameras, the apps hide the control menus and keep the picture, LUTs and local capture.
+- **The apps don't change for video.** The relay publishes HDMI to the same RTSP path
+  (`live/pyxis`), so the apps see one stream whatever the source.
+- **The relay picks the source:** HDMI when a signal is present, the camera's stream otherwise.
+- **HDMI loop-through out** gives an on-set monitor the picture with no delay. It replaces decoding the stream
+  for the HDMI output.
+
+**Chip choice.** The R5C's RK3568 has no HDMI input and the board has no camera port, so the platform changes.
+
+| Chip | How HDMI gets in | Notes |
+|---|---|---|
+| **RK3588** (full chip) | Built-in HDMI 2.0 receiver, up to 4K60 | Hardware H.264/H.265 encoder up to 8K30. Appears in Linux as a normal video capture device. |
+| **RK3588S** (used in most modules, e.g. Radxa CM5) | No built-in receiver | Needs a bridge chip, like the RK3576. |
+| **RK3576** | Rockchip **RK628D** bridge, HDMI 2.0 to the camera port, up to 4K60 | Cheaper and lower power; one more part and driver. |
+
+The Lontium LT6911UXC is another HDMI-to-camera-port bridge. Users report 4K60 needs 8 lanes and it usually runs
+4K30 in practice. On a Rockchip chip, Rockchip's own RK628D is the safer choice.
+
+**Prototype: FriendlyElec NanoPC-T6** (full RK3588; about $150–200).
+- Full-size HDMI 2.0 in, two 2.5GbE ports, two HDMI out, M.2 for the Wi-Fi module.
+- Same vendor as the R5C, with the same FriendlyWrt and Rockchip MPP stack. The factory image, first boot and
+  HDMI player carry over with the least rework.
+- Alternatives: Orange Pi 5 Plus (full-size HDMI in; different vendor's software). Radxa ROCK 5B has only
+  micro-HDMI in, which is too fragile on a camera rig.
+- No off-the-shelf board is close enough to ship as-is. They're desktop-shaped, run on USB-C or 12 V rather than
+  camera batteries, and have no SDI input.
+
+**Production: our own carrier board around a bought module.** The module carries the processor, memory and
+storage, the expensive and risky part to design. The carrier has:
+- HDMI in and HDMI loop-through out.
+- Ethernet, for Blackmagic camera control.
+- A pre-certified Wi-Fi 6 module, to reduce radio certification.
+- 7–17 V input for D-tap, V-mount or NP-F batteries, on a locking connector.
+- A 1/4-20 mount and fanless cooling.
+- **SDI in, as phase 2.** Most cinema cameras (ARRI, RED, URSA) output SDI rather than HDMI. A 3G-SDI receiver
+  plus a bridge is enough for 1080p60 monitoring.
+
+Module options: a full-RK3588 module such as FriendlyElec's CM3588 uses the built-in receiver. Check whether the
+CM3588 brings the HDMI input out to its connector; not yet verified. An RK3588S module (Radxa CM5, about
+$80–130) or an RK3576 module needs the RK628D. Rough cost: low tens of thousands of dollars for a 4–6 layer
+carrier, prototypes and emissions testing. A fully custom board costs several times that and only pays off at
+thousands of units.
+
+**Latency target.** Hollyland's Mars 4K was measured at about 66 ms over HDMI and up to 83 ms in its phone app.
+No published end-to-end figure exists for RK3588 capture, encode and stream. Around 100 ms looks realistic with:
+- no B-frames
+- intra-refresh instead of large keyframes
+- RTSP over UDP
+- a small buffer in the apps
+
+Measure it on the prototype; today's latency through the camera's stream hasn't been measured either.
+
+**Risks:**
+- Rockchip's HDMI input is mature only in its vendor kernel, not mainline Linux. FriendlyWrt uses the vendor
+  kernel.
+- The encoder needs a larger reserved memory pool (CMA) to run stably.
+- Some cameras send 4:4:4 or 10-bit over HDMI, which may need converting before encoding.
+
+**Steps:**
+1. Measure today's glass-to-glass latency through the camera's stream, as a baseline.
+2. Buy a NanoPC-T6.
+3. Get HDMI capture and hardware encode feeding MediaMTX on the same path, then measure latency with a running
+   clock on screen.
+4. Add source selection to the relay and a video-only mode to the apps.
+5. Test with two or three non-Blackmagic cameras.
+6. Choose the module, then design the carrier board (SDI later).
+
 ## Phases
 
 | Phase | Goal | Main work | Done when |
@@ -250,6 +329,8 @@ hardware.
    in-app checks pay for themselves.
 6. **Single-board supply.** The NanoPi R5C or its Wi-Fi module could go out of stock. Keep the image portable
    to a second board.
+7. **HDMI-in platform change.** Moving to an RK3588 board or module (workstream 7) means a new image and
+   driver stack. Prove it on the NanoPC-T6 before committing to a carrier board.
 
 ## Suggested next steps
 

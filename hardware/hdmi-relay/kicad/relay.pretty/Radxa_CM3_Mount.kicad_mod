@@ -1,0 +1,71 @@
+(footprint "Radxa_CM3_Mount"
+	(version 20241229)
+	(generator "relay_gen")
+	(layer "F.Cu")
+	(descr "Radxa CM3 module outline (40 x 55 mm) and its four M2.5 mounting holes, positions from Radxa's CM3 IO board.")
+	(attr through_hole)
+	(property "Reference" "REF**"
+		(at 0 -29.5 0)
+		(layer "F.SilkS")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "Radxa CM3 module"
+		(at 0 29.5 0)
+		(layer "F.Fab")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "MH1" thru_hole circle
+		(at 16.51 23.98)
+		(size 6.0 6.0)
+		(drill 2.6)
+		(layers "*.Cu" "*.Mask")
+	)
+	(pad "MH2" thru_hole circle
+		(at -16.49 23.98)
+		(size 6.0 6.0)
+		(drill 2.6)
+		(layers "*.Cu" "*.Mask")
+	)
+	(pad "MH3" thru_hole circle
+		(at -16.51 -23.97)
+		(size 6.0 6.0)
+		(drill 2.6)
+		(layers "*.Cu" "*.Mask")
+	)
+	(pad "MH4" thru_hole circle
+		(at 16.49 -23.97)
+		(size 6.0 6.0)
+		(drill 2.6)
+		(layers "*.Cu" "*.Mask")
+	)
+	(fp_rect
+		(start -20 -27.5)
+		(end 20 27.5)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.SilkS")
+	)
+	(fp_rect
+		(start -20 -27.5)
+		(end 20 27.5)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.Fab")
+	)
+)

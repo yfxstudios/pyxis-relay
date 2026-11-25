@@ -1,0 +1,365 @@
+"""3D-printable case for the rev A carrier: a base tray and a lid, held together by the board's four M3 screws.
+
+  python case/case.py            # writes case/out/base.stl, lid.stl, case.step
+  python case/case.py --check    # also checks the case against the board's STEP model (case/ref/relay-board.step)
+  python case/case.py --sdi      # the SDI variant: taller lid with the add-on's BNC bay (case/out/sdi/), see
+                                 # hardware/sdi-addon/DESIGN.md "Mechanics"; combine with --check
+
+Needs CadQuery (pip install cadquery). Board coordinates are KiCad's, in mm, with (0, 0) at the board's top-left
+corner and y pointing down; the case model uses X = x, Y = -y, Z up. All positions below come from
+kicad/relay.kicad_pcb (see README.md for how they were read).
+"""
+import os
+import sys
+
+import cadquery as cq
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+SDI = "--sdi" in sys.argv
+OUT = os.path.join(HERE, "out", "sdi") if SDI else os.path.join(HERE, "out")
+
+# ---- board ---------------------------------------------------------------------------------------------------
+BW, BH, BT = 120.0, 100.0, 1.6                 # board outline and thickness
+HOLES = [(4, 4), (4, 96), (116, 36), (116, 68)]  # H601, H603, H602, H604: M3
+
+# ---- case parameters ------------------------------------------------------------------------------------------
+GAP = 0.4          # board edge to inner wall
+WALL = 2.2
+FLOOR = 2.0
+ROOF = 2.0
+UNDER = 4.0        # floor top to board bottom: through-hole pins stick out 2.0 mm, bottom-side parts 1.3 mm
+OVER = 16.8        # board top to roof underside: magjack 15.1 mm (STEP model), CM3 + heatsink about 11 mm
+if SDI:
+    OVER = 27.0    # the add-on's BNC body top is 25.6 mm above the board
+R_OUT = 3.0        # outer corner radius
+
+Z_BB = FLOOR + UNDER            # board bottom
+Z_BT = Z_BB + BT                # board top: the base/lid split
+Z_TOP = Z_BT + OVER + ROOF      # outside top
+
+X0, X1 = -GAP - WALL, BW + GAP + WALL       # outer extents (board x)
+Y0, Y1 = -GAP - WALL, BH + GAP + WALL       # outer extents (board y)
+
+# ---- openings, in board coordinates: (centre x or y along the wall, width, bottom z above board top, height) ------
+# Front wall (y = 0): the two HDMI sockets, 6.3 mm tall. Their faces sit 1.0 mm past the board edge; the wall's outer face
+# is pocketed around each so the plug's overmould reaches the socket.
+FRONT = [
+    dict(name="HDMI IN", c=24.0, w=15.8, h=7.0, pocket=(22.0, 12.0)),
+    dict(name="HDMI OUT", c=79.0, w=15.8, h=7.0, pocket=(22.0, 12.0)),
+]
+# Rear wall (y = 100): USB-C (its face is 0.5 mm inside the board edge, so the opening reaches 2.4 mm below the board
+# top, notching the base wall too: the plug's 6.5 mm overmould, centred 1.6 mm above the board, reaches the socket),
+# DC jack (its opening is 0.7 mm inside the board edge, so the opening fits the plug),
+# magjack (15.1 mm tall; it sticks out 5.5 mm past the board edge, through the wall).
+REAR = [
+    dict(name="USB-C", c=16.0, w=12.6, h=8.8, z=-2.4, r=1.5),
+    dict(name="DC IN", c=42.0, w=11.4, h=11.6),
+    dict(name="ETHERNET", c=99.0, w=19.2, h=15.6),
+]
+BATT_WIRE = dict(x=58.0, z=9.0, d=5.0)        # NP-F plate lead from J102, through a grommet
+# Left wall (x = 0): two RP-SMA bulkheads for the Wi-Fi antennas, near the M.2 card.
+ANTENNAS = [45.0, 75.0]                       # board y
+ANT_Z = 9.5                                   # centre above board top
+ANT_D, ANT_FLAT = 6.6, 6.0                    # 1/4"-36 RP-SMA thread, D-flat
+# Roof: light pipes over the LEDs, pinholes over the buttons, vents over the CM3.
+LIGHTPIPES = [(97.72, 18.47, "STATUS"), (101.18, 18.47, "WIFI"), (115.70, 11.98, "PWR")]  # D601 white, D602 blue, D603 red
+LP_D = 3.1
+PINHOLES = [(100.50, 14.24, "RST"), (109.49, 14.24, "REC")]                                # SW601, SW602
+LABEL_H, LABEL_DEPTH = 2.4, 0.5               # engraved roof labels, read from the front (HDMI side)
+PIN_D = 1.8
+VENTS = [dict(x0=44, x1=88, y0=34, y1=66, slot=2.0, pitch=4.0),   # over the CM3 module (38-94 x 30-70)
+         dict(x0=48, x1=80, y0=73, y1=83, slot=2.0, pitch=4.0)]   # over the 5 V bucks U103/U104 and L101/L102 (hot
+                                                                  # air out; the low side vents are the intake)
+# Base: two 1/4"-20 heat-set inserts underneath, clear of bottom-side parts.
+TRIPOD = [(30.0, 70.0), (85.0, 85.0)]
+TRIPOD_INSERT = dict(d=8.0, depth=5.0)        # 1/4"-20 x 0.2" (5 mm) heat-set insert hole: the boss ends 0.2 mm
+TRIPOD_BOSS = UNDER - 0.2                     # under the board, so 0.8 mm of boss stays above the hole as a stop
+M3_INSERT = dict(d=4.0, depth=6.5)            # M3 heat-set insert hole (e.g. Ruthex M3 x 5.7); an M3 x 10
+                                              # from the counterbore ends 5.6 mm above the board, inside it
+M3_CLEAR, M3_HEAD = 3.4, 6.2                  # clearance hole, counterbore for an M3 socket head
+POST_D = 6.8                                  # fits inside the holes' 7 mm keep-out
+
+# ---- SDI add-on (hardware/sdi-addon/DESIGN.md "Mechanics"), board coordinates, heights above the board top -------
+SDI_STACK, SDI_T = 6.0, 1.6                   # M3 x 6 male-female standoffs; add-on thickness
+SDI_TOP = SDI_STACK + SDI_T                   # add-on top: the posts at H602/H604 stop here
+SDI_POSTS = [(116, 36), (116, 68)]
+SDI_HOLE = 3.4
+SDI_OUTLINE = [(88.0, 29.0, 120.2, 70.5), (110.0, 70.5, 120.2, 72.0), (120.2, 42.5, 123.7, 57.5)]
+BNC = dict(x=116.6, y=50.0, axis=SDI_TOP + 11.3, body=5.8, body_top=18.0, flange=(8.85, 6.95), thread_d=9.66,
+           tip=26.95, legs=4.85, leg_d=2.9, leg_len=3.0)
+BNC_SEAT = BNC["x"] + BNC["flange"][0]        # shoulder plane = inner face of the panel
+BNC_PANEL = 3.0                               # Samtec: 4.0 mm max
+BNC_DHOLE = (12.89, 11.30)                    # diameter, across the flats (flats top and bottom)
+BAY = dict(y0=41.5, y1=58.5, x0=BW, z=2.0)    # pocket from the board edge to the seat, from 2.0 mm up to the roof
+BOSS = dict(y0=39.5, y1=60.5)
+
+
+def P(x, y):
+    """Board (x, y) to case model (X, Y)."""
+    return (x, -y)
+
+
+def outer_box(z0, z1):
+    return (cq.Workplane("XY").workplane(offset=z0)
+            .center((X0 + X1) / 2, -(Y0 + Y1) / 2)
+            .rect(X1 - X0, Y1 - Y0).extrude(z1 - z0)
+            .edges("|Z").fillet(R_OUT))
+
+
+def inner_box(z0, z1):
+    return (cq.Workplane("XY").workplane(offset=z0)
+            .center(BW / 2, -BH / 2)
+            .rect(BW + 2 * GAP, BH + 2 * GAP).extrude(z1 - z0))
+
+
+def box(cx, cy, cz, sx, sy, sz):
+    return cq.Workplane("XY").box(sx, sy, sz).translate((cx, cy, cz))
+
+
+def rear_cut(o):
+    z0 = Z_BT + o.get("z", 0.0)
+    cut = box(o["c"], -(Y1 - 1.0), z0 + o["h"] / 2, o["w"], WALL * 4, o["h"])
+    return cut.edges("|Y").fillet(o["r"]) if o.get("r") else cut
+
+
+def base():
+    b = outer_box(0, Z_BT).cut(inner_box(FLOOR, Z_BT + 1))
+    for x, y in HOLES:                          # standoffs, with a through hole and a counterbore underneath
+        post = cq.Workplane("XY").workplane(offset=FLOOR).center(*P(x, y)).circle(POST_D / 2).extrude(UNDER)
+        b = b.union(post)
+        b = b.cut(cq.Workplane("XY").center(*P(x, y)).circle(M3_CLEAR / 2).extrude(Z_BB))
+        b = b.cut(cq.Workplane("XY").center(*P(x, y)).circle(M3_HEAD / 2).extrude(3.2))
+    for x, y in TRIPOD:                         # 1/4"-20 inserts from below, in bosses
+        boss = cq.Workplane("XY").workplane(offset=FLOOR).center(*P(x, y)).circle(6.5).extrude(TRIPOD_BOSS)
+        b = b.union(boss)
+        b = b.cut(cq.Workplane("XY").center(*P(x, y)).circle(TRIPOD_INSERT["d"] / 2)
+                  .extrude(TRIPOD_INSERT["depth"]))
+    for i in range(4):                          # low side vents, left and right walls
+        y = 20 + i * 20
+        for x in (X0, X1):
+            b = b.cut(box(x, -y, FLOOR + 2.5, WALL * 3, 12, 2.0))
+    # the magjack overhangs the board edge at board-top level, right over the rear wall: 0.4 mm relief under it
+    eth = next(o for o in REAR if o["name"] == "ETHERNET")
+    b = b.cut(box(eth["c"], -(Y1 - WALL / 2), Z_BT - 0.2, eth["w"], WALL + 2, 0.4 + 0.01))
+    # front wall: the HDMI pockets (lid) reach 2.9 mm below the board top, but the lid starts at it: notch the base
+    # wall under each pocket, full wall depth, so a Type-A overmould (centred 3.4 mm above the board) reaches the socket
+    for o in FRONT:
+        pw, ph = o["pocket"]
+        b = b.cut(box(o["c"], -(Y0 + WALL / 2), Z_BT - 1.5 + 0.005, pw, WALL + 2, 3.0 + 0.01))
+    for o in REAR:                              # openings that start below the board top (USB-C) notch the base too
+        if o.get("z", 0.0) < 0:
+            b = b.cut(rear_cut(o))
+    # rubber feet recesses (10 mm bumpers)
+    for x, y in [(12, 12), (108, 12), (12, 88), (108, 88)]:
+        b = b.cut(cq.Workplane("XY").center(*P(x, y)).circle(5.3).extrude(0.6))
+    return b
+
+
+def lid():
+    l = outer_box(Z_BT, Z_TOP).cut(inner_box(Z_BT - 1, Z_TOP - ROOF))
+    for x, y in HOLES:                          # posts from the roof down to the board, insert at the bottom
+        z0 = Z_BT + (SDI_TOP if SDI and (x, y) in SDI_POSTS else 0.0)   # SDI: these two stop on the add-on
+        post = (cq.Workplane("XY").workplane(offset=z0).center(*P(x, y))
+                .circle(POST_D / 2).extrude(Z_TOP - ROOF - z0))
+        l = l.union(post)
+        l = l.cut(cq.Workplane("XY").workplane(offset=z0).center(*P(x, y))
+                  .circle(M3_INSERT["d"] / 2).extrude(M3_INSERT["depth"]))
+    if SDI:
+        l = sdi_bay(l)
+    # front wall: HDMI openings, pocketed outside so the face is flush with the socket
+    for o in FRONT:
+        l = l.cut(box(o["c"], -(Y0 + 1.0), Z_BT + o["h"] / 2 - 0.2, o["w"], WALL * 4, o["h"] + 0.4))
+        pw, ph = o["pocket"]
+        l = l.cut(box(o["c"], -(Y0 + 0.6), Z_BT + 3.1, pw, 1.2 * 2, ph))
+    # rear wall
+    for o in REAR:
+        l = l.cut(rear_cut(o))
+    l = l.cut(cq.Workplane("XZ", origin=(0, -Y1 + WALL + 1, 0)).center(BATT_WIRE["x"], Z_BT + BATT_WIRE["z"])
+              .circle(BATT_WIRE["d"] / 2).extrude(WALL + 2))
+    # left wall: RP-SMA bulkheads (D-flat holes)
+    for y in ANTENNAS:
+        d = (cq.Workplane("YZ", origin=(X0 - 1, 0, 0)).center(-y, Z_BT + ANT_Z)
+             .circle(ANT_D / 2).extrude(WALL + 2))
+        flat = box(X0 + WALL / 2, -y, Z_BT + ANT_Z + (ANT_FLAT - ANT_D / 2) + 2, WALL * 3, ANT_D + 1, 4)
+        l = l.cut(d.cut(flat))
+    # roof: light pipes, pinholes, vents, labels
+    for x, y, _ in LIGHTPIPES:
+        l = l.cut(cq.Workplane("XY").workplane(offset=Z_TOP - ROOF - 1).center(*P(x, y))
+                  .circle(LP_D / 2).extrude(ROOF + 2))
+    for x, y, _ in PINHOLES:
+        l = l.cut(cq.Workplane("XY").workplane(offset=Z_TOP - ROOF - 1).center(*P(x, y))
+                  .circle(PIN_D / 2).extrude(ROOF + 2))
+    for v in VENTS:
+        x = v["x0"]
+        while x + v["slot"] <= v["x1"]:
+            l = l.cut(box(x + v["slot"] / 2, -(v["y0"] + v["y1"]) / 2, Z_TOP - ROOF / 2,
+                          v["slot"], v["y1"] - v["y0"], ROOF + 2).edges("|Z").fillet(v["slot"] / 2 - 0.01))
+            x += v["pitch"]
+    # Engraved labels, readable standing at the front: the LEDs sit only 3.5 mm apart, so their labels run
+    # vertically, starting just behind each light pipe; the button labels sit in front of the pinholes.
+    def label(text, x, y, rot, halign):
+        wp = (cq.Workplane("XY").workplane(offset=Z_TOP - LABEL_DEPTH).center(*P(x, y))
+              .transformed(rotate=(0, 0, rot)))
+        return wp.text(text, LABEL_H, LABEL_DEPTH + 1, kind="bold", halign=halign, valign="center")
+    for x, y, text in LIGHTPIPES:
+        l = l.cut(label(text, x, y + LP_D / 2 + 1.2, -90, "left"))
+    for x, y, text in PINHOLES:
+        l = l.cut(label(text, x, y - PIN_D / 2 - 2.6, 180, "center"))
+    return l
+
+
+def sdi_bay(l):
+    """East wall: an outward boss with a pocket for the add-on's tab and the BNC flange, and the D-hole panel."""
+    x_out = BNC_SEAT + BNC_PANEL
+    bw = BOSS["y1"] - BOSS["y0"]
+    l = l.union(box((X1 - 0.5 + x_out) / 2, -(BOSS["y0"] + BOSS["y1"]) / 2, (Z_BT + Z_TOP) / 2,
+                    x_out - X1 + 0.5, bw, Z_TOP - Z_BT).edges("|Z and >X").fillet(1.5))
+    z0, z1 = Z_BT + BAY["z"], Z_TOP - ROOF
+    l = l.cut(box((BAY["x0"] + BNC_SEAT) / 2, -(BAY["y0"] + BAY["y1"]) / 2, (z0 + z1) / 2,
+                  BNC_SEAT - BAY["x0"], BAY["y1"] - BAY["y0"], z1 - z0))
+    d, flats = BNC_DHOLE
+    zc = Z_BT + BNC["axis"]
+    hole = (cq.Workplane("YZ", origin=(BNC_SEAT - 0.5, 0, 0)).center(-BNC["y"], zc).circle(d / 2)
+            .extrude(BNC_PANEL + 1.0))
+    return l.cut(hole.intersect(box(BNC_SEAT + BNC_PANEL / 2, -BNC["y"], zc, BNC_PANEL + 2, d + 1, flats)))
+
+
+def sdi_parts():
+    """The add-on, its BNC (body, flange, thread, nut, leg tips) and the standoffs, as solids in case coordinates."""
+    zb, zt = Z_BT + SDI_STACK, Z_BT + SDI_TOP
+    board = None
+    for x0, y0, x1, y1 in SDI_OUTLINE:
+        r = box((x0 + x1) / 2, -(y0 + y1) / 2, (zb + zt) / 2, x1 - x0, y1 - y0, SDI_T)
+        board = r if board is None else board.union(r)
+    for x, y in SDI_POSTS:
+        board = board.cut(cq.Workplane("XY").workplane(offset=zb - 1).center(*P(x, y)).circle(SDI_HOLE / 2)
+                          .extrude(SDI_T + 2))
+    bx, by, zc = BNC["x"], BNC["y"], Z_BT + BNC["axis"]
+    b, (fx, fh) = BNC["body"], BNC["flange"]
+    bnc = box(bx, -by, zt + BNC["body_top"] / 2, 2 * b, 2 * b, BNC["body_top"])
+    bnc = bnc.union(box(bx + (b + fx) / 2, -by, zc, fx - b, 2 * fh, 2 * fh))
+    bnc = bnc.union(cq.Workplane("YZ", origin=(bx + fx, 0, 0)).center(-by, zc).circle(BNC["thread_d"] / 2)
+                    .extrude(BNC["tip"] - fx))
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            bnc = bnc.union(cq.Workplane("XY").workplane(offset=zb - BNC["leg_len"])
+                            .center(bx + sx * BNC["legs"], -(by + sy * BNC["legs"])).circle(BNC["leg_d"] / 2)
+                            .extrude(BNC["leg_len"]))
+    nut = (cq.Workplane("YZ", origin=(BNC_SEAT + BNC_PANEL, 0, 0)).center(-by, zc).polygon(6, 16.5)
+           .extrude(2.5))                     # nut (14.3 mm AF) and lock washer
+    standoffs = None
+    for x, y in SDI_POSTS:                    # 5.5 mm AF hex
+        s = cq.Workplane("XY").workplane(offset=Z_BT).center(*P(x, y)).polygon(6, 6.35).extrude(SDI_STACK)
+        standoffs = s if standoffs is None else standoffs.union(s)
+    return {"SDI add-on": board, "SDI BNC": bnc, "SDI BNC nut": nut, "SDI standoffs": standoffs}
+
+
+def sdi_check(parts, board_solids):
+    ok = True
+    sdi = sdi_parts()
+    zt = Z_BT + SDI_TOP
+    # the add-on slides in 18.1 mm (BNC shoulder to tip) towards +x with the lid upside down: sweep the BNC body
+    # and flange over that path
+    b, (fx, fh) = BNC["body"], BNC["flange"]
+    x0 = BNC["x"] - b - (BNC["tip"] - fx)
+    sdi["SDI BNC slide path"] = box((x0 + BNC_SEAT) / 2, -BNC["y"], zt + BNC["body_top"] / 2 + 0.1,
+                                    BNC_SEAT - x0, 2 * fh, BNC["body_top"])
+    # a BNC plug: 15 mm coupling ring, from the nut outwards
+    xp = BNC_SEAT + BNC_PANEL + 2.5
+    sdi["BNC plug"] = (cq.Workplane("YZ", origin=(xp, 0, 0)).center(-BNC["y"], Z_BT + BNC["axis"]).circle(7.5)
+                       .extrude(20.0))
+    for name, s in sdi.items():
+        others = [("lid", parts["lid"]), ("base", parts["base"])]
+        if name in ("SDI add-on", "SDI BNC", "SDI standoffs"):
+            others += board_solids
+        for oname, o in others:
+            try:
+                v = s.intersect(o).val().Volume()
+            except Exception:
+                v = 0.0
+            if v > 0.01:
+                ok = False
+                print(f"  CLASH {name} x {oname}: {v:.2f} mm^3")
+    for x, y in SDI_POSTS:                    # the post must bear on the add-on: its bottom ring is on the board
+        ring = (cq.Workplane("XY").workplane(offset=zt - 0.05).center(*P(x, y)).circle(POST_D / 2 - 0.2)
+                .circle(SDI_HOLE / 2 + 0.2).extrude(0.05))
+        if sdi["SDI add-on"].intersect(ring).val().Volume() < ring.val().Volume() - 1e-3:
+            ok = False
+            print(f"  SDI post at ({x}, {y}) does not bear fully on the add-on")
+    print(f"  SDI: BNC axis {BNC['axis']:.1f} mm, body top {SDI_TOP + BNC['body_top']:.1f} mm above the board; "
+          f"roof underside at {OVER:.1f}; boss to x {BNC_SEAT + BNC_PANEL:.2f} ({BNC_SEAT + BNC_PANEL - X1:.2f} mm "
+          f"past the wall)")
+    return ok
+
+
+def check(parts):
+    """Intersect the case with the board model plus stand-ins for parts without a 3D model."""
+    step = os.path.join(HERE, "ref", "relay-board.step")
+    # KiCad exports in page coordinates (board top-left at (30, -30)) with the board's bottom at z = 0
+    board = cq.importers.importStep(step).translate((-30.0, 30.0, Z_BB))
+    # stand-ins, board coordinates: (x0, y0, x1, y1, height above board top)
+    extra = [
+        (10.5, 92.6, 21.5, 100.0, 3.3, "USB-C (no model)"),
+        (4.5, 21.9, 27.5, 32.1, 4.2, "M.2 socket (no model)"),
+        (5.0, 25.0, 27.0, 57.0, 4.6, "Wi-Fi card"),
+        (38.4, 29.9, 93.6, 70.1, 4.5, "CM3 module on 1.5 mm stack"),
+        (51.0, 35.0, 81.0, 65.0, 11.5, "CM3 heatsink 30 x 30 x 6 + pad"),
+        (48.5, 86.3, 52.5, 92.3, 3.5, "fuse (no model)"),
+    ]
+    solids = [board]
+    for x0, y0, x1, y1, h, _ in extra:
+        solids.append(box((x0 + x1) / 2, -(y0 + y1) / 2, Z_BT + h / 2, x1 - x0, y1 - y0, h))
+    ok = sdi_check(parts, list(zip(["board STEP"] + [e[5] for e in extra], solids))) if SDI else True
+    for pname, p in parts.items():
+        for s, label in zip(solids, ["board STEP"] + [e[5] for e in extra]):
+            try:
+                v = p.intersect(s).val().Volume()
+            except Exception:
+                v = 0.0
+            if v > 0.5:
+                ok = False
+                print(f"  CLASH {pname} x {label}: {v:.1f} mm^3")
+    # holes are not solids, so the intersections above cannot see them: probe the two the review found
+    usb = next(o for o in REAR if o["name"] == "USB-C")    # a 12 x 6.5 mm plug overmould from the receptacle face out
+    plug = box(usb["c"], -(99.5 + Y1) / 2, Z_BT + 1.6, 12.0, Y1 - 99.5 + 1.0, 6.5)
+    for pname, p in parts.items():
+        v = p.intersect(plug).val().Volume()
+        if v > 0.01:
+            ok = False
+            print(f"  CLASH {pname} x USB-C plug overmould: {v:.1f} mm^3")
+    for o in FRONT:                                        # a 21 x 11 mm HDMI Type-A overmould from the socket face out
+        hdmi = box(o["c"], -(-1.0 + Y0 - 0.5) / 2, Z_BT + 3.4, 21.0, -1.0 - (Y0 - 0.5), 11.0)   # face at y -1.0
+        for pname, p in parts.items():
+            v = p.intersect(hdmi).val().Volume()
+            if v > 0.01:
+                ok = False
+                print(f"  CLASH {pname} x {o['name']} plug overmould: {v:.1f} mm^3")
+    for x, y in TRIPOD:                                    # the boss above each insert hole must be solid
+        stop = cq.Workplane("XY").workplane(offset=TRIPOD_INSERT["depth"] + 0.05).center(*P(x, y)).circle(2.0) \
+            .extrude(0.5)
+        v, full = parts["base"].intersect(stop).val().Volume(), stop.val().Volume()
+        if v < full - 0.01 or FLOOR + TRIPOD_BOSS > Z_BB:
+            ok = False
+            print(f"  tripod insert at ({x}, {y}): no solid stop between the hole and the board")
+    tb = board.val().BoundingBox()
+    print(f"  board model extents: x {tb.xmin:.1f}..{tb.xmax:.1f}, y {-tb.ymax:.1f}..{-tb.ymin:.1f}, "
+          f"z {tb.zmin:.1f}..{tb.zmax:.1f} (board top at {Z_BT:.1f}, roof underside at {Z_TOP - ROOF:.1f})")
+    print("  fit check:", "PASS" if ok else "FAIL")
+    return ok
+
+
+def main():
+    os.makedirs(OUT, exist_ok=True)
+    parts = {"base": base(), "lid": lid()}
+    for name, p in parts.items():
+        cq.exporters.export(p, os.path.join(OUT, f"{name}.stl"), tolerance=0.05, angularTolerance=0.1)
+    asm = cq.Assembly().add(parts["base"], name="base").add(parts["lid"], name="lid")
+    asm.save(os.path.join(OUT, "case.step"))
+    print(f"case{' (SDI)' if SDI else ''}: {X1 - X0:.1f} x {Y1 - Y0:.1f} x {Z_TOP:.1f} mm outside; board on "
+          f"{UNDER} mm standoffs; {OVER} mm above the board")
+    if "--check" in sys.argv:
+        sys.exit(0 if check(parts) else 1)
+
+
+if __name__ == "__main__":
+    main()

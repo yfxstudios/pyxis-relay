@@ -1,0 +1,314 @@
+(kicad_sch
+	(version 20251024)
+	(generator "relay_gen")
+	(generator_version "10.0")
+	(uuid "a6c0cf0a-cda2-5d66-a70f-4109d9a3b501")
+	(paper "A4")
+	(title_block
+		(title "HDMI-in relay carrier, rev A")
+		(date "2026-10-22")
+		(rev "A")
+		(company "HDMI-in relay")
+	)
+	(lib_symbols)
+	(sheet
+		(at 30 40)
+		(size 55 20)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "51293089-f6d3-5fc0-a82b-9557220b2d2c")
+		(property "Sheetname" "Power"
+			(at 30 39.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "power.kicad_sch"
+			(at 30 60.6 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "relay"
+				(path "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 100 40)
+		(size 55 20)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "34c826d5-759e-5a77-80e0-b6f4446bdedc")
+		(property "Sheetname" "HDMI in (RK628D)"
+			(at 100 39.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "hdmi_in.kicad_sch"
+			(at 100 60.6 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "relay"
+				(path "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501"
+					(page "3")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 170 40)
+		(size 55 20)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "7d133d88-6d81-5714-88f9-ee282d875def")
+		(property "Sheetname" "HDMI out"
+			(at 170 39.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "hdmi_out.kicad_sch"
+			(at 170 60.6 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "relay"
+				(path "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501"
+					(page "4")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 240 40)
+		(size 55 20)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "e91e9186-93e3-5fdf-85ed-fc856e7dc280")
+		(property "Sheetname" "Ethernet"
+			(at 240 39.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "ethernet.kicad_sch"
+			(at 240 60.6 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "relay"
+				(path "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501"
+					(page "5")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 30 80)
+		(size 55 20)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "8c65a6f6-534e-5db2-9f93-5dfbf139e074")
+		(property "Sheetname" "M.2 Wi-Fi + Bluetooth"
+			(at 30 79.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "m2_wifi.kicad_sch"
+			(at 30 100.6 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "relay"
+				(path "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501"
+					(page "6")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 100 80)
+		(size 55 20)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "0020f8db-00d7-577e-bc8e-1096d02da972")
+		(property "Sheetname" "Debug, buttons, LEDs, SDI header"
+			(at 100 79.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "board_io.kicad_sch"
+			(at 100 100.6 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "relay"
+				(path "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501"
+					(page "7")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 170 80)
+		(size 55 20)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "9af711e9-9dda-5fea-8087-e24e86b902f7")
+		(property "Sheetname" "Module: Radxa CM3"
+			(at 170 79.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "module.kicad_sch"
+			(at 170 100.6 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "relay"
+				(path "/a6c0cf0a-cda2-5d66-a70f-4109d9a3b501"
+					(page "8")
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+	(embedded_fonts no)
+)
