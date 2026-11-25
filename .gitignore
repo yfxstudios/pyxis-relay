@@ -40,3 +40,7 @@ build/
 *-backups/
 fp-info-cache
 __pycache__/
+
+# Vendors' documents (kept locally, not ours to publish; REV_A_SPEC.md links the sources) and correspondence
+hardware/*/datasheets/
+hardware/hdmi-relay/MYIR_EMAIL.md
