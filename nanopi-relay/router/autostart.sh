@@ -27,6 +27,7 @@ PLATFORM="PYXIS LAN Relay (RTMP)"
 LOGIN=/etc/pyxis/camera.curl
 STATUS=/tmp/pyxis-autostart.json
 FOUND=/tmp/pyxis-camera.found   # the camera in use, for the viewer apps (camera.cgi)
+FORMAT=/tmp/pyxis-camera.format # its record size "W H", for the HDMI frame guide (pyxis-hdmi)
 BODY=/tmp/pyxis-autostart.body
 JSON=""
 MTX=http://127.0.0.1:9997/v3
@@ -155,6 +156,18 @@ tick() {
 
 	cstatus=$(jsonfilter -i "$BODY" -e '@.status' 2>/dev/null)
 	now=$(date +%s)
+
+	# The record size: in 6:5 or 3:2 the 16:9 stream has black bars, and the HDMI output's frame
+	# guide belongs inside the recorded part.
+	cam GET /system/format
+	if [ "$code" = 200 ]; then
+		w=$(jsonfilter -i "$BODY" -e '@.recordResolution.width' 2>/dev/null)
+		h=$(jsonfilter -i "$BODY" -e '@.recordResolution.height' 2>/dev/null)
+		if [ -n "$w" ] && [ -n "$h" ] && [ "$(cat "$FORMAT" 2>/dev/null)" != "$w $h" ]; then
+			echo "$w $h" > "$FORMAT"
+			log "camera records ${w}x${h}"
+		fi
+	fi
 	if relay_live; then
 		was_live=1; stuck_since=0
 		set_state streaming "Camera is streaming to the relay"
@@ -203,7 +216,7 @@ tick() {
 	esac
 }
 
-trap 'rm -f "$STATUS" "$BODY" "$FOUND"; exit 0' INT TERM
+trap 'rm -f "$STATUS" "$BODY" "$FOUND" "$FORMAT"; exit 0' INT TERM
 log "pyxis-autostart: running"
 while :; do
 	tick

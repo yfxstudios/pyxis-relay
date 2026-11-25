@@ -279,6 +279,17 @@ camera -> relay (MediaMTX) -> RTSP over localhost -> RTP unpacking -> Rockchip h
 - **Settings:** on the settings page (HDMI output: on/off, playback mode, refresh matching), or with
   `uci set pyxis.hdmi.enabled=0|1` / `pyxis.hdmi.low_latency=0|1` / `pyxis.hdmi.match_rate=0|1`, then
   `/etc/init.d/pyxis-hdmi restart`.
+- **Frame guide:** a rectangle of a chosen shape (2.39, 2.00, 1.85, 16:9, 4:3, 1:1, 4:5, 9:16), with the
+  outside darkened 0–100%, and **Fill** to zoom the frame to the screen. Set on the settings page (HDMI
+  output → Frame guide) or from the viewer apps (Menu → HDMI Output, through `/cgi-bin/pyxis-hdmi`); stored as
+  `pyxis.hdmi.guide` / `shade` / `fill`. The player rereads them every second, so a change shows without
+  interrupting the stream.
+  - The guide sits inside the area the camera records: in 6:5 or 3:2 the camera's 16:9 stream has black
+    bars. Camera auto-start reads the record size from the camera into `/tmp/pyxis-camera.format`; without
+    it (auto-start off, or no camera control) the guide uses the whole picture.
+  - It's drawn on a second display plane (ARGB, above the video). Fill crops the video plane's source, so
+    neither costs anything per frame. If the display controller won't take the overlay, the player logs it
+    and shows the guide by cropping the picture instead (when the outside is 50% dark or more).
 - **Troubleshooting:**
   - `logread -e pyxis-hdmi` shows the player's log (a stats line every minute).
   - `pyxis-hdmi -l` lists the screen's modes.

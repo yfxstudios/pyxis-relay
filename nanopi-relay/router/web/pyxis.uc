@@ -27,6 +27,8 @@ const DEFAULT_RATES = {
 	medium: { p1080_30: 6,   p1080_60: 9,  p2160_30: 15, p2160_60: 20 },
 	low:    { p1080_30: 3.5, p1080_60: 5,  p2160_30: 8,  p2160_60: 10 },
 };
+// Frame guides the HDMI output offers (the same as the viewer apps).
+const GUIDES = ['off', '2.39', '2.00', '1.85', '16:9', '4:3', '1:1', '4:5', '9:16'];
 const CHANNELS = {
 	'5g': ['auto', '36', '40', '44', '48', '149', '153', '157', '161'],
 	'2g': ['auto', '1', '6', '11'],
@@ -129,6 +131,10 @@ function hdmi_info(c, conn) {
 		enabled: c.get('pyxis', 'hdmi', 'enabled') != '0',
 		match_rate: c.get('pyxis', 'hdmi', 'match_rate') != '0',
 		low_latency: c.get('pyxis', 'hdmi', 'low_latency') == '1',
+		guide: c.get('pyxis', 'hdmi', 'guide') ?? 'off',
+		shade: +(c.get('pyxis', 'hdmi', 'shade') ?? 60),
+		fill: c.get('pyxis', 'hdmi', 'fill') == '1',
+		recorded: trim(readfile('/tmp/pyxis-camera.format') ?? '') || null,
 		running: false,
 	};
 	if (conn) {
@@ -509,6 +515,25 @@ const methods = {
 			// The service reads these when it starts; with enabled=0 it starts nothing.
 			system('/etc/init.d/pyxis-hdmi restart >/dev/null 2>&1');
 			return { ok: true, message: a.enabled ? 'HDMI output is on.' : 'HDMI output is off.' };
+		}
+	},
+
+	set_hdmi_frame: {
+		args: { guide: 'off', shade: 60, fill: false },
+		call: function(req) {
+			let a = req.args ?? {};
+			if (!(a.guide in GUIDES)) return fail('Choose a frame guide from the list.');
+			if (type(a.shade) != 'int' || a.shade < 0 || a.shade > 100) return fail('Send shade as 0 to 100.');
+			if (type(a.fill) != 'bool') return fail('Send fill as true or false.');
+			if (!stat('/etc/config/pyxis')) writefile('/etc/config/pyxis', '');
+			let c = cursor();
+			c.set('pyxis', 'hdmi', 'hdmi');
+			c.set('pyxis', 'hdmi', 'guide', a.guide);
+			c.set('pyxis', 'hdmi', 'shade', '' + a.shade);
+			c.set('pyxis', 'hdmi', 'fill', a.fill ? '1' : '0');
+			c.commit('pyxis');
+			// pyxis-hdmi picks these up within a second, without restarting
+			return { ok: true, message: a.guide == 'off' ? 'No frame guide on HDMI.' : `Frame guide ${a.guide} on HDMI.` };
 		}
 	},
 

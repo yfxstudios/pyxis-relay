@@ -5,6 +5,9 @@
 //   -> Rockchip MPP hardware decoder (immediate output, no reordering delay)
 //   -> NV12 dmabuf imported straight into a DRM/KMS plane (zero copy, hardware scaling)
 //   -> vsync'd atomic page flips, paced by the stream's timestamps (even cadence)
+//   -> optional frame guide: a rectangle of a chosen shape inside the area the camera records,
+//      with the outside darkened (an ARGB overlay plane), and Fill (zoom the guide to the
+//      screen, by cropping the video plane's source)
 //
 // Waits for a screen to be plugged in, matches the TV's refresh rate to the stream's
 // frame rate when the TV offers it, and goes black when the stream stops.
@@ -33,6 +36,7 @@
 #include <sys/eventfd.h>
 #include <sys/mman.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -60,6 +64,8 @@ static int opt_stats_every = 10;        // seconds between stats lines (0 = off)
 static const char *opt_capture = NULL;  // writeback capture of the HDMI output (PPM)
 static const char *opt_status = "/tmp/pyxis-hdmi.json";  // live status for the settings page
 static int opt_capture_after = 90;      // ... after this many displayed frames
+static const char *opt_config = "/etc/config/pyxis";            // frame guide settings (the hdmi section)
+static const char *opt_format = "/tmp/pyxis-camera.format";     // camera's record size "W H" (pyxis-autostart)
 
 static volatile sig_atomic_t g_stop = 0;
 static bool g_debug = false;  // PYXIS_HDMI_DEBUG=1: frame flags and flip timing
@@ -604,6 +610,17 @@ typedef struct {
 	int64_t last_vbl_us;
 	int64_t dbg_c2e_min, dbg_c2e_max, dbg_c2e_sum, dbg_n;
 	uint64_t dbg_holds[5];  // refreshes each frame stayed on screen: 1, 2, 3, 4, 5+
+	// frame guide overlay: an ARGB plane above the video (0: none usable; the guide then
+	// becomes a crop of the video when the outside is mostly dark)
+	uint32_t ov_plane;
+	uint32_t p_ov_fb, p_ov_crtc, p_ov_sx, p_ov_sy, p_ov_sw, p_ov_sh, p_ov_cx, p_ov_cy, p_ov_cw, p_ov_ch, p_ov_zpos, p_vid_zpos;
+	int64_t ov_zpos, vid_zpos;          // values to set (-1: leave alone)
+	struct { uint32_t handle, fb, pitch; uint8_t *map; size_t size; } ov_buf[2];
+	uint32_t ov_w, ov_h;                // size the buffers were made for
+	int ov_cur;                         // buffer on screen (or about to be)
+	bool ov_dirty;                      // overlay plane needs (re)setting in the next commit
+	bool ov_shown;                      // overlay plane is on
+	int64_t ov_key[7];                  // what's drawn (to redraw only on change)
 	// writeback capture
 	bool capture_done;
 	int captures;  // taken so far (PYXIS_HDMI_CAPTURES=N takes N, a few frames apart)
@@ -652,7 +669,109 @@ static int64_t prop_enum(int fd, uint32_t obj, uint32_t type, const char *name, 
 	return v;
 }
 
+// Current value of property `name`; whether it can be changed; its range's top (range properties).
+static bool prop_get(int fd, uint32_t obj, uint32_t type, const char *name, uint64_t *val, bool *mutable_, uint64_t *max) {
+	drmModeObjectProperties *props = drmModeObjectGetProperties(fd, obj, type);
+	bool ok = false;
+	for (uint32_t i = 0; props && i < props->count_props && !ok; i++) {
+		drmModePropertyRes *p = drmModeGetProperty(fd, props->props[i]);
+		if (p && !strcmp(p->name, name)) {
+			ok = true;
+			if (val) *val = props->prop_values[i];
+			if (mutable_) *mutable_ = !(p->flags & DRM_MODE_PROP_IMMUTABLE);
+			if (max) *max = (p->flags & DRM_MODE_PROP_RANGE) && p->count_values >= 2 ? p->values[1] : 0;
+		}
+		drmModeFreeProperty(p);
+	}
+	drmModeFreeObjectProperties(props);
+	return ok;
+}
+
 static void release_frame(MppFrame *f) { if (*f) { mpp_frame_deinit(f); *f = NULL; } }
+
+// ------------------------------------------------------------------------- frame guide settings
+
+// From the relay's config (uci file, section "hdmi"): guide = off | 2.39 | 16:9 ..., shade =
+// 0-100 (% darkening outside the guide), fill = 0|1. Plus the camera's record size, so the
+// guide sits inside the recorded area (in 6:5 or 3:2 the 16:9 stream has black bars).
+typedef struct { double guide, shade, recorded; bool fill; } frame_t;
+static frame_t g_frame = {0, 0.6, 0, false};
+
+static double parse_ratio(const char *v) {
+	double a = 0, b = 0;
+	if (sscanf(v, "%lf:%lf", &a, &b) == 2 && a > 0 && b > 0) return a / b;
+	return a > 0.2 && a < 5 ? a : 0;  // "2.39"; "off" and nonsense: none
+}
+
+static void unquote(char *v) {
+	size_t n = strlen(v);
+	while (n && isspace((unsigned char)v[n - 1])) v[--n] = 0;
+	if (n >= 2 && (v[0] == '\'' || v[0] == '"') && v[n - 1] == v[0]) { memmove(v, v + 1, n - 2); v[n - 2] = 0; }
+}
+
+static frame_t frame_read(void) {
+	frame_t f = {0, 0.6, 0, false};
+	FILE *fp = fopen(opt_config, "r");
+	if (fp) {
+		char line[256], a[32], b[128];
+		bool in = false;
+		while (fgets(line, sizeof line, fp)) {
+			if (sscanf(line, " config %31s %127[^\n]", a, b) == 2) { unquote(b); in = !strcmp(b, "hdmi"); continue; }
+			if (sscanf(line, " config %31s", a) == 1) { in = false; continue; }
+			if (!in || sscanf(line, " option %31s %127[^\n]", a, b) != 2) continue;
+			unquote(b);
+			if (!strcmp(a, "guide")) f.guide = parse_ratio(b);
+			else if (!strcmp(a, "shade")) { double v = atof(b) / 100; f.shade = v < 0 ? 0 : v > 1 ? 1 : v; }
+			else if (!strcmp(a, "fill")) f.fill = atoi(b) == 1;
+		}
+		fclose(fp);
+	}
+	fp = fopen(opt_format, "r");
+	int w = 0, h = 0;
+	if (fp) { if (fscanf(fp, "%d %d", &w, &h) == 2 && w > 0 && h > 0) f.recorded = (double)w / h; fclose(fp); }
+	return f;
+}
+
+typedef struct { double x, y, w, h; } rectd;
+
+// The largest rectangle of `ratio` (width / height) centred in r.
+static rectd fit_rect(double ratio, rectd r) {
+	if (ratio <= 0 || r.w <= 0 || r.h <= 0) return r;
+	if (r.w / r.h > ratio) { double w = r.h * ratio; return (rectd){r.x + (r.w - w) / 2, r.y, w, r.h}; }
+	double h = r.w / ratio;
+	return (rectd){r.x, r.y + (r.h - h) / 2, r.w, h};
+}
+
+static rectd isect(rectd a, rectd b) {
+	double x0 = fmax(a.x, b.x), y0 = fmax(a.y, b.y), x1 = fmin(a.x + a.w, b.x + b.w), y1 = fmin(a.y + a.h, b.y + b.h);
+	return (rectd){x0, y0, fmax(0, x1 - x0), fmax(0, y1 - y0)};
+}
+
+// Where the frame goes: the part of the picture to show (src, picture pixels) and where on the
+// screen (dst), plus the guide's rectangle on screen (guide.w == 0: none).
+typedef struct { rectd src, dst, guide; } layout_t;
+
+static layout_t frame_layout(const frame_t *fr, double sw, double sh, double mw, double mh, bool matte) {
+	rectd pic = {0, 0, sw, sh}, screen = {0, 0, mw, mh};
+	rectd rec = fr->recorded > 0 ? fit_rect(fr->recorded, pic) : pic;
+	rectd g = fr->guide > 0 ? fit_rect(fr->guide, rec) : rec;
+	layout_t l;
+	rectd crop;  // the part of the picture that maps onto the whole screen (may reach past the picture)
+	if (fr->fill) {
+		double a = mw / mh;
+		crop = g.w / g.h > a ? (rectd){0, 0, g.w, g.w / a} : (rectd){0, 0, g.h * a, g.h};
+		crop.x = g.x + (g.w - crop.w) / 2; crop.y = g.y + (g.h - crop.h) / 2;
+	} else {
+		rectd fit = fit_rect(sw / sh, screen);  // letterbox / pillarbox
+		double k = sw / fit.w;
+		crop = (rectd){-fit.x * k, -fit.y * k, mw * k, mh * k};
+	}
+	double k = mw / crop.w;  // screen pixels per picture pixel
+	l.src = isect(crop, matte && fr->guide > 0 ? g : pic);
+	l.dst = (rectd){(l.src.x - crop.x) * k, (l.src.y - crop.y) * k, l.src.w * k, l.src.h * k};
+	l.guide = fr->guide > 0 ? isect((rectd){(g.x - crop.x) * k, (g.y - crop.y) * k, g.w * k, g.h * k}, screen) : (rectd){0, 0, 0, 0};
+	return l;
+}
 
 // The kernel shows the console's framebuffer (/dev/fb0) whenever no program drives the
 // display. The service unbinds the text console, but the buffer keeps whatever was drawn
@@ -797,6 +916,42 @@ static int disp_init(disp_t *d) {
 	for (int i = 0; i < 3; i++) d->enc_val[i] = prop_enum(d->fd, d->plane_id, DRM_MODE_OBJECT_PLANE, "COLOR_ENCODING", enc_names[i]);
 	for (int i = 0; i < 2; i++) d->range_val[i] = prop_enum(d->fd, d->plane_id, DRM_MODE_OBJECT_PLANE, "COLOR_RANGE", range_names[i]);
 	d->color_enc = d->color_range = -1;
+
+	// Overlay for the frame guide: another plane on our CRTC that takes ARGB and can sit above
+	// the video (zpos: set if both can change, else it must already be higher).
+	d->ov_zpos = d->vid_zpos = -1;
+	g_frame = frame_read();
+	uint64_t vz = 0, vmax = 0; bool vmut = false;
+	bool vhas = prop_get(d->fd, d->plane_id, DRM_MODE_OBJECT_PLANE, "zpos", &vz, &vmut, &vmax);
+	pr = drmModeGetPlaneResources(d->fd);
+	for (uint32_t i = 0; pr && i < pr->count_planes && !d->ov_plane; i++) {
+		drmModePlane *p = drmModeGetPlane(d->fd, pr->planes[i]);
+		if (!p) continue;
+		bool argb = false;
+		for (uint32_t f = 0; f < p->count_formats; f++) if (p->formats[f] == DRM_FORMAT_ARGB8888) argb = true;
+		if (argb && p->plane_id != d->plane_id && (p->possible_crtcs & (1u << d->crtc_index))) {
+			uint64_t oz = 0, omax = 0; bool omut = false;
+			bool ohas = prop_get(d->fd, p->plane_id, DRM_MODE_OBJECT_PLANE, "zpos", &oz, &omut, &omax);
+			bool ok = !vhas || !ohas || oz > vz;
+			if (!ok && vmut && omut && omax > 0) { ok = true; d->vid_zpos = 0; d->ov_zpos = (int64_t)omax; }
+			if (ok) {
+				char name[64] = "";
+				prop_str(d->fd, p->plane_id, DRM_MODE_OBJECT_PLANE, "NAME", name, sizeof name);
+				d->ov_plane = p->plane_id;
+				LOG("frame guide overlay plane %u %s", p->plane_id, name[0] ? name : "?");
+			}
+		}
+		drmModeFreePlane(p);
+	}
+	drmModeFreePlaneResources(pr);
+	if (d->ov_plane) {
+		const struct { uint32_t *dst; const char *n; } op[] = {
+			{&d->p_ov_fb, "FB_ID"}, {&d->p_ov_crtc, "CRTC_ID"}, {&d->p_ov_sx, "SRC_X"}, {&d->p_ov_sy, "SRC_Y"}, {&d->p_ov_sw, "SRC_W"},
+			{&d->p_ov_sh, "SRC_H"}, {&d->p_ov_cx, "CRTC_X"}, {&d->p_ov_cy, "CRTC_Y"}, {&d->p_ov_cw, "CRTC_W"}, {&d->p_ov_ch, "CRTC_H"},
+			{&d->p_ov_zpos, "zpos"}};
+		for (size_t i = 0; i < sizeof op / sizeof op[0]; i++) *op[i].dst = prop_id(d->fd, d->ov_plane, DRM_MODE_OBJECT_PLANE, op[i].n);
+		d->p_vid_zpos = prop_id(d->fd, d->plane_id, DRM_MODE_OBJECT_PLANE, "zpos");
+	} else LOG("no overlay plane for the frame guide: a dark outside crops the picture instead");
 	if (d->wb_conn_id) {
 		d->p_wb_fb = prop_id(d->fd, d->wb_conn_id, DRM_MODE_OBJECT_CONNECTOR, "WRITEBACK_FB_ID");
 		d->p_wb_fence = prop_id(d->fd, d->wb_conn_id, DRM_MODE_OBJECT_CONNECTOR, "WRITEBACK_OUT_FENCE_PTR");
@@ -820,6 +975,93 @@ static void add_other_planes_off(disp_t *d, drmModeAtomicReq *req) {
 	drmModeFreePlaneResources(pr);
 }
 
+static void ov_free(disp_t *d) {
+	for (int i = 0; i < 2; i++) {
+		if (d->ov_buf[i].map) munmap(d->ov_buf[i].map, d->ov_buf[i].size);
+		if (d->ov_buf[i].fb) drmModeRmFB(d->fd, d->ov_buf[i].fb);
+		if (d->ov_buf[i].handle) { struct drm_mode_destroy_dumb dd = {.handle = d->ov_buf[i].handle}; drmIoctl(d->fd, DRM_IOCTL_MODE_DESTROY_DUMB, &dd); }
+		memset(&d->ov_buf[i], 0, sizeof d->ov_buf[i]);
+	}
+	d->ov_w = d->ov_h = 0;
+	memset(d->ov_key, 0, sizeof d->ov_key);
+}
+
+// Two screen-sized ARGB buffers (draw into one while the other is up).
+static bool ov_alloc(disp_t *d, uint32_t w, uint32_t h) {
+	if (d->ov_w == w && d->ov_h == h && d->ov_buf[0].map) return true;
+	ov_free(d);
+	for (int i = 0; i < 2; i++) {
+		struct drm_mode_create_dumb cd = {.width = w, .height = h, .bpp = 32};
+		if (drmIoctl(d->fd, DRM_IOCTL_MODE_CREATE_DUMB, &cd)) { LOG("overlay buffer: %s", strerror(errno)); ov_free(d); return false; }
+		d->ov_buf[i].handle = cd.handle; d->ov_buf[i].pitch = cd.pitch; d->ov_buf[i].size = cd.size;
+		uint32_t handles[4] = {cd.handle}, pitches[4] = {cd.pitch}, offsets[4] = {0};
+		if (drmModeAddFB2(d->fd, w, h, DRM_FORMAT_ARGB8888, handles, pitches, offsets, &d->ov_buf[i].fb, 0)) { LOG("overlay framebuffer: %s", strerror(errno)); ov_free(d); return false; }
+		struct drm_mode_map_dumb md = {.handle = cd.handle};
+		if (drmIoctl(d->fd, DRM_IOCTL_MODE_MAP_DUMB, &md)) { ov_free(d); return false; }
+		void *m = mmap(NULL, cd.size, PROT_READ | PROT_WRITE, MAP_SHARED, d->fd, (off_t)md.offset);
+		if (m == MAP_FAILED) { ov_free(d); return false; }
+		d->ov_buf[i].map = m;
+	}
+	d->ov_w = w; d->ov_h = h;
+	return true;
+}
+
+// Draws the guide into the spare buffer: the picture outside it darkened (premultiplied
+// black), a white line just outside its edge. Only when what's drawn changes.
+static void ov_update(disp_t *d, const layout_t *l, double shade) {
+	bool want = d->ov_plane && l->guide.w > 0;
+	int64_t key[7] = {want, lround(l->dst.x), lround(l->dst.y), lround(l->dst.x + l->dst.w) * 100000 + lround(l->dst.y + l->dst.h),
+	                  lround(l->guide.x) * 100000 + lround(l->guide.y), lround(l->guide.x + l->guide.w) * 100000 + lround(l->guide.y + l->guide.h),
+	                  lround(shade * 255) * 100000 + d->mode.hdisplay};
+	if (!memcmp(key, d->ov_key, sizeof key) && (!want || d->ov_w == d->mode.hdisplay)) return;
+	memcpy(d->ov_key, key, sizeof key);
+	d->ov_dirty = true;
+	if (!want) return;
+	uint32_t w = d->mode.hdisplay, h = d->mode.vdisplay;
+	if (!ov_alloc(d, w, h)) { d->ov_plane = 0; return; }
+	int nb = d->ov_shown ? 1 - d->ov_cur : d->ov_cur;
+	uint8_t *base = d->ov_buf[nb].map;
+	uint32_t pitch = d->ov_buf[nb].pitch;
+	uint32_t dark = (uint32_t)lround(shade * 255) << 24;  // ARGB, premultiplied black
+	int lw = h >= 2000 ? 4 : 2;                             // line width, pixels
+	int px0 = (int)lround(l->dst.x), py0 = (int)lround(l->dst.y), px1 = (int)lround(l->dst.x + l->dst.w), py1 = (int)lround(l->dst.y + l->dst.h);
+	int gx0 = (int)lround(l->guide.x), gy0 = (int)lround(l->guide.y), gx1 = (int)lround(l->guide.x + l->guide.w), gy1 = (int)lround(l->guide.y + l->guide.h);
+	for (int y = 0; y < (int)h; y++) {
+		uint32_t *row = (uint32_t *)(base + (size_t)y * pitch);
+		for (int x = 0; x < (int)w; x++) {
+			uint32_t v = 0;
+			bool in_pic = x >= px0 && x < px1 && y >= py0 && y < py1;
+			bool in_g = x >= gx0 && x < gx1 && y >= gy0 && y < gy1;
+			bool near_g = x >= gx0 - lw && x < gx1 + lw && y >= gy0 - lw && y < gy1 + lw;
+			if (near_g && !in_g) v = 0xFFFFFFFFu;  // the guide's line
+			else if (in_pic && !in_g) v = dark;
+			row[x] = v;
+		}
+	}
+	d->ov_cur = nb;
+}
+
+// Adds the overlay plane's state to a commit, when it changed.
+static void ov_add(disp_t *d, drmModeAtomicReq *req) {
+	if (!d->ov_plane || !d->ov_dirty) return;
+	bool on = d->ov_key[0] && d->ov_buf[d->ov_cur].fb;
+	drmModeAtomicAddProperty(req, d->ov_plane, d->p_ov_fb, on ? d->ov_buf[d->ov_cur].fb : 0);
+	drmModeAtomicAddProperty(req, d->ov_plane, d->p_ov_crtc, on ? d->crtc_id : 0);
+	if (on) {
+		uint32_t w = d->ov_w, h = d->ov_h;
+		drmModeAtomicAddProperty(req, d->ov_plane, d->p_ov_sx, 0);
+		drmModeAtomicAddProperty(req, d->ov_plane, d->p_ov_sy, 0);
+		drmModeAtomicAddProperty(req, d->ov_plane, d->p_ov_sw, (uint64_t)w << 16);
+		drmModeAtomicAddProperty(req, d->ov_plane, d->p_ov_sh, (uint64_t)h << 16);
+		drmModeAtomicAddProperty(req, d->ov_plane, d->p_ov_cx, 0);
+		drmModeAtomicAddProperty(req, d->ov_plane, d->p_ov_cy, 0);
+		drmModeAtomicAddProperty(req, d->ov_plane, d->p_ov_cw, w);
+		drmModeAtomicAddProperty(req, d->ov_plane, d->p_ov_ch, h);
+		if (d->ov_zpos >= 0 && d->p_ov_zpos) drmModeAtomicAddProperty(req, d->ov_plane, d->p_ov_zpos, (uint64_t)d->ov_zpos);
+		if (d->vid_zpos >= 0 && d->p_vid_zpos) drmModeAtomicAddProperty(req, d->plane_id, d->p_vid_zpos, (uint64_t)d->vid_zpos);
+	}
+}
+
 static void disp_release_all(disp_t *d) {
 	release_frame(&d->front); release_frame(&d->pending);
 	for (int i = 0; i < d->nq; i++) release_frame(&d->q[i].f);
@@ -832,9 +1074,14 @@ static void disp_plane_off(disp_t *d) {
 	drmModeAtomicReq *req = drmModeAtomicAlloc();
 	drmModeAtomicAddProperty(req, d->plane_id, d->p_fb, 0);
 	drmModeAtomicAddProperty(req, d->plane_id, d->p_crtc, 0);
+	if (d->ov_plane && d->ov_shown) {  // no picture: no guide either
+		drmModeAtomicAddProperty(req, d->ov_plane, d->p_ov_fb, 0);
+		drmModeAtomicAddProperty(req, d->ov_plane, d->p_ov_crtc, 0);
+	}
 	drmModeAtomicCommit(d->fd, req, 0, NULL);  // blocking: plane is off when this returns
 	drmModeAtomicFree(req);
 	d->plane_on = false;
+	d->ov_shown = false; d->ov_dirty = true;
 	disp_release_all(d);
 }
 
@@ -860,6 +1107,8 @@ static int disp_modeset(disp_t *d, double fps) {
 	if (r) { LOG("HDMI modeset %s failed: %s", m.name, strerror(errno)); return -1; }
 	disp_release_all(d);
 	d->plane_on = false;
+	d->ov_shown = false; d->ov_dirty = true;
+	memset(d->ov_key, 0, sizeof d->ov_key);  // redraw for the new screen size
 	d->mode = m;
 	d->active = true;
 	d->stream_fps = fps;
@@ -886,6 +1135,7 @@ static void disp_off(disp_t *d) {
 	drmModeAtomicFree(req);
 	d->active = false;
 	d->plane_on = false;
+	d->ov_shown = false; d->ov_dirty = true;
 	d->vbl_us = d->decided_vbl_us = 0;
 	disp_release_all(d);
 }
@@ -898,22 +1148,29 @@ static bool disp_flip(disp_t *d, MppFrame f) {
 	if (!fb) return false;
 	uint32_t sw = mpp_frame_get_width(f), sh = mpp_frame_get_height(f);
 	uint32_t mw = d->mode.hdisplay, mh = d->mode.vdisplay;
-	// Fit inside the screen, keeping the aspect ratio (letterbox / pillarbox).
-	uint32_t dw = mw, dh = (uint32_t)((uint64_t)sh * mw / sw);
-	if (dh > mh) { dh = mh; dw = (uint32_t)((uint64_t)sw * mh / sh); }
-	dw &= ~1u; dh &= ~1u;
-	uint32_t dx = (mw - dw) / 2, dy = (mh - dh) / 2;
+	// Fit inside the screen, keeping the aspect ratio (letterbox / pillarbox), or with Fill the
+	// frame guide zoomed to the screen. Without an overlay plane a mostly dark outside is a crop.
+	const frame_t *fr = &g_frame;
+	layout_t l = frame_layout(fr, sw, sh, mw, mh, !d->ov_plane && fr->shade >= 0.5);
+	ov_update(d, &l, fr->shade);
+	uint32_t sx = (uint32_t)l.src.x & ~1u, sy = (uint32_t)l.src.y & ~1u;
+	uint32_t sw2 = (uint32_t)l.src.w & ~1u, sh2 = (uint32_t)l.src.h & ~1u;
+	uint32_t dx = (uint32_t)lround(l.dst.x), dy = (uint32_t)lround(l.dst.y);
+	uint32_t dw = (uint32_t)lround(l.dst.w) & ~1u, dh = (uint32_t)lround(l.dst.h) & ~1u;
+	if (sw2 < 16 || sh2 < 16 || dw < 16 || dh < 16) { sx = sy = 0; sw2 = sw; sh2 = sh; dx = dy = 0; dw = mw; dh = mh; }
 	drmModeAtomicReq *req = drmModeAtomicAlloc();
 	drmModeAtomicAddProperty(req, d->plane_id, d->p_fb, fb);
 	drmModeAtomicAddProperty(req, d->plane_id, d->p_crtc, d->crtc_id);
-	drmModeAtomicAddProperty(req, d->plane_id, d->p_sx, 0);
-	drmModeAtomicAddProperty(req, d->plane_id, d->p_sy, 0);
-	drmModeAtomicAddProperty(req, d->plane_id, d->p_sw, (uint64_t)sw << 16);
-	drmModeAtomicAddProperty(req, d->plane_id, d->p_sh, (uint64_t)sh << 16);
+	drmModeAtomicAddProperty(req, d->plane_id, d->p_sx, (uint64_t)sx << 16);
+	drmModeAtomicAddProperty(req, d->plane_id, d->p_sy, (uint64_t)sy << 16);
+	drmModeAtomicAddProperty(req, d->plane_id, d->p_sw, (uint64_t)sw2 << 16);
+	drmModeAtomicAddProperty(req, d->plane_id, d->p_sh, (uint64_t)sh2 << 16);
 	drmModeAtomicAddProperty(req, d->plane_id, d->p_cx, dx);
 	drmModeAtomicAddProperty(req, d->plane_id, d->p_cy, dy);
 	drmModeAtomicAddProperty(req, d->plane_id, d->p_cw, dw);
 	drmModeAtomicAddProperty(req, d->plane_id, d->p_ch, dh);
+	bool with_ov = d->ov_plane && d->ov_dirty;
+	ov_add(d, req);
 	// YUV -> RGB matrix and range. Untagged streams follow the usual convention: BT.709 for
 	// HD, BT.601 for SD (the PYXIS doesn't tag its stream; it's HD, so BT.709).
 	MppFrameColorSpace cs = mpp_frame_get_colorspace(f);
@@ -927,6 +1184,13 @@ static bool disp_flip(disp_t *d, MppFrame f) {
 	if (d->p_color_range && range_v >= 0 && range_v != d->color_range) drmModeAtomicAddProperty(req, d->plane_id, d->p_color_range, (uint64_t)range_v);
 	int r = drmModeAtomicCommit(d->fd, req, DRM_MODE_ATOMIC_NONBLOCK | DRM_MODE_PAGE_FLIP_EVENT, d);
 	drmModeAtomicFree(req);
+	if (r && with_ov && errno != EBUSY) {
+		// the display controller won't take the overlay (blending, zpos, size): go on without it
+		LOG("frame guide overlay refused (%s): a dark outside crops the picture instead", strerror(errno));
+		d->ov_plane = 0;
+		ov_free(d);
+		return false;  // this frame is shown at the next refresh, laid out without the overlay
+	}
 	if (r) {
 		static int64_t last_log;
 		if (now_us() - last_log > 5000000) { LOG("page flip failed: %s", strerror(errno)); last_log = now_us(); }
@@ -934,6 +1198,7 @@ static bool disp_flip(disp_t *d, MppFrame f) {
 	}
 	if (enc_v >= 0) d->color_enc = enc_v;
 	if (range_v >= 0) d->color_range = range_v;
+	if (with_ov) { d->ov_dirty = false; d->ov_shown = d->ov_key[0] != 0; }
 	d->pending = f;
 	d->flip_pending = true;
 	d->plane_on = true;
@@ -1365,6 +1630,13 @@ static void *disp_main(void *arg) {
 		int64_t t = now_us();
 		if (t - last_hotplug > 1000000) {
 			last_hotplug = t;
+			// frame guide settings: picked up within a second, no restart
+			frame_t fr = frame_read();
+			if (fr.guide != g_frame.guide || fr.shade != g_frame.shade || fr.fill != g_frame.fill || fr.recorded != g_frame.recorded) {
+				LOG("frame guide: %s%.2f, outside %d%% dark, fill %s, recorded area %.3f", fr.guide > 0 ? "" : "off ", fr.guide,
+				    (int)lround(fr.shade * 100), fr.fill ? "on" : "off", fr.recorded);
+				g_frame = fr;
+			}
 			drmModeConnector *c = drmModeGetConnectorCurrent(d->fd, d->conn_id);
 			bool conn = c && c->connection == DRM_MODE_CONNECTED;
 			drmModeFreeConnector(c);
@@ -1588,6 +1860,7 @@ int main(int argc, char **argv) {
 		disp_off(&g_disp);
 		disp_release_all(&g_disp);
 		disp_clear_slots(&g_disp);
+		ov_free(&g_disp);
 		blank_fbdev();
 	}
 	rtsp_close(&r);

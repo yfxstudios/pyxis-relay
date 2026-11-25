@@ -61,7 +61,7 @@ cp "$HERE/router/setup.sh" "$HERE/router/mediamtx.yml" "$HERE/router/mediamtx.in
 	"$HERE/router/pyxisrelay.avahi.service" "$HERE/router/status.sh" "$stage/router/"
 mv "$stage/router/setup.sh" "$stage/setup.sh"
 cp -R "$HERE/router/web" "$stage/router/web"
-cp "$HERE/router/pyxis-hdmi.init" "$HERE/router/autostart.sh" "$HERE/router/pyxis-autostart.init" "$HERE/router/camera.cgi" "$stage/router/"
+cp "$HERE/router/pyxis-hdmi.init" "$HERE/router/autostart.sh" "$HERE/router/pyxis-autostart.init" "$HERE/router/camera.cgi" "$HERE/router/hdmi.cgi" "$stage/router/"
 # The HDMI player is optional: built separately with hdmi/build.sh.
 if [ -f "$HERE/hdmi/pyxis-hdmi" ]; then
 	cp "$HERE/hdmi/pyxis-hdmi" "$stage/router/pyxis-hdmi"

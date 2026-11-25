@@ -8,7 +8,7 @@
 		},
 		"write": {
 			"ubus": {
-				"pyxis": [ "set_wifi", "set_camera", "set_quality", "set_hdmi", "set_autostart", "set_password", "restart_relay", "reboot" ]
+				"pyxis": [ "set_wifi", "set_camera", "set_quality", "set_hdmi", "set_hdmi_frame", "set_autostart", "set_password", "restart_relay", "reboot" ]
 			}
 		}
 	}

@@ -354,7 +354,10 @@ install_webui() {
 	mkdir -p /www/cgi-bin
 	cp "$HERE/router/camera.cgi" /www/cgi-bin/pyxis-camera
 	chmod 755 /www/cgi-bin/pyxis-camera
-	for f in /www/pyxis/ /www/index.html /www/cgi-bin/pyxis-camera /usr/share/rpcd/ucode/pyxis.uc /usr/share/rpcd/acl.d/pyxis.json /etc/config/pyxis; do
+	# The HDMI output's frame guide, for viewer apps' menus; see router/hdmi.cgi.
+	cp "$HERE/router/hdmi.cgi" /www/cgi-bin/pyxis-hdmi
+	chmod 755 /www/cgi-bin/pyxis-hdmi
+	for f in /www/pyxis/ /www/index.html /www/cgi-bin/pyxis-camera /www/cgi-bin/pyxis-hdmi /usr/share/rpcd/ucode/pyxis.uc /usr/share/rpcd/acl.d/pyxis.json /etc/config/pyxis; do
 		grep -qxF "$f" /etc/sysupgrade.conf 2>/dev/null || echo "$f" >> /etc/sysupgrade.conf
 	done
 	# Load the plugin. This also signs out any open LuCI or settings-page session.

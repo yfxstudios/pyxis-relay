@@ -74,7 +74,7 @@ inst="$stage/usr/share/relay/installer"
 mkdir -p "$inst/router" "$stage/etc/relay"
 cp "$RELAY/router/setup.sh" "$inst/setup.sh"
 cp "$RELAY/.cache/$MTX_TARBALL" "$inst/"
-for f in mediamtx.yml mediamtx.init pyxisrelay.avahi.service status.sh pyxis-hdmi.init autostart.sh pyxis-autostart.init camera.cgi; do
+for f in mediamtx.yml mediamtx.init pyxisrelay.avahi.service status.sh pyxis-hdmi.init autostart.sh pyxis-autostart.init camera.cgi hdmi.cgi; do
 	cp "$RELAY/router/$f" "$inst/router/"
 done
 cp -R "$RELAY/router/web" "$inst/router/web"
