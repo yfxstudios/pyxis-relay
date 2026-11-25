@@ -1,0 +1,312 @@
+{
+ "C113992": {
+  "mpn": "SMBJ20CA",
+  "manufacturer": "MDD(Microdiode Semiconductor)",
+  "description": "TVS DIODE 20VWM 32.4VC DO-214AA(SMB)"
+ },
+ "C116592": {
+  "mpn": "TPS563201DDCR",
+  "manufacturer": "TI",
+  "description": "4.5-V to 17-V Input, 3-A Synchronous Step-Down Voltage Regulator"
+ },
+ "C11702": {
+  "mpn": "0402WGF1001TCE",
+  "manufacturer": "UNI-ROYAL",
+  "description": "RES 1k\u03a9 \u00b11% 62.5mW 0402"
+ },
+ "C131337": {
+  "mpn": "B2B-PH-K-S(LF)(SN)",
+  "manufacturer": "JST",
+  "description": "CONN HEADER TH 2POS 2mm"
+ },
+ "C15127": {
+  "mpn": "AO3401A",
+  "manufacturer": "AOS",
+  "description": "MOSFET P-CH 30V 4A SOT-23"
+ },
+ "C15195": {
+  "mpn": "CL05B103KB5NNNC",
+  "manufacturer": "Samsung Electro-Mechanics",
+  "description": "CAP CER 10nF 50V X7R 0402"
+ },
+ "C1523": {
+  "mpn": "0402B102K500NT",
+  "manufacturer": "FH",
+  "description": "CAP CER 1nF 50V X7R 0402"
+ },
+ "C1549": {
+  "mpn": "0402CG180J500NT",
+  "manufacturer": "FH",
+  "description": "CAP CER 18pF 50V C0G 0402"
+ },
+ "C15850": {
+  "mpn": "CL21A106KAYNNNE",
+  "manufacturer": "Samsung Electro-Mechanics",
+  "description": "CAP CER 10uF 25V X5R 0805"
+ },
+ "C165948": {
+  "mpn": "TYPE-C-31-M-12",
+  "manufacturer": "Korean Hroparts Elec",
+  "description": "CONN RCPT Type-C 16POS SMD"
+ },
+ "C17168": {
+  "mpn": "0402WGF0000TCE",
+  "manufacturer": "UNI-ROYAL",
+  "description": "RES 0R jumper 62.5mW 0402"
+ },
+ "C2041457": {
+  "mpn": "SRN6045TA-6R8M",
+  "manufacturer": "BOURNS",
+  "description": "FIXED IND 6.8uH 3.6A 34m\u03a9 SMD,6x6mm"
+ },
+ "C20526": {
+  "mpn": "MMBT3904(RANGE:100-300)",
+  "manufacturer": "JSCJ",
+  "description": "TRANS NPN 40V 200mA SOT-23"
+ },
+ "C22452": {
+  "mpn": "SS54",
+  "manufacturer": "MDD(Microdiode Semiconductor)",
+  "description": "DIODE SCHOTTKY 40V SMA(DO-214AC)"
+ },
+ "C2286": {
+  "mpn": "KT-0603R",
+  "manufacturer": "Hubei KENTO Elec",
+  "description": "LED RED WATER CLEAR 0603 SMD"
+ },
+ "C2288": {
+  "mpn": "KT-0603B",
+  "manufacturer": "Hubei KENTO Elec",
+  "description": "LED BLUE WATER CLEAR 0603 SMD"
+ },
+ "C2290": {
+  "mpn": "KT-0603W",
+  "manufacturer": "Hubei KENTO Elec",
+  "description": "LED WHITE 0603 SMD"
+ },
+ "C25076": {
+  "mpn": "0402WGF1000TCE",
+  "manufacturer": "UNI-ROYAL",
+  "description": "RES 100\u03a9 \u00b11% 62.5mW 0402"
+ },
+ "C25082": {
+  "mpn": "0402WGF1500TCE",
+  "manufacturer": "UNI-ROYAL",
+  "description": "RES 150R 1% 62.5mW 0402"
+ },
+ "C25092": {
+  "mpn": "0402WGF220JTCE",
+  "manufacturer": "UNI-ROYAL",
+  "description": "RES 22\u03a9 \u00b11% 62.5mW 0402"
+ },
+ "C25741": {
+  "mpn": "0402WGF1003TCE",
+  "manufacturer": "UNI-ROYAL",
+  "description": "RES 100k\u03a9 \u00b11% 62.5mW 0402"
+ },
+ "C25744": {
+  "mpn": "0402WGF1002TCE",
+  "manufacturer": "UNI-ROYAL",
+  "description": "RES 10k\u03a9 \u00b11% 62.5mW 0402"
+ },
+ "C25745": {
+  "mpn": "0402WGF1103TCE",
+  "manufacturer": "UNI-ROYAL",
+  "description": "RES 110k\u03a9 \u00b11% 62.5mW 0402"
+ },
+ "C25756": {
+  "mpn": "0402WGF1502TCE",
+  "manufacturer": "UNI-ROYAL",
+  "description": "RES 15k\u03a9 \u00b11% 62.5mW 0402"
+ },
+ "C25771": {
+  "mpn": "0402WGF2702TCE",
+  "manufacturer": "UNI-ROYAL",
+  "description": "RES 27k\u03a9 \u00b11% 62.5mW 0402"
+ },
+ "C25779": {
+  "mpn": "0402WGF3302TCE",
+  "manufacturer": "UNI-ROYAL",
+  "description": "RES 33k\u03a9 \u00b11% 62.5mW 0402"
+ },
+ "C25783": {
+  "mpn": "0402WGF3902TCE",
+  "manufacturer": "UNI-ROYAL",
+  "description": "RES 39k\u03a9 \u00b11% 62.5mW 0402"
+ },
+ "C25792": {
+  "mpn": "0402WGF4702TCE",
+  "manufacturer": "UNI-ROYAL",
+  "description": "RES 47k\u03a9 \u00b11% 62.5mW 0402"
+ },
+ "C25873": {
+  "mpn": "0402WGF2322TCE",
+  "manufacturer": "UNI-ROYAL",
+  "description": "RES 23.2k\u03a9 \u00b11% 62.5mW 0402"
+ },
+ "C25879": {
+  "mpn": "0402WGF2201TCE",
+  "manufacturer": "UNI-ROYAL",
+  "description": "RES 2.2k\u03a9 \u00b11% 62.5mW 0402"
+ },
+ "C25900": {
+  "mpn": "0402WGF4701TCE",
+  "manufacturer": "UNI-ROYAL",
+  "description": "RES 4.7k\u03a9 \u00b11% 62.5mW 0402"
+ },
+ "C25917": {
+  "mpn": "0402WGF6801TCE",
+  "manufacturer": "UNI-ROYAL",
+  "description": "RES 6.8k\u03a9 \u00b11% 62.5mW 0402"
+ },
+ "C2687116": {
+  "mpn": "USBLC6-2SC6",
+  "manufacturer": "UMW",
+  "description": "ESD DIODE 15VC SOT-23-6"
+ },
+ "C275487": {
+  "mpn": "MPZ1608S331ATA00",
+  "manufacturer": "TDK",
+  "description": "FERRITE BEAD 330\u03a9 0603 1LN"
+ },
+ "C28323": {
+  "mpn": "CL21B105KBFNNNE",
+  "manufacturer": "Samsung Electro-Mechanics",
+  "description": "CAP CER 1uF 50V X7R 0805"
+ },
+ "C2843533": {
+  "mpn": "RK628D",
+  "manufacturer": "Rockchip",
+  "description": "LVDS -40\u2103~+125\u2103 WBBGA-144(8x8) Specialized RoHS"
+ },
+ "C2886898": {
+  "mpn": "TL3342F160QG",
+  "manufacturer": "E-Switch",
+  "description": "SWITCH TACTILE SPST 160gf SMD"
+ },
+ "C2937625": {
+  "mpn": "PZ254V-11-03P",
+  "manufacturer": "XFCN",
+  "description": "CONN HEADER 3POS 2.54mm SINGLE ROW TH"
+ },
+ "C2961147": {
+  "mpn": "PJ-002AH",
+  "manufacturer": "CUI",
+  "description": "Right Angle DC Power Jack -25\u2103~+85\u2103 2mm 6.5mm 5A 24V Through Hole Power Connectors RoHS"
+ },
+ "C2977809": {
+  "mpn": "2199230-4",
+  "manufacturer": "TE Connectivity",
+  "description": "CONN 67POS 0.5mm SMD R/A"
+ },
+ "C29823": {
+  "mpn": "1206B475K500NT",
+  "manufacturer": "FH",
+  "description": "CAP CER 4.7uF 50V X7R 1206"
+ },
+ "C3001659": {
+  "mpn": "AP22804AW5-7",
+  "manufacturer": "DIODES",
+  "description": "Single Channel Power Distribution Load Switch"
+ },
+ "C307331": {
+  "mpn": "CL05B104KB54PNC",
+  "manufacturer": "Samsung Electro-Mechanics",
+  "description": "CAP CER 100nF 50V X7R 0402"
+ },
+ "C3179417": {
+  "mpn": "JK0654219NL",
+  "manufacturer": "PULSE",
+  "description": "1 Shielded Gold Phosphor Bronze 0\u2103~+70\u2103 Through Hole Modular/Ethernet Connector (RJ45) Jacks With Magnetics RoHS"
+ },
+ "C36500": {
+  "mpn": "SWPA6045S2R2NT",
+  "manufacturer": "Sunlord",
+  "description": "2.2uH 4.6A 18mOhm \u00b130% 6x6 shielded power inductor"
+ },
+ "C4109": {
+  "mpn": "0402WGF2001TCE",
+  "manufacturer": "UNI-ROYAL",
+  "description": "RES 2k\u03a9 \u00b11% 62.5mW 0402"
+ },
+ "C42459160": {
+  "mpn": "CH224A",
+  "manufacturer": "WCH",
+  "description": "Power Receiver Controller 1C 140W ESSOP-10 Power Management - Specialized "
+ },
+ "C43251": {
+  "mpn": "0402WGF4021TCE",
+  "manufacturer": "UNI-ROYAL",
+  "description": "RES 4.02k\u03a9 \u00b11% 62.5mW 0402"
+ },
+ "C45783": {
+  "mpn": "CL21A226MAQNNNE",
+  "manufacturer": "Samsung Electro-Mechanics",
+  "description": "CAP CER 22uF 25V X5R 0805"
+ },
+ "C47023116": {
+  "mpn": "RVT35V47M6X8",
+  "manufacturer": "JIERR",
+  "description": "CAP ALUM 47uF \u00b120% 35V SMD"
+ },
+ "C48985875": {
+  "mpn": "1812L300/30GR",
+  "manufacturer": "LUTE",
+  "description": "PTC RESET FUSE 30V 3A 1812"
+ },
+ "C52923": {
+  "mpn": "CL05A105KA5NQNC",
+  "manufacturer": "Samsung Electro-Mechanics",
+  "description": "CAP CER 1uF 25V X5R 0402"
+ },
+ "C58827": {
+  "mpn": "0402WGF2103TCE",
+  "manufacturer": "UNI-ROYAL",
+  "description": "RES 210k\u03a9 \u00b11% 62.5mW 0402"
+ },
+ "C597931": {
+  "mpn": "DF40C-100DS-0.4V(51)",
+  "manufacturer": "HRS",
+  "description": "0.4mm Pitch, 1.5 to 4.0mm Height, Board-to-Board and Board-to-FPC Connectors"
+ },
+ "C70590": {
+  "mpn": "X322524MOB4SI",
+  "manufacturer": "YXC Crystal Oscillators",
+  "description": "CRYSTAL 24MHz 12pF SMD"
+ },
+ "C82046": {
+  "mpn": "MBR0530T1G",
+  "manufacturer": "onsemi",
+  "description": "DIODE SCHOTTKY 30V SOD-123"
+ },
+ "C83455": {
+  "mpn": "SWPA6045S2R2MT",
+  "manufacturer": "Sunlord",
+  "description": "2.2uH 6x6 wire-wound power inductor"
+ },
+ "C907837": {
+  "mpn": "RCLAMP0524P",
+  "manufacturer": "TECH PUBLIC",
+  "description": "ESD DIODE 5VWM 17VC DFN2510-10"
+ },
+ "C916313": {
+  "mpn": "2086581001",
+  "manufacturer": "MOLEX",
+  "description": "HDMI FOR INSERT-MOLD TYPE"
+ },
+ "C96956": {
+  "mpn": "SWPA6045S1R5NT",
+  "manufacturer": "Sunlord",
+  "description": "1.5uH 4.95A 12mOhm \u00b130% 6x6 shielded power inductor"
+ },
+ "C97054": {
+  "mpn": "SY8303AIC",
+  "manufacturer": "Silergy",
+  "description": "High Efficiency Fast Response, 3A, 40V Input Synchronous Step Down Regulator"
+ },
+ "C98203": {
+  "mpn": "SWPA6045S1R5MT",
+  "manufacturer": "Sunlord",
+  "description": "1.5uH 5.4A 6x6 wire-wound power inductor"
+ }
+}
