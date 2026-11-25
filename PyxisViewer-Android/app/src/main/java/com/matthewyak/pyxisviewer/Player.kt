@@ -253,11 +253,19 @@ class StreamPlayer {
 
 /**
  * The video picture: decoder output (an external OES texture) drawn letterboxed with OpenGL ES 3,
- * through the monitor LUT (a 3D texture) when one is on.
+ * through the monitor LUT (a 3D texture) when one is on, with false colour, zebras and peaking on
+ * screen (not in frame grabs or recordings).
  */
 class VideoView(context: Context, private val player: StreamPlayer, private val lut: LutBox,
-                private val capture: Capture? = null) : GLSurfaceView(context) {
+                private val capture: Capture? = null, private val overlays: Overlays? = null) : GLSurfaceView(context) {
     private val renderer = Renderer()
+    /** Zoom on screen: scale about the view's centre, then a pan in pixels (set by the UI). */
+    @Volatile private var zoom = floatArrayOf(1f, 0f, 0f)
+
+    fun setZoom(scale: Float, panX: Float, panY: Float) {
+        val z = floatArrayOf(scale, panX, panY)
+        if (!z.contentEquals(zoom)) { zoom = z; requestRender() }
+    }
 
     init {
         setEGLContextClientVersion(3)
@@ -347,7 +355,9 @@ class VideoView(context: Context, private val player: StreamPlayer, private val 
             // letterbox / pillarbox the picture
             val (vw, vh) = player.videoSize.get()
             val va = vw.toFloat() / vh; val sa = viewW.toFloat() / viewH
-            drawPicture(if (va > sa) 1f else va / sa, if (va > sa) sa / va else 1f)
+            val (s, px, py) = zoom
+            drawPicture((if (va > sa) 1f else va / sa) * s, (if (va > sa) sa / va else 1f) * s,
+                overlays?.state?.value?.takeIf { it.enabled }, 2 * px / viewW, -2 * py / viewH)
 
             capture?.let { c ->
                 if (c.frameWanted) c.frameGrabbed(if (player.state.value == StreamPlayer.State.Playing) grabFrame(vw, vh) else null)
@@ -355,10 +365,11 @@ class VideoView(context: Context, private val player: StreamPlayer, private val 
             }
         }
 
-        /** Draws the picture scaled to (sx, sy) of the current viewport. */
-        private fun drawPicture(sx: Float, sy: Float) {
+        /** Draws the picture scaled to (sx, sy) of the current viewport and moved by (ox, oy), with
+         *  `o`'s image overlays. */
+        private fun drawPicture(sx: Float, sy: Float, o: OverlaySettings? = null, ox: Float = 0f, oy: Float = 0f) {
             quad.clear()
-            quad.put(floatArrayOf(-sx, -sy, 0f, 0f, sx, -sy, 1f, 0f, -sx, sy, 0f, 1f, sx, sy, 1f, 1f)).position(0)
+            quad.put(floatArrayOf(-sx + ox, -sy + oy, 0f, 0f, sx + ox, -sy + oy, 1f, 0f, -sx + ox, sy + oy, 0f, 1f, sx + ox, sy + oy, 1f, 1f)).position(0)
             GLES30.glUseProgram(prog)
             GLES30.glActiveTexture(GLES30.GL_TEXTURE0)
             GLES30.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, tex)
@@ -368,6 +379,13 @@ class VideoView(context: Context, private val player: StreamPlayer, private val 
             GLES30.glUniform1i(GLES30.glGetUniformLocation(prog, "lut"), 1)
             GLES30.glUniform1f(GLES30.glGetUniformLocation(prog, "lutSize"), lutSize)
             GLES30.glUniformMatrix4fv(GLES30.glGetUniformLocation(prog, "stMatrix"), 1, false, stMatrix, 0)
+            GLES30.glUniform1i(GLES30.glGetUniformLocation(prog, "falseColor"), if (o?.falseColor == true) 1 else 0)
+            GLES30.glUniform1f(GLES30.glGetUniformLocation(prog, "zebra"), if (o?.zebras == true) o.zebraLevel / 100f - 0.005f else 2f)
+            GLES30.glUniform1i(GLES30.glGetUniformLocation(prog, "peaking"), if (o?.peaking == true) 1 else 0)
+            val (vw, vh) = player.videoSize.get()
+            GLES30.glUniform2f(GLES30.glGetUniformLocation(prog, "texel"), 1f / vw, 1f / vh)
+            // zebra stripes: about 1/320 of the picture wide, whatever the screen
+            GLES30.glUniform1f(GLES30.glGetUniformLocation(prog, "stripe"), maxOf(3f, viewW * sx / 320f))
             val pos = GLES30.glGetAttribLocation(prog, "pos")
             val uv = GLES30.glGetAttribLocation(prog, "uvIn")
             quad.position(0)
@@ -463,17 +481,43 @@ void main() {
     uv = (stMatrix * vec4(uvIn, 0.0, 1.0)).xy;
 }"""
         // The LUT works on Rec.709-encoded values, like a LUT on a monitor's video input.
+        // False colour, zebras and peaking read the camera's picture (before the LUT, as on a
+        // monitor); the false colour table is FalseColor's.
         const val FRAGMENT = """#version 300 es
 #extension GL_OES_EGL_image_external_essl3 : require
 precision highp float;
 uniform samplerExternalOES tex;
 uniform highp sampler3D lut;
 uniform float lutSize;
+uniform bool falseColor;
+uniform float zebra;     // level (0-1), or > 1 for off
+uniform bool peaking;
+uniform vec2 texel;      // one picture pixel
+uniform float stripe;    // zebra stripe width, in screen pixels
 in vec2 uv;
 out vec4 color;
+float luma(vec3 c) { return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
+float lumaAt(vec2 p) { return luma(clamp(texture(tex, p).rgb, 0.0, 1.0)); }
 void main() {
-    vec3 c = clamp(texture(tex, uv).rgb, 0.0, 1.0);
+    vec3 src = clamp(texture(tex, uv).rgb, 0.0, 1.0);
+    vec3 c = src;
     if (lutSize > 1.0) c = texture(lut, (c * (lutSize - 1.0) + 0.5) / lutSize).rgb;
+    float y = luma(src);
+    if (falseColor) {
+        c = vec3(y);
+        if (y < 0.025) c = vec3(0.55, 0.15, 0.85);
+        else if (y < 0.05) c = vec3(0.10, 0.35, 1.00);
+        else if (y >= 0.38 && y < 0.45) c = vec3(0.15, 0.80, 0.25);
+        else if (y >= 0.52 && y < 0.58) c = vec3(1.00, 0.45, 0.70);
+        else if (y >= 0.99) c = vec3(1.00, 0.15, 0.15);
+        else if (y >= 0.95) c = vec3(1.00, 0.85, 0.10);
+    }
+    if (y >= zebra) c = vec3(mod(gl_FragCoord.x + gl_FragCoord.y, 2.0 * stripe) < stripe ? 1.0 : 0.0);
+    if (peaking) {
+        float gx = lumaAt(uv + vec2(texel.x, 0.0)) - lumaAt(uv - vec2(texel.x, 0.0));
+        float gy = lumaAt(uv + vec2(0.0, texel.y)) - lumaAt(uv - vec2(0.0, texel.y));
+        if (length(vec2(gx, gy)) > 0.12) c = vec3(1.0, 0.1, 0.1);
+    }
     color = vec4(c, 1.0);
 }"""
     }

@@ -4,6 +4,8 @@
 #   uci set pyxis.hdmi.enabled=0|1        (default 1)
 #   uci set pyxis.hdmi.match_rate=0|1     (default 1: use a refresh rate that's a multiple of the stream's frame rate when the screen has one)
 #   uci set pyxis.hdmi.low_latency=0|1    (default 0: smooth motion; 1: each frame at the next refresh, no smoothing buffer)
+#   uci set pyxis.hdmi.guide=off|2.39|...  shade=0-100  fill=0|1   (frame guide; read by the player every
+#                                          second, no restart needed)
 # shellcheck disable=SC2034  # START/STOP/USE_PROCD are read by /etc/rc.common
 
 START=96

@@ -26,6 +26,8 @@ final class StreamPlayer: ObservableObject {
     var lutBox: LUTBox?
     /// Local recording and frame grabs (set by the app before playing).
     var frameTap: FrameTap?
+    /// False colour, zebras and peaking (set by the app before playing).
+    var overlayBox: OverlayBox?
     private var worker: Thread?
     private var stopFlag: StopFlag?
 
@@ -44,9 +46,9 @@ final class StreamPlayer: ObservableObject {
         state = .connecting
         // The renderer accepts frames from any thread; only this worker enqueues.
         let renderer = UncheckedSendable(layer.sampleBufferRenderer)
-        let box = lutBox, tap = frameTap
+        let box = lutBox, tap = frameTap, overlays = overlayBox
         let t = Thread { [weak self] in
-            Self.run(url: url, renderer: renderer.value, lut: box, tap: tap, stop: flag) { update in
+            Self.run(url: url, renderer: renderer.value, lut: box, tap: tap, overlays: overlays, stop: flag) { update in
                 Task { @MainActor in
                     guard let self, self.stopFlag === flag else { return }
                     update(self)
@@ -79,7 +81,8 @@ final class StreamPlayer: ObservableObject {
         }
     }
 
-    private nonisolated static func run(url: String, renderer: AVSampleBufferVideoRenderer, lut: LUTBox?, tap: FrameTap?, stop: StopFlag,
+    private nonisolated static func run(url: String, renderer: AVSampleBufferVideoRenderer, lut: LUTBox?, tap: FrameTap?, overlays: OverlayBox?,
+                                        stop: StopFlag,
                                         post: @escaping (@escaping @MainActor (StreamPlayer) -> Void) -> Void) {
         while !stop.stopped {
             post { if $0.state != .offline { $0.state = .connecting } }
@@ -88,7 +91,7 @@ final class StreamPlayer: ObservableObject {
                 defer { rtsp.close() }
                 try rtsp.open()
                 var depay = Depacketizer(codec: rtsp.codec)
-                let sink = FrameSink(codec: rtsp.codec, renderer: renderer, lut: lut, tap: tap)
+                let sink = FrameSink(codec: rtsp.codec, renderer: renderer, lut: lut, tap: tap, overlays: overlays)
                 defer { sink.close() }
                 sink.setParameterSets(rtsp.parameterSets)
                 var started = false
@@ -153,12 +156,15 @@ final class FrameSink {
     private let lut: LUTBox?
     private let lutProcessor = LUTProcessor()
     private let tap: FrameTap?
+    private let overlays: OverlayBox?
+    private let overlayProcessor = OverlayProcessor()
 
-    init(codec: VideoCodec, renderer: AVSampleBufferVideoRenderer, lut: LUTBox?, tap: FrameTap?) {
+    init(codec: VideoCodec, renderer: AVSampleBufferVideoRenderer, lut: LUTBox?, tap: FrameTap?, overlays: OverlayBox?) {
         self.codec = codec
         self.renderer = renderer
         self.lut = lut
         self.tap = tap
+        self.overlays = overlays
     }
 
     func close() {
@@ -274,8 +280,9 @@ final class FrameSink {
     private func display(_ decoded: CVImageBuffer, pts: CMTime) -> Bool {
         lutProcessor.tag709(decoded)
         // the monitor LUT, if one is on (a new BGRA picture), else the decoded picture itself
-        let image = lut.flatMap { lutProcessor.process(decoded, box: $0) } ?? decoded
-        tap?.take(image, pts: pts)  // local recording / frame grab: what's shown
+        let graded = lut.flatMap { lutProcessor.process(decoded, box: $0) } ?? decoded
+        tap?.take(graded, pts: pts)  // local recording / frame grab: what's shown, without overlays
+        let image = overlays.flatMap { overlayProcessor.process(source: decoded, shown: graded, box: $0) } ?? graded
         if imageFormat == nil || !CMVideoFormatDescriptionMatchesImageBuffer(imageFormat!, imageBuffer: image) {
             imageFormat = nil
             CMVideoFormatDescriptionCreateForImageBuffer(allocator: kCFAllocatorDefault, imageBuffer: image,

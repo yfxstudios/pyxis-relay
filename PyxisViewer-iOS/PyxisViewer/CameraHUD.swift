@@ -16,7 +16,7 @@ enum HUDStyle {
 
 /// Quick controls opened from the bars.
 enum QuickPanel: String, Identifiable {
-    case fps, shutter, iris, iso, whiteBalance, tint, power, media, record, lut
+    case fps, shutter, iris, iso, whiteBalance, tint, power, media, record, lut, guides
     var id: String { rawValue }
 }
 
@@ -206,6 +206,7 @@ struct BottomBar: View {
     @ObservedObject var cam: Camera
     @ObservedObject var luts: MonitorLUTs
     @ObservedObject var capture: Capture
+    @ObservedObject var overlays: Overlays
     let compact: Bool
     @Binding var panel: QuickPanel?
 
@@ -217,6 +218,7 @@ struct BottomBar: View {
                     panel = panel == .media ? nil : .media
                 }
                 MonitorLUTButton(luts: luts, showName: !compact) { panel = .lut }
+                GuidesButton(overlays: overlays) { panel = .guides }
                 if !compact { CaptureButtons(capture: capture) }  // portrait: above the bar (no room in it)
             }
             .frame(maxWidth: .infinity)

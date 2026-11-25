@@ -228,6 +228,18 @@
     <label style="display:flex; gap:10px; align-items:center; color:var(--text)"><input type="checkbox" id="hMatch" style="width:auto"> Match the screen's refresh rate to the stream when possible</label>
     <p class="hint">Uses a refresh rate that's an exact multiple of the stream's frame rate, so every frame is shown for the same time: 48 Hz or more when the screen has one (25p &rarr; 50 Hz, 30p &rarr; 60 Hz). With Smooth motion it falls back to the stream's own rate (24p &rarr; 24 Hz, about 25 ms more delay, but no 24p-on-60 Hz stutter). Turn off to keep the screen's normal rate (usually 60 Hz). The screen may blank for a moment when it switches.</p>
     <div class="actions"><button id="btnHdmi">Save</button></div>
+    <h3 style="margin:22px 0 4px">Frame guide</h3>
+    <p class="hint" id="hFrameNote" style="margin-top:0">A rectangle showing a frame shape, inside the area the camera records. Changes show on the screen within a second; the stream isn't interrupted.</p>
+    <label for="hGuide">Frame</label>
+    <select id="hGuide">
+      <option value="off">None</option><option value="2.39">2.39</option><option value="2.00">2.00</option><option value="1.85">1.85</option>
+      <option value="16:9">16:9</option><option value="4:3">4:3</option><option value="1:1">1:1</option><option value="4:5">4:5</option><option value="9:16">9:16</option>
+    </select>
+    <label for="hShade">Outside the frame: <span id="hShadeVal">60%</span> dark</label>
+    <input id="hShade" type="range" min="0" max="100" step="5" value="60" style="padding:0">
+    <label style="display:flex; gap:10px; align-items:center; color:var(--text)"><input type="checkbox" id="hFill" style="width:auto"> Fill the screen with the frame (zoom in)</label>
+    <p class="hint">With no frame chosen, Fill zooms to the recorded area (for example, a 6:5 picture without its side bars where the screen allows).</p>
+    <div class="actions"><button id="btnHdmiFrame">Apply</button></div>
   </section>
 
   <!-- Admin -->
@@ -503,7 +515,15 @@ function fillConfig(c) {
       : 'No login saved. The camera only needs one if its Web media manager is set to "Enabled with security only".';
     renderAutostart(c.autostart);
   }
-  if (c.hdmi) { $('hEnabled').checked = c.hdmi.enabled; $('hMatch').checked = c.hdmi.match_rate; $('hLatency').value = c.hdmi.low_latency ? 'low' : 'smooth'; }
+  if (c.hdmi) {
+    $('hEnabled').checked = c.hdmi.enabled; $('hMatch').checked = c.hdmi.match_rate; $('hLatency').value = c.hdmi.low_latency ? 'low' : 'smooth';
+    $('hGuide').value = c.hdmi.guide || 'off'; $('hShade').value = c.hdmi.shade ?? 60; $('hFill').checked = !!c.hdmi.fill;
+    $('hShadeVal').textContent = $('hShade').value + '%';
+    const rec = (c.hdmi.recorded || '').split(' ');
+    $('hFrameNote').textContent = 'A rectangle showing a frame shape, inside the area the camera records' +
+      (rec.length === 2 ? ` (${rec[0]}\u00d7${rec[1]} now)` : ' (camera auto-start reads it from the camera; until then, the whole picture)') +
+      '. Changes show on the screen within a second; the stream isn\'t interrupted.';
+  }
 }
 function fillChannels(current) {
   const band = $('wBand').value, sel = $('wChan'); sel.textContent = '';
@@ -577,6 +597,12 @@ $('btnAutoClear').onclick = () => guarded($('btnAutoClear'), async () => {
 });
 $('btnHdmi').onclick = () => guarded($('btnHdmi'), async () => {
   const r = await call('set_hdmi', { enabled: $('hEnabled').checked, match_rate: $('hMatch').checked, low_latency: $('hLatency').value === 'low' });
+  if (r.ok) fillConfig(await call('get_config'));
+  return r;
+});
+$('hShade').oninput = () => { $('hShadeVal').textContent = $('hShade').value + '%'; };
+$('btnHdmiFrame').onclick = () => guarded($('btnHdmiFrame'), async () => {
+  const r = await call('set_hdmi_frame', { guide: $('hGuide').value, shade: +$('hShade').value, fill: $('hFill').checked });
   if (r.ok) fillConfig(await call('get_config'));
   return r;
 });

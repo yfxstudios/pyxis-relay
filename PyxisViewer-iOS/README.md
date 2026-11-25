@@ -46,7 +46,7 @@ The picture carries a camera-style overlay, laid out like the PYXIS's own touchs
 - **Top:** menu · FPS · shutter angle (or speed) · iris · timecode (red while recording) · ISO · white balance
   · tint · battery (percent or voltage, as the camera is set).
 - **Bottom:** record button · card slots (active card highlighted, remaining record time) · **LUT**, the
-  monitor LUT (see below).
+  monitor LUT (see below) · **GUIDES**, frame guides and overlays (see below).
 
 On a phone held upright the bars sit above and below the picture. In landscape they lie over it, as on the
 camera.
@@ -163,6 +163,33 @@ Base ISO is marked in the ISO picker. The API doesn't report it, so it's worked 
 
 Not included: uploading LUT, preset or custom platform files, and timeline editing.
 
+## Guides and overlays
+
+Tap **GUIDES** in the bottom bar (⌘G on the Mac). The panel docks at the bottom like the other pickers, and
+the button turns blue while anything is showing. **On/Off** hides them all and keeps your choices. They're
+drawn by this app only: the camera, its outputs, frame grabs and local recordings don't include them.
+
+- **Frame guide:** 2.39, 2.00, 1.85, 16:9, 4:3, 1:1, 4:5 or 9:16: a rectangle of that shape, centred in the
+  area the camera records. The camera streams 16:9, so in 6:5 or 3:2 the recorded picture has black bars
+  around it; the guide goes inside the recorded part, worked out from the camera's record resolution. Without
+  camera control, it uses the whole picture. **Outside** sets how dark it is outside the guide, 0–100%.
+- **Fill:** zooms so the frame guide (or, with none, the recorded area) fills the screen.
+- **Lines:** rule of **Thirds**, **Safe 90%** (dashed), **Center** cross. They follow the frame guide when one
+  is on.
+- **False color:** the picture goes grey, with video levels in colour: black clip (purple, under 2.5%), near
+  black (blue, 2.5–5%), 18% grey (green, 38–45%), skin about a stop over grey (pink, 52–58%), near white
+  (yellow, 95–99%) and clipped (red, 99% and up). The panel shows the key.
+- **Zebras:** stripes where the picture reaches the level. Tap the % chip to step through 70, 80, 90, 95 and
+  100%.
+- **Peaking:** sharp edges in red, to judge focus.
+
+**Zoom:** pinch the picture (or the Mac's trackpad, or ⌘= and ⌘-), 1× to 8×, about your fingers. Zoomed in,
+drag to look around; the badge under the top bar shows the zoom, and tapping it shows the whole picture again
+(⌘0 on the Mac). Guides and tap-to-focus follow the zoom.
+
+False color, zebras and peaking read the camera's picture before the monitor LUT, as a monitor does. They're
+made on the GPU (Core Image), about 4 ms per 1080p frame on a Mac.
+
 ## Build and install
 
 Needs Xcode 26 or later and iOS 17 or later.
@@ -193,6 +220,7 @@ Needs Xcode 26 or later and iOS 17 or later.
 | `PyxisViewer/FilmLooks.swift` | The built-in film looks (Rec.709 → look), generated as 3D LUTs. |
 | `PyxisViewer/MonitorLUT.swift` | .cube parsing, the LUT library and selection, GPU LUT processing. |
 | `PyxisViewer/LUTViews.swift` | The LUT chooser and Menu → Monitor LUTs. |
+| `PyxisViewer/Overlays.swift` | Frame guides and lines, false color, zebras, peaking, and the guides panel. |
 | `PyxisViewer/Focus.swift` | Tap to focus, the focus/target/face overlays, the AF mode rail. |
 | `PyxisViewer/CameraHUD.swift` | The top and bottom bars. |
 | `PyxisViewer/CameraPickers.swift` | The docked camera-style setting picker (FPS, shutter, iris, ISO, WB, tint). |

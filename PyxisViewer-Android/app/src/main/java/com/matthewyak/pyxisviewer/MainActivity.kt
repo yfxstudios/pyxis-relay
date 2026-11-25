@@ -15,15 +15,24 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.width
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.center
+import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculateCentroid
+import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -59,6 +68,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -78,6 +90,7 @@ class MainActivity : ComponentActivity() {
     private val player = StreamPlayer()
     private lateinit var cam: Camera
     private lateinit var luts: MonitorLuts
+    private lateinit var overlays: Overlays
     private lateinit var capture: Capture
     private val prefs by lazy { getSharedPreferences("app", Context.MODE_PRIVATE) }
 
@@ -92,6 +105,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         cam = Camera(applicationContext, lifecycleScope)
         luts = MonitorLuts(applicationContext, lifecycleScope)
+        overlays = Overlays(applicationContext)
         capture = Capture(applicationContext, lifecycleScope)
         capture.cameraName = { cam.v("/system/product")["productName"].str }
         relay.value = prefs.getString("relay", "") ?: ""
@@ -239,26 +253,69 @@ class MainActivity : ComponentActivity() {
         LaunchedEffect(railHideAt) { if (rail) { delay(maxOf(0, railHideAt - System.currentTimeMillis())); rail = false } }
         fun openRail(seconds: Double) { rail = true; railHideAt = System.currentTimeMillis() + (seconds * 1000).toLong() }
         val haptic = LocalHapticFeedback.current
+        // zoom (pinch): scale about the screen centre, then pan; Fill zooms to the frame guide
+        var zoom by remember { mutableFloatStateOf(1f) }
+        var pan by remember { mutableStateOf(Offset.Zero) }
+        val ov by overlays.state.collectAsState()
+        fun resetZoom() { zoom = 1f; pan = Offset.Zero; if (overlays.state.value.fill) overlays.update { it.copy(fill = false) } }
         BoxWithConstraints(Modifier.fillMaxSize()) {
             val compact = maxWidth < maxHeight
-            val video = with(LocalDensity.current) { videoRect(maxWidth.toPx(), maxHeight.toPx(), size) }
-            AndroidView({ VideoView(it, player, luts.box, capture) }, Modifier.fillMaxSize())
+            val l = with(LocalDensity.current) {
+                val base = PictureLayout(videoRect(maxWidth.toPx(), maxHeight.toPx(), size), recordedRatio(v), Size(maxWidth.toPx(), maxHeight.toPx()))
+                val (s, p) = if (ov.fill) base.filling(if (ov.enabled) ov.guide.rect(base.recorded) else base.recorded) else zoom to pan
+                PictureLayout(base.video, recordedRatio(v), base.bounds, s, p)
+            }
+            val layout by rememberUpdatedState(l)
+            val video = l.shown(l.video)  // where the picture is now, zoom included
+            AndroidView({ VideoView(it, player, luts.box, capture, overlays) }, Modifier.fillMaxSize(),
+                update = { it.setZoom(l.scale, l.pan.x, l.pan.y) })
+            GuidesOverlay(overlays, l)
             FocusOverlay(cam, video, focusTap, focusResult, showAreas = !clean && afOK)
             // Swipe up or down anywhere on the picture: controls away (clean feed) and back.
             // Swipe right to left on the picture: the autofocus mode rail (left to right closes it).
             // (Not from the screen edge: in full screen Android keeps edge swipes for its nav buttons.)
+            // Pinch: zoom, 1x to 8x, about the fingers. Zoomed in (not Fill), a drag moves the picture.
             // A tap closes the AF rail or a picker, brings the controls back, or focuses there.
             Box(Modifier.fillMaxSize()
                 .pointerInput(afOK) {
-                    var dx = 0f
-                    detectHorizontalDragGestures(onDragStart = { dx = 0f }, onDragEnd = {
-                        if (afOK && dx < -swipe) openRail(5.0) else if (dx > swipe) rail = false
-                    }) { _, d -> dx += d }
-                }
-                .pointerInput(Unit) {
-                    var total = 0f
-                    detectVerticalDragGestures(onDragStart = { total = 0f },
-                        onDragEnd = { if (abs(total) > swipe) { clean = !clean; panel = null } }) { _, dy -> total += dy }
+                    awaitEachGesture {
+                        awaitFirstDown(requireUnconsumed = false)
+                        var total = Offset.Zero
+                        var pinched = false
+                        var panned = false
+                        do {
+                            val ev = awaitPointerEvent()
+                            if (ev.changes.count { it.pressed } >= 2) {
+                                if (!pinched && overlays.state.value.fill) {  // leave Fill where it is
+                                    zoom = layout.scale; pan = layout.pan
+                                    overlays.update { it.copy(fill = false) }
+                                }
+                                pinched = true
+                                val s1 = (zoom * ev.calculateZoom()).coerceIn(1f, 8f)
+                                val c = ev.calculateCentroid(useCurrent = true) - layout.bounds.center
+                                val u = (c - pan) / zoom  // the picture point under the fingers stays there
+                                pan = layout.clamped(c - u * s1 + ev.calculatePan(), s1)
+                                zoom = s1
+                                ev.changes.forEach { it.consume() }
+                            } else if (!pinched) {
+                                val ch = ev.changes.firstOrNull() ?: break
+                                val d = ch.positionChange()
+                                total += d
+                                if (!overlays.state.value.fill && zoom > 1.001f && (panned || total.getDistance() > viewConfiguration.touchSlop)) {
+                                    panned = true
+                                    pan = layout.clamped(pan + d, zoom)
+                                    ch.consume()
+                                }
+                            }
+                        } while (ev.changes.any { it.pressed })
+                        when {
+                            pinched -> if (zoom < 1.05f) resetZoom()
+                            panned -> {}
+                            abs(total.y) > swipe && abs(total.y) > abs(total.x) * 1.3f -> { clean = !clean; panel = null }
+                            abs(total.x) > swipe && abs(total.x) > abs(total.y) * 1.3f ->
+                                if (afOK && total.x < 0) openRail(5.0) else if (total.x > 0) rail = false
+                        }
+                    }
                 }
                 .pointerInput(video, afOK) {
                     detectTapGestures { p ->
@@ -280,17 +337,20 @@ class MainActivity : ComponentActivity() {
                 Column(Modifier.fillMaxSize().safeDrawingPadding()) {
                     TopBar(cam, compact, panel, { panel = it }, openMenu)
                     if (link !is Camera.Link.Connected) LinkChip(link)
+                    if (ov.fill || zoom > 1.001f) ZoomChip(
+                        if (ov.fill) "Fill " + (if (ov.enabled && ov.guide != FrameGuide.OFF) ov.guide.label else "frame") else "%.1f×".format(zoom)
+                    ) { resetZoom() }
                     capture.recordingSince.collectAsState().value?.let {
                         Box(Modifier.fillMaxWidth().padding(top = 6.dp), contentAlignment = Alignment.Center) { LocalRecordingPill(it) }
                     }
                     Spacer(Modifier.weight(1f))
                     val p = panel
-                    if (p != null) QuickPanelView(cam, luts, p) { panel = null }
+                    if (p != null) QuickPanelView(cam, luts, overlays, p) { panel = null }
                     else {
                         if (compact) Box(Modifier.fillMaxWidth().padding(end = 8.dp, bottom = 4.dp), contentAlignment = Alignment.CenterEnd) {
                             CaptureButtons(capture)
                         }
-                        BottomBar(cam, luts, capture, compact, panel) { panel = it }
+                        BottomBar(cam, luts, capture, overlays, compact, panel) { panel = it }
                     }
                 }
             }
@@ -315,6 +375,17 @@ class MainActivity : ComponentActivity() {
         Centered {
             if (state !is StreamPlayer.State.Failed) CircularProgressIndicator(color = Color.White.copy(alpha = 0.8f))
             Text(text, style = HudStyle.text(15.sp), textAlign = TextAlign.Center, modifier = Modifier.padding(top = 14.dp, start = 24.dp, end = 24.dp))
+        }
+    }
+
+    /** While zoomed: how far, and a tap back to the whole picture. */
+    @Composable
+    private fun ZoomChip(text: String, reset: () -> Unit) {
+        Box(Modifier.fillMaxWidth().padding(top = 6.dp), contentAlignment = Alignment.Center) {
+            Text("$text   ✕", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(50)).clickable(onClick = reset)
+                    .semantics { contentDescription = "Zoomed in. Show the whole picture" }
+                    .padding(horizontal = 12.dp, vertical = 6.dp))
         }
     }
 
